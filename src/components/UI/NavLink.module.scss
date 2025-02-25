@@ -1,0 +1,8 @@
+.navlinkBtn {
+  color: var(--color-secondary-main);
+
+  &:hover,
+  &.active {
+    color: var(--color-primary-main);
+  }
+}
