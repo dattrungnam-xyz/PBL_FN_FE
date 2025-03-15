@@ -1,0 +1,17 @@
+.sideImg {
+  width: 100%;
+  object-fit: cover;
+}
+
+.tabGroup {
+  padding: 9px 13px;
+  background-color: rgba(53, 114, 111, 0.6);
+  border-radius: 33px;
+  display: inline-flex;
+
+  :global {
+    .MuiButton-root {
+      color: white;
+    }
+  }
+}

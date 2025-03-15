@@ -3,36 +3,36 @@ import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@mui/material/styles";
-// Use this workaround to make default MUI styles is overridden by the same specificity styles
 import StyledEngineProvider from "@mui/material/StyledEngineProvider";
-
-import theme from "./theme";
-import store from "./stores/index.ts";
-import queryClient from "./queryClient.ts";
-import { setupAxiosInterceptors } from "./axios.ts";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 import "./index.css";
 import "react-perfect-scrollbar/dist/css/styles.css";
+import theme from "./theme";
+import queryClient from "./queryClient.ts";
+import store from "./stores/index.ts";
 import "react-toastify/dist/ReactToastify.css";
-import App from "./App.tsx";
+import { setupAxiosInterceptors } from "./axios.ts";
+import { RoleEnum } from "./types/auth.ts";
 
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 
-import AuthLayout from "./layout/auth/AuthLayout.tsx";
-
+import ProtectedRouteComponent from "./components/ProtectedRouteComponent.tsx";
 import GlobalMessageContainer from "./components/GlobalMessageContainer.tsx";
 
-import {
-  LoginPage,
-  RegisterPage,
-  ForgotPasswordPage,
-  ResetPasswordPage,
-  HomePage,
-} from "./pages/index.ts";
+import AuthInitializer from "./features/auth/components/AuthInitializer.tsx";
+import AuthLayout from "./features/auth/components/AuthLayout.tsx";
+
+import LoginPage from "./features/auth/components/LoginPage.tsx";
+import RegisterPage from "./features/auth/components/RegisterPage.tsx";
+
+// import Admin from "./components/layout/admin/Admin.tsx";
+
+import ForgotPasswordPage from "./features/auth/components/ForgotPasswordPage.tsx";
+import ResetPasswordPage from "./features/auth/components/ResetPasswordPage.tsx";
+import HomePage from "./features/home/HomePage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -71,6 +71,37 @@ const router = createBrowserRouter([
   //     },
   //   ],
   // },
+
+  // {
+  //   path: "admin",
+  //   element: (
+  //     <ProtectedRouteComponent
+  //       authorizedRoles={[RoleEnum.Admin, RoleEnum.Doctor]}
+  //     >
+  //       <Admin />
+  //     </ProtectedRouteComponent>
+  //   ),
+  //   children: [
+  //     {
+  //       index: true,
+  //       element: <Dashboard />,
+  //     },
+  //   ],
+  // },
+  // {
+  //   path: "admin/account",
+  //   element: (
+  //     <ProtectedRouteComponent authorizedRoles={[RoleEnum.Admin]}>
+  //       <Admin />
+  //     </ProtectedRouteComponent>
+  //   ),
+  //   children: [
+  //     {
+  //       index: true,
+  //       element: <AccountIndexPage />,
+  //     },
+  //   ],
+  // },
 ]);
 
 setupAxiosInterceptors(store);
@@ -85,15 +116,15 @@ createRoot(document.getElementById("root")!).render(
               clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
             >
               <GlobalMessageContainer>
-                <ToastContainer />
-                <App>
+                <ToastContainer position="bottom-right" autoClose={4000} />
+                <AuthInitializer>
                   <RouterProvider router={router} />
-                </App>
+                </AuthInitializer>
               </GlobalMessageContainer>
             </GoogleOAuthProvider>
           </QueryClientProvider>
         </Provider>
       </ThemeProvider>
     </StyledEngineProvider>
-  </StrictMode>
+  </StrictMode>,
 );

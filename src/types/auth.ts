@@ -3,8 +3,8 @@ export interface User {
   username: string;
   name: string;
   email: string;
-  avatar?: string | null;
-  phone?: string | null;
+  avatar?: string;
+  phone?: string;
   roles: Role[];
   createdAt: string;
 }
@@ -15,4 +15,24 @@ export enum RoleEnum {
   Admin = "admin",
   User = "user",
   Doctor = "doctor",
+}
+
+export function canAccessAdminPage(user: User) {
+  return (
+    user.roles.includes(RoleEnum.Admin) 
+  );
+}
+
+export function isAdmin(user: User) {
+  return user.roles.includes(RoleEnum.Admin);
+}
+
+export function getRole(user: User) {
+  if (user.roles.includes(RoleEnum.Admin)) {
+    return RoleEnum.Admin;
+  }
+  if (user.roles.includes(RoleEnum.Doctor)) {
+    return RoleEnum.Doctor;
+  }
+  return RoleEnum.User;
 }

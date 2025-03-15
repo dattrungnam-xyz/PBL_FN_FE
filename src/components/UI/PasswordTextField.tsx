@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import { UseFormRegisterReturn } from "react-hook-form";
 
 type PasswordTextFieldProps = {
-  register: UseFormRegisterReturn; // react-hook-form register
+  register?: UseFormRegisterReturn; // react-hook-form register
 };
 
 const PasswordTextField: React.FC<PasswordTextFieldProps & TextFieldProps> = ({
@@ -20,10 +20,10 @@ const PasswordTextField: React.FC<PasswordTextFieldProps & TextFieldProps> = ({
   return (
     <TextField
       {...props}
-      ref={register.ref}
-      onChange={register.onChange}
-      onBlur={register.onBlur}
-      name={register.name}
+      ref={register?.ref}
+      onChange={register?.onChange}
+      onBlur={register?.onBlur}
+      name={register?.name}
       type={showPassword ? "text" : "password"}
       slotProps={{
         input: {

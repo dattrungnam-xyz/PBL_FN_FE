@@ -138,10 +138,10 @@ img {
 /* --------------------- */
 
 :root {
-  --color-primary-light: #4a82c3;
-  --color-primary-main: #203a90;
-  --color-primary-main-alpha-1: #203a901a;
-  --color-primary-dark: #102774;
+  --color-primary-light: #049645;
+  --color-primary-main: #28a745;
+  --color-primary-main-alpha-1: #28a7451a;
+  --color-primary-dark: #09a164;
   --color-secondary-light: rgba(84, 86, 90, 0.6);
   --color-secondary-main: #54565a;
   --color-secondary-dark: #202124;
@@ -154,6 +154,8 @@ img {
 
 * {
   box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 body {

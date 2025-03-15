@@ -1,0 +1,12 @@
+.tabBtn {
+  border-radius: 33px;
+  height: 40px;
+  width: 146px;
+
+  &:hover {
+    &:not(:global(.MuiButton-contained)) {
+      // text-decoration: underline;
+      color: var(--color-primary-light);
+    }
+  }
+}

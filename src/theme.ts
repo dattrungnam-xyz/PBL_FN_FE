@@ -119,9 +119,9 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      light: "#4A82C3",
-      main: "#203A90",
-      dark: "#102774",
+      light: "#049645",
+      main: "#28a745",
+      dark: "#09a164",
     },
     secondary: {
       light: "rgba(84, 86, 90, 0.6)",
@@ -129,13 +129,17 @@ const theme = createTheme({
       dark: "#202124",
     },
     text: {
-      primary: "#54565A",
+      primary: "#01633C",
       secondary: "rgba(84, 86, 90, 0.6)",
     },
     success: {
       light: "#F0FDF4",
       main: "#00B035",
       contrastText: "#fff",
+    },
+    background: {
+      default: "#f4f4f4",
+      paper: "#ffffff",
     },
   },
   typography: {

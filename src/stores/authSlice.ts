@@ -17,13 +17,34 @@ const authSlice = createSlice({
   name: "auth",
   initialState: initialState,
   reducers: {
-    login(state, action: PayloadAction<{ token: string; user: User }>) {
-      const { token, user } = action.payload;
+    login(
+      state,
+      action: PayloadAction<{
+        token: string;
+        user: User;
+        refreshToken: string;
+      }>,
+    ) {
+      const { token, user, refreshToken } = action.payload;
       state.token = token;
       state.isAuthenticated = true;
       state.user = user;
 
       localStorage.setItem("token", token);
+      localStorage.setItem("refreshToken", refreshToken);
+    },
+    refreshToken(
+      state,
+      action: PayloadAction<{
+        token: string;
+        refreshToken: string;
+      }>,
+    ) {
+      const { token, refreshToken } = action.payload;
+      state.token = token;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("refreshToken", refreshToken);
     },
     logout(state) {
       state.token = null;
@@ -31,6 +52,7 @@ const authSlice = createSlice({
       state.user = null;
 
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
     },
   },
 });
