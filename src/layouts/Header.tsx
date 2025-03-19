@@ -15,12 +15,14 @@ import {
   Stack,
   Toolbar,
   Typography,
+  Box,
 } from "@mui/material";
 import { ArrowDropDown, ArrowLeft, Logout, Person } from "@mui/icons-material";
 import { AppDispatch, RootState } from "../stores";
 import { AuthState, authActions } from "../stores/authSlice";
 import { canAccessAdminPage } from "../types/auth";
 import AdminIcon from "../components/UI/AdminIcon";
+import SearchBar from "../components/SearchBar";
 
 // import CustomNavLink from "../UI/NavLink";
 import Logo from "../assets/logos/logo.jpg";
@@ -73,33 +75,11 @@ const Header: React.FC = () => {
           <Link to="/" style={{ display: "flex", alignItems: "center" }}>
             <img style={{ height: "40px", width: "auto" }} src={Logo} />
           </Link>
-          <Stack direction="row">
-            {/* <NavLink to="/">
-              {({ isActive }) => (
-                <CustomNavLink isActive={isActive}>Home</CustomNavLink>
-              )}
-            </NavLink>
-            <NavLink to="/voca">
-              {({ isActive }) => (
-                <CustomNavLink isActive={isActive}>Vocab Boost</CustomNavLink>
-              )}
-            </NavLink>
-            <NavLink to="/exams">
-              {({ isActive }) => (
-                <CustomNavLink isActive={isActive}>
-                  TOEIC Practice
-                </CustomNavLink>
-              )}
-            </NavLink>
-            <NavLink to="/listen">
-              {({ isActive }) => (
-                <CustomNavLink isActive={isActive}>
-                  Listen Practice
-                </CustomNavLink>
-              )}
-            </NavLink> */}
-          </Stack>
         </Stack>
+
+        <Box sx={{ flex: 1, display: "flex", justifyContent: "center", px: 2 }}>
+          <SearchBar />
+        </Box>
 
         {isAuthenticated ? (
           <Stack

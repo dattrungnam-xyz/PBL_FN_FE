@@ -15,29 +15,25 @@ import queryClient from "./queryClient.ts";
 import store from "./stores/index.ts";
 import "react-toastify/dist/ReactToastify.css";
 import { setupAxiosInterceptors } from "./axios.ts";
-import { RoleEnum } from "./types/auth.ts";
 
-import ProtectedRoute from "./components/ProtectedRoute.tsx";
-
-import ProtectedRouteComponent from "./components/ProtectedRouteComponent.tsx";
 import GlobalMessageContainer from "./components/GlobalMessageContainer.tsx";
-
 import AuthInitializer from "./features/auth/components/AuthInitializer.tsx";
 import AuthLayout from "./features/auth/components/AuthLayout.tsx";
-
 import LoginPage from "./features/auth/components/LoginPage.tsx";
 import RegisterPage from "./features/auth/components/RegisterPage.tsx";
-
-// import Admin from "./components/layout/admin/Admin.tsx";
-
 import ForgotPasswordPage from "./features/auth/components/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./features/auth/components/ResetPasswordPage.tsx";
 import HomePage from "./features/home/HomePage.tsx";
+import Product from "./features/products/Product.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <HomePage />,
+  },
+  {
+    path: "/products",
+    element: <Product />,
   },
   {
     path: "/account",
