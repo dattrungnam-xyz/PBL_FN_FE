@@ -114,13 +114,13 @@ const sortOptions = [
   },
 ];
 
-const Product = () => {
+const Products = () => {
   const [priceRange, setPriceRange] = useState<number[]>([0, 1000000]);
   const [selectedProvinces, setSelectedProvinces] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [provinceSearch, setProvinceSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalProducts] = useState(25);
   const itemsPerPage = 6;
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedSort, setSelectedSort] = useState("popular");
@@ -185,22 +185,41 @@ const Product = () => {
         bgcolor: "background.default",
       }}
     >
-      <Box sx={{ py: 3 }}>
+      <Box sx={{ py: { xs: 1, sm: 2, md: 3 } }}>
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1fr 3fr" },
-            gap: 1,
+            gap: { xs: 1, sm: 2 },
           }}
         >
           {/* Filters Section */}
-          <Box sx={{ bgcolor: "background.paper", p: 2, borderRadius: 2 }}>
-            <Typography color="text.primary" variant="h6" gutterBottom>
+          <Box 
+            sx={{ 
+              bgcolor: "background.paper", 
+              p: { xs: 1.5, sm: 2 }, 
+              borderRadius: { xs: 1, sm: 2 },
+              position: { md: "sticky", sm: "static" },
+              top: { xs: 16, sm: 24 },
+              zIndex: 1,
+              maxHeight: { xs: "calc(100vh - 32px)", sm: "auto" },
+              overflowY: { xs: "auto", sm: "visible" },
+              mb: { xs: 2, sm: 0 },
+            }}
+          >
+            <Typography 
+              color="text.primary" 
+              variant="h6" 
+              sx={{ 
+                fontSize: { xs: "1rem", sm: "1.25rem" },
+                mb: { xs: 0.5, sm: 1 } 
+              }}
+            >
               Bộ lọc
             </Typography>
 
             {/* Category Filter */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: { xs: 0.5, sm: 1 } }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Danh mục</InputLabel>
                 <Select
@@ -217,11 +236,18 @@ const Product = () => {
               </FormControl>
             </Box>
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: { xs: 1.5, sm: 2 } }} />
 
             {/* Province Filter */}
-            <Box sx={{ mb: 3 }}>
-              <Typography color="text.primary" variant="h6" gutterBottom>
+            <Box sx={{ mb: { xs: 0.5, sm: 1 } }}>
+              <Typography 
+                color="text.primary" 
+                variant="h6" 
+                sx={{ 
+                  fontSize: { xs: "1rem", sm: "1.25rem" },
+                  mb: { xs: 0.5, sm: 1 } 
+                }}
+              >
                 Tỉnh/Thành phố
               </Typography>
               <TextField
@@ -234,7 +260,7 @@ const Product = () => {
               />
               <Box
                 sx={{
-                  maxHeight: 300,
+                  maxHeight: { xs: 200, sm: 300 },
                   overflow: "auto",
                   border: 1,
                   borderColor: "divider",
@@ -255,7 +281,14 @@ const Product = () => {
                           disableRipple
                           size="small"
                         />
-                        <ListItemText primary={province} />
+                        <ListItemText 
+                          primary={province}
+                          sx={{ 
+                            "& .MuiListItemText-primary": {
+                              fontSize: { xs: "0.875rem", sm: "1rem" }
+                            }
+                          }}
+                        />
                       </ListItemButton>
                     </ListItem>
                   ))}
@@ -265,18 +298,29 @@ const Product = () => {
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  sx={{ mt: 1, display: "block" }}
+                  sx={{ 
+                    mt: 1, 
+                    display: "block",
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" }
+                  }}
                 >
                   Đã chọn {selectedProvinces.length} tỉnh/thành phố
                 </Typography>
               )}
             </Box>
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: { xs: 1.5, sm: 2 } }} />
 
             {/* Price Range */}
             <Box>
-              <Typography variant="h6" color="text.primary" gutterBottom>
+              <Typography 
+                variant="h6" 
+                color="text.primary" 
+                sx={{ 
+                  fontSize: { xs: "1rem", sm: "1.25rem" },
+                  mb: { xs: 0.5, sm: 1 } 
+                }}
+              >
                 Khoảng giá
               </Typography>
               <Slider
@@ -294,10 +338,16 @@ const Product = () => {
                 justifyContent="space-between"
                 sx={{ mt: 1 }}
               >
-                <Typography variant="body2">
+                <Typography 
+                  variant="body2"
+                  sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                >
                   {priceRange[0].toLocaleString()}đ
                 </Typography>
-                <Typography variant="body2">
+                <Typography 
+                  variant="body2"
+                  sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                >
                   {priceRange[1].toLocaleString()}đ
                 </Typography>
               </Stack>
@@ -305,8 +355,22 @@ const Product = () => {
           </Box>
 
           {/* Products Grid */}
-          <Box sx={{ bgcolor: "background.paper", p: 2, borderRadius: 2 }}>
-            <Typography color="text.primary" variant="h5" gutterBottom>
+          <Box 
+            sx={{ 
+              bgcolor: "background.paper", 
+              p: { xs: 1.5, sm: 2 }, 
+              borderRadius: { xs: 1, sm: 2 },
+              minHeight: { xs: "calc(100vh - 200px)", sm: "auto" },
+            }}
+          >
+            <Typography 
+              color="text.primary" 
+              variant="h5" 
+              sx={{ 
+                fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" },
+                mb: { xs: 0.5, sm: 1 } 
+              }}
+            >
               Kết quả tìm kiếm
             </Typography>
 
@@ -314,16 +378,23 @@ const Product = () => {
             <Box
               sx={{
                 display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
                 justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-                pb: 2,
+                alignItems: { xs: "flex-start", sm: "center" },
+                gap: { xs: 1, sm: 0 },
+                mb: { xs: 0.5, sm: 1 },
+                pb: { xs: 0.5, sm: 1 },
                 borderBottom: 1,
                 borderColor: "divider",
               }}
             >
               <Typography
-                sx={{ display: "flex", flexDirection: "row", gap: 0.5 }}
+                sx={{ 
+                  display: "flex", 
+                  flexDirection: "row", 
+                  gap: 0.5,
+                  fontSize: { xs: "0.875rem", sm: "1rem" }
+                }}
                 variant="body2"
                 color="text.secondary"
               >
@@ -346,6 +417,10 @@ const Product = () => {
                     sortOptions.find((option) => option.value === selectedSort)
                       ?.icon
                   }
+                  sx={{
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    py: { xs: 0.5, sm: 0.75 }
+                  }}
                 >
                   {
                     sortOptions.find((option) => option.value === selectedSort)
@@ -379,8 +454,8 @@ const Product = () => {
                   sm: "repeat(2, 1fr)",
                   md: "repeat(3, 1fr)",
                 },
-                gap: 2,
-                mb: 3,
+                gap: { xs: 1, sm: 2 },
+                mb: { xs: 2, sm: 3 },
               }}
             >
               {paginatedProducts.map((product) => (
@@ -400,8 +475,8 @@ const Product = () => {
               sx={{
                 display: "flex",
                 justifyContent: "center",
-                mt: 2,
-                pt: 2,
+                mt: { xs: 1.5, sm: 2 },
+                pt: { xs: 1.5, sm: 2 },
                 borderTop: 1,
                 borderColor: "divider",
               }}
@@ -417,6 +492,8 @@ const Product = () => {
                 sx={{
                   "& .MuiPaginationItem-root": {
                     borderRadius: 1,
+                    minWidth: { xs: 32, sm: 40 },
+                    height: { xs: 32, sm: 40 },
                     "&.Mui-selected": {
                       bgcolor: "primary.main",
                       color: "white",
@@ -435,4 +512,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default Products;

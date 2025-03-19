@@ -24,8 +24,8 @@ import RegisterPage from "./features/auth/components/RegisterPage.tsx";
 import ForgotPasswordPage from "./features/auth/components/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./features/auth/components/ResetPasswordPage.tsx";
 import HomePage from "./features/home/HomePage.tsx";
-import Product from "./features/products/Product.tsx";
-
+import Products from "./features/products/Products.tsx";
+import Product from "./features/product/Product.tsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -33,6 +33,10 @@ const router = createBrowserRouter([
   },
   {
     path: "/products",
+    element: <Products />,
+  },
+  {
+    path: "/product/:id",
     element: <Product />,
   },
   {
