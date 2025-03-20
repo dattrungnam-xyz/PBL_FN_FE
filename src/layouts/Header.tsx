@@ -16,8 +16,10 @@ import {
   Toolbar,
   Typography,
   Box,
+  Badge,
+  IconButton,
 } from "@mui/material";
-import { ArrowDropDown, ArrowLeft, Logout, Person } from "@mui/icons-material";
+import { ArrowDropDown, ArrowLeft, Logout, Person, ShoppingCart } from "@mui/icons-material";
 import { AppDispatch, RootState } from "../stores";
 import { AuthState, authActions } from "../stores/authSlice";
 import { canAccessAdminPage } from "../types/auth";
@@ -88,6 +90,13 @@ const Header: React.FC = () => {
             spacing={1}
             color="secondary.main"
           >
+            <Link to="/cart">
+              <IconButton size="small" sx={{ color: 'text.primary' }}>
+                <Badge badgeContent={2} color="primary">
+                  <ShoppingCart sx={{ fontSize: "1.5rem" }} />
+                </Badge>
+              </IconButton>
+            </Link>
             <Typography>{user?.name}</Typography>
             <Stack
               color="text.primary"

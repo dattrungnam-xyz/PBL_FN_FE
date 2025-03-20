@@ -206,7 +206,7 @@ const RegisterPage: React.FC = () => {
             alignSelf: { lg: "flex-end" },
           }}
         >
-          Start Learning
+          Register
         </Button>
       </Stack>
     </>

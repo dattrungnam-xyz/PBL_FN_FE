@@ -3,7 +3,6 @@ import {
   Typography,
   Slider,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Divider,
@@ -121,7 +120,7 @@ const Products = () => {
   const [provinceSearch, setProvinceSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalProducts] = useState(25);
-  const itemsPerPage = 6;
+  const itemsPerPage = 12;
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedSort, setSelectedSort] = useState("popular");
 
@@ -180,51 +179,54 @@ const Products = () => {
   };
 
   return (
-    <Content
-      sx={{
-        bgcolor: "background.default",
-      }}
-    >
-      <Box sx={{ py: { xs: 1, sm: 2, md: 3 } }}>
+    <Content>
+      <Box sx={{ py: { xs: 0.5, sm: 1 } }}>
         <Box
           sx={{
+            maxWidth: 1200,
+            mx: "auto",
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1fr 3fr" },
-            gap: { xs: 1, sm: 2 },
+            gridTemplateColumns: { xs: "1fr", md: "280px 1fr" },
+            gap: 2,
           }}
         >
           {/* Filters Section */}
-          <Box 
-            sx={{ 
-              bgcolor: "background.paper", 
-              p: { xs: 1.5, sm: 2 }, 
-              borderRadius: { xs: 1, sm: 2 },
-              position: { md: "sticky", sm: "static" },
-              top: { xs: 16, sm: 24 },
-              zIndex: 1,
-              maxHeight: { xs: "calc(100vh - 32px)", sm: "auto" },
-              overflowY: { xs: "auto", sm: "visible" },
-              mb: { xs: 2, sm: 0 },
+          <Box
+            sx={{
+              bgcolor: "background.paper",
+              p: 1,
+              borderRadius: 1,
+              height: "fit-content",
+              border: 1,
+              borderColor: "divider",
             }}
           >
-            <Typography 
-              color="text.primary" 
-              variant="h6" 
-              sx={{ 
-                fontSize: { xs: "1rem", sm: "1.25rem" },
-                mb: { xs: 0.5, sm: 1 } 
+            <Typography
+              variant="h6"
+              sx={{
+                fontSize: "1.125rem",
+                mb: 1,
+                fontWeight: 600,
               }}
             >
               Bộ lọc
             </Typography>
 
             {/* Category Filter */}
-            <Box sx={{ mb: { xs: 0.5, sm: 1 } }}>
+            <Box sx={{ mb: 1 }}>
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                sx={{
+                  mb: 0.5,
+                  fontWeight: 600,
+                }}
+              >
+                Danh mục
+              </Typography>
               <FormControl fullWidth size="small">
-                <InputLabel>Danh mục</InputLabel>
                 <Select
                   value={selectedCategory}
-                  label="Danh mục"
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
                   {categories.map((category) => (
@@ -236,16 +238,16 @@ const Products = () => {
               </FormControl>
             </Box>
 
-            <Divider sx={{ my: { xs: 1.5, sm: 2 } }} />
+            <Divider sx={{ my: 1 }} />
 
             {/* Province Filter */}
-            <Box sx={{ mb: { xs: 0.5, sm: 1 } }}>
-              <Typography 
-                color="text.primary" 
-                variant="h6" 
-                sx={{ 
-                  fontSize: { xs: "1rem", sm: "1.25rem" },
-                  mb: { xs: 0.5, sm: 1 } 
+            <Box sx={{ mb: 1 }}>
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
                 }}
               >
                 Tỉnh/Thành phố
@@ -260,14 +262,25 @@ const Products = () => {
               />
               <Box
                 sx={{
-                  maxHeight: { xs: 200, sm: 300 },
+                  maxHeight: 200,
                   overflow: "auto",
                   border: 1,
                   borderColor: "divider",
                   borderRadius: 1,
+                  "&::-webkit-scrollbar": {
+                    width: 6,
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    background: "#f1f1f1",
+                    borderRadius: 3,
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: "#888",
+                    borderRadius: 3,
+                  },
                 }}
               >
-                <List dense>
+                <List dense disablePadding>
                   {filteredProvinces.map((province) => (
                     <ListItem key={province} disablePadding>
                       <ListItemButton
@@ -281,12 +294,10 @@ const Products = () => {
                           disableRipple
                           size="small"
                         />
-                        <ListItemText 
+                        <ListItemText
                           primary={province}
-                          sx={{ 
-                            "& .MuiListItemText-primary": {
-                              fontSize: { xs: "0.875rem", sm: "1rem" }
-                            }
+                          slotProps={{
+                            primary: { fontSize: "0.875rem" },
                           }}
                         />
                       </ListItemButton>
@@ -298,27 +309,23 @@ const Products = () => {
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  sx={{ 
-                    mt: 1, 
-                    display: "block",
-                    fontSize: { xs: "0.75rem", sm: "0.875rem" }
-                  }}
+                  sx={{ mt: 1, display: "block" }}
                 >
                   Đã chọn {selectedProvinces.length} tỉnh/thành phố
                 </Typography>
               )}
             </Box>
 
-            <Divider sx={{ my: { xs: 1.5, sm: 2 } }} />
+            <Divider sx={{ my: 1 }} />
 
             {/* Price Range */}
             <Box>
-              <Typography 
-                variant="h6" 
-                color="text.primary" 
-                sx={{ 
-                  fontSize: { xs: "1rem", sm: "1.25rem" },
-                  mb: { xs: 0.5, sm: 1 } 
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
                 }}
               >
                 Khoảng giá
@@ -331,44 +338,32 @@ const Products = () => {
                 max={1000000}
                 step={100000}
                 marks
-                sx={{ mt: 2 }}
+                  sx={{ mt: 1 }}
               />
               <Stack
                 direction="row"
                 justifyContent="space-between"
                 sx={{ mt: 1 }}
               >
-                <Typography 
-                  variant="body2"
-                  sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
-                >
+                <Typography variant="caption">
                   {priceRange[0].toLocaleString()}đ
                 </Typography>
-                <Typography 
-                  variant="body2"
-                  sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
-                >
+                <Typography variant="caption">
                   {priceRange[1].toLocaleString()}đ
                 </Typography>
               </Stack>
             </Box>
           </Box>
 
-          {/* Products Grid */}
-          <Box 
-            sx={{ 
-              bgcolor: "background.paper", 
-              p: { xs: 1.5, sm: 2 }, 
-              borderRadius: { xs: 1, sm: 2 },
-              minHeight: { xs: "calc(100vh - 200px)", sm: "auto" },
-            }}
-          >
-            <Typography 
-              color="text.primary" 
-              variant="h5" 
-              sx={{ 
-                fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" },
-                mb: { xs: 0.5, sm: 1 } 
+          {/* Products Section */}
+          <Box>
+            {/* Section Title */}
+            <Typography
+              variant="h6"
+              sx={{
+                fontSize: "1.25rem",
+                fontWeight: 600,
+                mb: 1,
               }}
             >
               Kết quả tìm kiếm
@@ -378,30 +373,27 @@ const Products = () => {
             <Box
               sx={{
                 display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
                 justifyContent: "space-between",
-                alignItems: { xs: "flex-start", sm: "center" },
-                gap: { xs: 1, sm: 0 },
-                mb: { xs: 0.5, sm: 1 },
-                pb: { xs: 0.5, sm: 1 },
+                alignItems: "center",
+                mb: 1,
+                pb: 1,
                 borderBottom: 1,
                 borderColor: "divider",
               }}
             >
               <Typography
-                sx={{ 
-                  display: "flex", 
-                  flexDirection: "row", 
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
                   gap: 0.5,
-                  fontSize: { xs: "0.875rem", sm: "1rem" }
+                  fontSize: "0.875rem",
                 }}
-                variant="body2"
                 color="text.secondary"
               >
                 Tìm thấy{" "}
                 <Typography
-                  variant="body2"
-                  fontWeight="bold"
+                  component="span"
+                  fontWeight="600"
                   color="text.primary"
                 >
                   {totalProducts}
@@ -418,8 +410,8 @@ const Products = () => {
                       ?.icon
                   }
                   sx={{
-                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
-                    py: { xs: 0.5, sm: 0.75 }
+                    fontSize: "0.875rem",
+                    textTransform: "none",
                   }}
                 >
                   {
@@ -446,16 +438,18 @@ const Products = () => {
               </Box>
             </Box>
 
+            {/* Products Grid */}
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, 1fr)",
+                  xs: "repeat(2, 1fr)",
+                  sm: "repeat(3, 1fr)",
                   md: "repeat(3, 1fr)",
+                  lg: "repeat(4, 1fr)",
                 },
-                gap: { xs: 1, sm: 2 },
-                mb: { xs: 2, sm: 3 },
+                gap: 1,
+                mb: 1,
               }}
             >
               {paginatedProducts.map((product) => (
@@ -475,8 +469,8 @@ const Products = () => {
               sx={{
                 display: "flex",
                 justifyContent: "center",
-                mt: { xs: 1.5, sm: 2 },
-                pt: { xs: 1.5, sm: 2 },
+                mt: 2,
+                pt: 2,
                 borderTop: 1,
                 borderColor: "divider",
               }}
@@ -486,21 +480,14 @@ const Products = () => {
                 page={page}
                 onChange={handlePageChange}
                 color="primary"
-                size="large"
+                size="medium"
                 showFirstButton
                 showLastButton
                 sx={{
                   "& .MuiPaginationItem-root": {
                     borderRadius: 1,
-                    minWidth: { xs: 32, sm: 40 },
-                    height: { xs: 32, sm: 40 },
-                    "&.Mui-selected": {
-                      bgcolor: "primary.main",
-                      color: "white",
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    },
+                    minWidth: 32,
+                    height: 32,
                   },
                 }}
               />

@@ -26,6 +26,10 @@ import ResetPasswordPage from "./features/auth/components/ResetPasswordPage.tsx"
 import HomePage from "./features/home/HomePage.tsx";
 import Products from "./features/products/Products.tsx";
 import Product from "./features/product/Product.tsx";
+import Cart from "./features/cart/Cart.tsx";
+import Payment from "./features/payment/Payment.tsx";
+import Orders from "./features/orders/Orders.tsx";
+import Profile from "./features/profile/Profile.tsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -38,6 +42,18 @@ const router = createBrowserRouter([
   {
     path: "/product/:id",
     element: <Product />,
+  },
+  {
+    path: "/cart",
+    element: <Cart />,
+  },
+  {
+    path: "/payment",
+    element: <Payment />,
+  },
+  {
+    path: "/orders",
+    element: <Orders />,
   },
   {
     path: "/account",
@@ -60,6 +76,10 @@ const router = createBrowserRouter([
   {
     path: "reset-password/:token",
     element: <ResetPasswordPage />,
+  },
+  {
+    path: "profile",
+    element: <Profile />,
   },
   // {
   //   path: "profile",
