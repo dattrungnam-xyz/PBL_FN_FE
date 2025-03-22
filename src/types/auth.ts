@@ -9,18 +9,23 @@ export interface User {
   createdAt: string;
 }
 
-export type Role = "admin" | "user" | "doctor";
+export type Role = "admin" | "user" | "seller";
 
 export enum RoleEnum {
   Admin = "admin",
   User = "user",
-  Doctor = "doctor",
+  Seller = "seller",
+}
+
+export function isSeller(user: User) {
+  if (user.roles.includes(RoleEnum.Seller)) {
+    return true;
+  }
+  return false;
 }
 
 export function canAccessAdminPage(user: User) {
-  return (
-    user.roles.includes(RoleEnum.Admin) 
-  );
+  return user.roles.includes(RoleEnum.Admin);
 }
 
 export function isAdmin(user: User) {
@@ -31,8 +36,8 @@ export function getRole(user: User) {
   if (user.roles.includes(RoleEnum.Admin)) {
     return RoleEnum.Admin;
   }
-  if (user.roles.includes(RoleEnum.Doctor)) {
-    return RoleEnum.Doctor;
+  if (user.roles.includes(RoleEnum.Seller)) {
+    return RoleEnum.Seller;
   }
   return RoleEnum.User;
 }

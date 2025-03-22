@@ -7,8 +7,10 @@ import {
   Rating,
   Stack,
 } from "@mui/material";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
 
 interface ProductCardProps {
   image: string;
@@ -33,10 +35,10 @@ const ProductCard = ({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        transition: "transform 0.2s",
+        transition: "all 0.3s ease-in-out",
         "&:hover": {
-          transform: "translateY(-2px)",
-          boxShadow: 3,
+          transform: "scale(1.03)",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
         },
         maxWidth: 240,
         position: "relative",
@@ -47,7 +49,13 @@ const ProductCard = ({
         height="160"
         image={image}
         alt={name}
-        sx={{ objectFit: "cover" }}
+        sx={{ 
+          objectFit: "cover",
+          transition: "transform 0.3s ease-in-out",
+          "&:hover": {
+            transform: "scale(1.1)",
+          }
+        }}
       />
       <CardContent sx={{ flexGrow: 1, p: 1 }}>
         <Typography
@@ -83,9 +91,15 @@ const ProductCard = ({
             alignItems: "center",
             color: "text.secondary",
             mb: 0.5,
+            gap: 0.5,
           }}
         >
-          <LocationOnIcon sx={{ fontSize: 16, mr: 0.5 }} />
+          <PlaceOutlinedIcon 
+            sx={{ 
+              fontSize: 18,
+              color: "primary.light"
+            }} 
+          />
           <Typography
             variant="body2"
             sx={{
@@ -110,7 +124,13 @@ const ProductCard = ({
             precision={0.5}
             readOnly
             size="small"
-            sx={{ color: "#FFB400" }}
+            icon={<StarIcon sx={{ color: "#FFB400" }} />}
+            emptyIcon={<StarBorderIcon sx={{ color: "#FFB400" }} />}
+            sx={{ 
+              "& .MuiRating-iconFilled": {
+                filter: "drop-shadow(0px 1px 2px rgba(255, 180, 0, 0.3))"
+              }
+            }}
           />
 
           <Box
@@ -118,10 +138,22 @@ const ProductCard = ({
               display: "flex",
               alignItems: "center",
               color: "text.secondary",
+              gap: 0.5,
             }}
           >
-            <ShoppingBagIcon sx={{ fontSize: 16, mr: 0.5 }} />
-            <Typography variant="body2">
+            <LocalMallOutlinedIcon 
+              sx={{ 
+                fontSize: 18,
+                color: "primary.light"
+              }} 
+            />
+            <Typography 
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                fontWeight: 500
+              }}
+            >
               {soldCount?.toLocaleString("vi-VN")}
             </Typography>
           </Box>

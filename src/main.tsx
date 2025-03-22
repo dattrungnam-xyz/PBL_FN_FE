@@ -30,6 +30,10 @@ import Cart from "./features/cart/Cart.tsx";
 import Payment from "./features/payment/Payment.tsx";
 import Orders from "./features/orders/Orders.tsx";
 import Profile from "./features/profile/Profile.tsx";
+
+import SellerLayout from "./layouts/seller/SellerLayout.tsx";
+import ProvideStoreInform from "./features/provideStoreInform/ProvideStoreInform.tsx";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -80,6 +84,21 @@ const router = createBrowserRouter([
   {
     path: "profile",
     element: <Profile />,
+  },
+  // for seller
+  {
+    path: "seller",
+    element: <SellerLayout />,
+    children: [
+      {
+        path: "a",
+        element: <></>,
+      },
+    ],
+  },
+  {
+    path: "provide-store-inform",
+    element: <ProvideStoreInform />,
   },
   // {
   //   path: "profile",

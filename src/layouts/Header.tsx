@@ -19,10 +19,16 @@ import {
   Badge,
   IconButton,
 } from "@mui/material";
-import { ArrowDropDown, ArrowLeft, Logout, Person, ShoppingCart } from "@mui/icons-material";
+import {
+  ArrowDropDown,
+  ArrowLeft,
+  Logout,
+  Person,
+  ShoppingCart,
+} from "@mui/icons-material";
 import { AppDispatch, RootState } from "../stores";
 import { AuthState, authActions } from "../stores/authSlice";
-import { canAccessAdminPage } from "../types/auth";
+import { canAccessAdminPage, isAdmin, isSeller } from "../types/auth";
 import AdminIcon from "../components/UI/AdminIcon";
 import SearchBar from "../components/SearchBar";
 
@@ -91,7 +97,7 @@ const Header: React.FC = () => {
             color="secondary.main"
           >
             <Link to="/cart">
-              <IconButton size="small" sx={{ color: 'text.primary' }}>
+              <IconButton size="small" sx={{ color: "text.primary" }}>
                 <Badge badgeContent={2} color="primary">
                   <ShoppingCart sx={{ fontSize: "1.5rem" }} />
                 </Badge>
@@ -148,6 +154,27 @@ const Header: React.FC = () => {
                     </MenuItem>
                   </Link>
                 )}
+
+                {user && !isAdmin(user) ? (
+                  isSeller(user) ? (
+                    <Link to="/seller">
+                      <MenuItem>
+                        <ListItemText>Quản lý cửa hàng</ListItemText>
+                      </MenuItem>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link to="/admin">
+                        <MenuItem>
+                          <ListItemIcon>
+                            <AdminIcon sx={{ fontSize: "20px" }} />
+                          </ListItemIcon>
+                          <ListItemText>Đăng kí bán hàng</ListItemText>
+                        </MenuItem>
+                      </Link>
+                    </>
+                  )
+                ) : null}
 
                 <Divider sx={{ margin: "8px !important" }} />
                 <MenuItem onClick={handleLogout}>

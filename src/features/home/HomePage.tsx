@@ -6,6 +6,7 @@ import {
   Avatar,
   Rating,
   Stack,
+  Button,
 } from "@mui/material";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
@@ -23,6 +24,11 @@ import Herb from "./assets/herb.png";
 import HandicraftsDecoration from "./assets/handicrafts_decoration.jpeg";
 import ProductCard from "../../components/ProductCard";
 import IntroduceCarousel from "./components/IntroduceCarousel";
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import SecurityIcon from '@mui/icons-material/Security';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+
 const responsive = {
   superLargeDesktop: {
     // the naming can be any, depends on you.
@@ -151,6 +157,29 @@ const ReviewItems = [
     product: "Mật ong rừng U Minh",
     date: "15/03/2024",
   },
+];
+
+const SellerBenefits = [
+  {
+    icon: <StorefrontIcon sx={{ fontSize: 40, color: "#fff" }} />,
+    title: "Quản lý cửa hàng dễ dàng",
+    description: "Công cụ quản lý đơn hàng, sản phẩm và khách hàng trực quan"
+  },
+  {
+    icon: <TrendingUpIcon sx={{ fontSize: 40, color: "#fff" }} />,
+    title: "Tăng doanh số bán hàng",
+    description: "Tiếp cận hàng triệu khách hàng tiềm năng trên nền tảng"
+  },
+  {
+    icon: <SecurityIcon sx={{ fontSize: 40, color: "#fff" }} />,
+    title: "Thanh toán an toàn",
+    description: "Hệ thống thanh toán bảo mật, hỗ trợ đa dạng phương thức"
+  },
+  {
+    icon: <SupportAgentIcon sx={{ fontSize: 40, color: "#fff" }} />,
+    title: "Hỗ trợ 24/7",
+    description: "Đội ngũ hỗ trợ chuyên nghiệp, sẵn sàng giải quyết mọi vấn đề"
+  }
 ];
 
 const HomePage = () => {
@@ -448,19 +477,6 @@ const HomePage = () => {
               autoPlay
               responsive={responsive}
             >
-              {/* {[1, 2].map((_, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: {
-                      xs: "1fr",
-                      sm: "repeat(2, 1fr)",
-                      md: "repeat(3, 1fr)",
-                    },
-                    gap: 2,
-                  }}
-                > */}
               {ReviewItems.map((review, idx) => (
                 <Card key={idx} sx={{ height: "100%", m: 0.25 }}>
                   <CardContent>
@@ -497,9 +513,161 @@ const HomePage = () => {
                   </CardContent>
                 </Card>
               ))}
-              {/* </Box>
-              ))} */}
             </Carousel>
+          </Box>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            mt: { xs: 1, sm: 2 },
+            maxHeight: "100%",
+          }}
+        >
+          <Box
+            sx={{
+              background: "linear-gradient(135deg,rgb(46, 158, 52) 0%,rgb(25, 119, 31) 100%)",
+              borderRadius: 2,
+              mt: 1,
+              p: { xs: 2, sm: 4 },
+              position: "relative",
+              overflow: "hidden",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)",
+                zIndex: 1,
+              },
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "linear-gradient(45deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%)",
+                zIndex: 1,
+              }
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                zIndex: 2,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+                color: "white",
+              }}
+            >
+              <Typography
+                variant="h4"
+                component="h2"
+                sx={{
+                  fontWeight: 700,
+                  mb: 2,
+                  textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                }}
+              >
+                Trở thành người bán hàng OCOP
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  mb: 4,
+                  opacity: 0.95,
+                  maxWidth: "800px",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                }}
+              >
+                Khám phá cơ hội kinh doanh cùng nền tảng thương mại điện tử hàng đầu
+              </Typography>
+              <Button
+                variant="contained"
+                sx={{
+                  mb: 4,
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: "30px",
+                  textTransform: "none",
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  bgcolor: "#fff",
+                  color: "#2E7D32",
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                  "&:hover": {
+                    bgcolor: "#fff",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
+                  },
+                  transition: "all 0.3s ease-in-out",
+                }}
+              >
+                Đăng ký ngay
+              </Button>
+            </Box>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(4, 1fr)",
+                },
+                gap: 3,
+                mt: 2,
+                position: "relative",
+                zIndex: 2,
+              }}
+            >
+              {SellerBenefits.map((benefit, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    bgcolor: "rgba(255,255,255,0.08)",
+                    borderRadius: 2,
+                    p: 2,
+                    textAlign: "center",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    transition: "all 0.3s ease-in-out",
+                    "&:hover": {
+                      transform: "translateY(-4px)",
+                      bgcolor: "rgba(255,255,255,0.12)",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    },
+                  }}
+                >
+                  {benefit.icon}
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      mt: 1,
+                      mb: 1,
+                      fontWeight: 600,
+                      color: "#fff",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    {benefit.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "rgba(255,255,255,0.9)",
+                    }}
+                  >
+                    {benefit.description}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
           </Box>
         </Box>
       </Box>
