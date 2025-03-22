@@ -5,8 +5,10 @@ import {
   CardMedia,
   Typography,
   Rating,
+  Stack,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
 interface ProductCardProps {
   image: string;
@@ -14,6 +16,7 @@ interface ProductCardProps {
   price: number;
   rating: number;
   location: string;
+  soldCount: number;
 }
 
 const ProductCard = ({
@@ -22,6 +25,7 @@ const ProductCard = ({
   price,
   rating,
   location,
+  soldCount,
 }: ProductCardProps) => {
   return (
     <Card
@@ -31,34 +35,13 @@ const ProductCard = ({
         flexDirection: "column",
         transition: "transform 0.2s",
         "&:hover": {
-          transform: "translateY(-4px)",
+          transform: "translateY(-2px)",
           boxShadow: 3,
         },
         maxWidth: 240,
         position: "relative",
       }}
     >
-      <Box
-        sx={{
-          position: "absolute",
-          top: 8,
-          right: 8,
-          zIndex: 1,
-          bgcolor: "rgba(255, 255, 255, 0.9)",
-          borderRadius: 1,
-          p: 0.5,
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <Rating
-          value={rating}
-          precision={0.5}
-          readOnly
-          size="small"
-          sx={{ color: "#FFB400" }}
-        />
-      </Box>
       <CardMedia
         component="img"
         height="160"
@@ -99,7 +82,7 @@ const ProductCard = ({
             display: "flex",
             alignItems: "center",
             color: "text.secondary",
-            mt: "auto",
+            mb: 0.5,
           }}
         >
           <LocationOnIcon sx={{ fontSize: 16, mr: 0.5 }} />
@@ -114,6 +97,35 @@ const ProductCard = ({
             {location}
           </Typography>
         </Box>
+
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          spacing={1}
+          sx={{ mt: "auto" }}
+        >
+          <Rating
+            value={rating}
+            precision={0.5}
+            readOnly
+            size="small"
+            sx={{ color: "#FFB400" }}
+          />
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              color: "text.secondary",
+            }}
+          >
+            <ShoppingBagIcon sx={{ fontSize: 16, mr: 0.5 }} />
+            <Typography variant="body2">
+              {soldCount?.toLocaleString("vi-VN")}
+            </Typography>
+          </Box>
+        </Stack>
       </CardContent>
     </Card>
   );

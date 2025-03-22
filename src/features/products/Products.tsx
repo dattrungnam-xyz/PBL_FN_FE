@@ -460,6 +460,7 @@ const Products = () => {
                   rating={product.rating}
                   location={product.location}
                   image={product.image}
+                  soldCount={100}
                 />
               ))}
             </Box>
