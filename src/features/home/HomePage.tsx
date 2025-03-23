@@ -259,8 +259,8 @@ const HomePage = () => {
           </Box>
         </Box>
         <Box
-          sx={{
-            display: "flex",
+            sx={{
+              display: "flex",
             flexDirection: "column",
             mt: { xs: 1, sm: 2 },
             maxHeight: "100%",

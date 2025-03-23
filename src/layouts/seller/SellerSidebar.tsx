@@ -16,8 +16,6 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import CategoryIcon from "@mui/icons-material/Category";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 // import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -51,16 +49,6 @@ const menuGroups: MenuGroup[] = [
         label: "Tất cả sản phẩm",
         icon: <InventoryIcon />,
         path: "/seller/products",
-      },
-      {
-        label: "Thêm sản phẩm",
-        icon: <AddCircleOutlineIcon />,
-        path: "/seller/products/add",
-      },
-      {
-        label: "Danh mục",
-        icon: <CategoryIcon />,
-        path: "/seller/categories",
       },
     ],
   },
@@ -174,13 +162,17 @@ const SellerSidebar = () => {
       <Box sx={{ overflow: "auto" }}>
         {menuGroups.map((group, groupIndex) => (
           <Box key={group.title}>
-            {groupIndex > 0 && <Divider sx={{ my: 0.25, borderColor: "rgba(76, 175, 80, 0.15)" }} />}
+            {groupIndex > 0 && (
+              <Divider
+                sx={{ my: 0.25, borderColor: "rgba(76, 175, 80, 0.15)" }}
+              />
+            )}
             <Typography
               variant="caption"
               sx={{
                 px: 1.5,
                 py: 0.5,
-                color: "rgba(76, 175, 80, 0.7)",
+                color: "#1F7D53",
                 fontWeight: 500,
                 display: "block",
                 fontSize: "0.65rem",
@@ -222,8 +214,8 @@ const SellerSidebar = () => {
                         sx={{
                           minWidth: 28,
                           color: isActive(item.path)
-                            ? "#1B5E20"
-                            : "rgba(76, 175, 80, 0.7)",
+                            ? "#255F38"
+                            : "#1F7D53",
                           "& svg": {
                             fontSize: "1.1rem",
                           },
@@ -233,18 +225,30 @@ const SellerSidebar = () => {
                       </ListItemIcon>
                       <ListItemText
                         primary={item.label}
-                        primaryTypographyProps={{
-                          variant: "caption",
-                          fontSize: "0.75rem",
-                          fontWeight: isActive(item.path) ? 600 : 400,
+                        slotProps={{
+                          primary: {
+                            variant: "caption",
+                            fontSize: "0.75rem",
+                            fontWeight: isActive(item.path) ? 600 : 400,
+                          },
                         }}
                       />
                       {item.subItems && (
                         <>
                           {openSubMenu === item.path ? (
-                            <ExpandLess sx={{ fontSize: "1rem", color: "rgba(76, 175, 80, 0.7)" }} />
+                            <ExpandLess
+                              sx={{
+                                fontSize: "1rem",
+                                color: "rgba(76, 175, 80, 0.7)",
+                              }}
+                            />
                           ) : (
-                            <ExpandMore sx={{ fontSize: "1rem", color: "rgba(76, 175, 80, 0.7)" }} />
+                            <ExpandMore
+                              sx={{
+                                fontSize: "1rem",
+                                color: "rgba(76, 175, 80, 0.7)",
+                              }}
+                            />
                           )}
                         </>
                       )}
@@ -287,8 +291,8 @@ const SellerSidebar = () => {
                                 sx={{
                                   minWidth: 28,
                                   color: isActive(subItem.path)
-                                    ? "#1B5E20"
-                                    : "rgba(76, 175, 80, 0.7)",
+                                    ? "#255F38"
+                                    : "#1F7D53",
                                   "& svg": {
                                     fontSize: "1rem",
                                   },
@@ -301,7 +305,9 @@ const SellerSidebar = () => {
                                 primaryTypographyProps={{
                                   variant: "caption",
                                   fontSize: "0.75rem",
-                                  fontWeight: isActive(subItem.path) ? 600 : 400,
+                                  fontWeight: isActive(subItem.path)
+                                    ? 600
+                                    : 400,
                                 }}
                               />
                             </ListItemButton>
@@ -320,4 +326,4 @@ const SellerSidebar = () => {
   );
 };
 
-export default SellerSidebar; 
+export default SellerSidebar;

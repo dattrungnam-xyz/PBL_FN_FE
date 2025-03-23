@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Avatar,
@@ -12,15 +14,15 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { useState } from "react";
-import { Link } from "react-router-dom";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
-import StorefrontIcon from "@mui/icons-material/Storefront";
+// import StorefrontIcon from "@mui/icons-material/Storefront";
 
 const SellerHeader = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [anchorElNotif, setAnchorElNotif] = useState<null | HTMLElement>(null);
 
@@ -41,8 +43,8 @@ const SellerHeader = () => {
   };
 
   return (
-    <AppBar 
-      position="sticky" 
+    <AppBar
+      position="sticky"
       sx={{
         bgcolor: "background.paper",
         boxShadow: "none",
@@ -58,11 +60,11 @@ const SellerHeader = () => {
           gap: 1,
         }}
       >
-        <StorefrontIcon 
-          sx={{ 
-            color: "primary.main",
-            fontSize: "1.25rem",
-          }}
+        <img
+          src="/logo.png"
+          alt="OCOP Mart"
+          style={{ width: 48, height: 32, cursor: "pointer" }}
+          onClick={() => navigate("/seller")}
         />
         <Typography
           variant="body2"
@@ -78,7 +80,7 @@ const SellerHeader = () => {
             },
           }}
         >
-          OCOP Seller Center
+          OCOP Mart Seller Center
         </Typography>
 
         <Box sx={{ flexGrow: 1 }} />
@@ -90,30 +92,33 @@ const SellerHeader = () => {
               size="small"
               sx={{ p: 0.5 }}
             >
-              <Badge 
-                badgeContent={3} 
+              <Badge
+                badgeContent={3}
                 color="error"
                 sx={{
                   "& .MuiBadge-badge": {
                     fontSize: 9,
                     height: 14,
                     minWidth: 14,
-                    padding: '0 2px'
-                  }
+                    padding: "0 2px",
+                  },
                 }}
               >
-                <NotificationsIcon sx={{ fontSize: "1.25rem" }} color="action" />
+                <NotificationsIcon
+                  sx={{ fontSize: "1.25rem" }}
+                  color="action"
+                />
               </Badge>
             </IconButton>
           </Tooltip>
           <Menu
-            sx={{ 
+            sx={{
               mt: 1,
               "& .MuiPaper-root": {
                 width: 260,
                 maxWidth: "100%",
                 boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-              }
+              },
             }}
             anchorEl={anchorElNotif}
             anchorOrigin={{
@@ -126,29 +131,43 @@ const SellerHeader = () => {
             }}
             open={Boolean(anchorElNotif)}
             onClose={handleCloseNotifMenu}
+            BackdropProps={{
+              sx: {
+                backgroundColor: 'transparent'
+              }
+            }}
+            slotProps={{
+              backdrop: {
+                invisible: true
+              }
+            }}
           >
             <MenuItem sx={{ py: 0.75 }}>
               <Typography variant="caption">Đơn hàng mới #DH001</Typography>
             </MenuItem>
             <MenuItem sx={{ py: 0.75 }}>
-              <Typography variant="caption">Cập nhật trạng thái đơn #DH002</Typography>
+              <Typography variant="caption">
+                Cập nhật trạng thái đơn #DH002
+              </Typography>
             </MenuItem>
             <MenuItem sx={{ py: 0.75 }}>
-              <Typography variant="caption">Yêu cầu đánh giá sản phẩm</Typography>
+              <Typography variant="caption">
+                Yêu cầu đánh giá sản phẩm
+              </Typography>
             </MenuItem>
           </Menu>
 
           <Tooltip title="Tài khoản">
-            <IconButton 
+            <IconButton
               onClick={handleOpenUserMenu}
               size="small"
               sx={{ p: 0.5 }}
             >
-              <Avatar 
-                sx={{ 
+              <Avatar
+                sx={{
                   width: 24,
                   height: 24,
-                  bgcolor: theme.palette.primary.main 
+                  bgcolor: theme.palette.primary.main,
                 }}
               >
                 <AccountCircleIcon sx={{ fontSize: "1rem" }} />
@@ -156,13 +175,13 @@ const SellerHeader = () => {
             </IconButton>
           </Tooltip>
           <Menu
-            sx={{ 
+            sx={{
               mt: 1,
               "& .MuiPaper-root": {
                 width: 180,
                 maxWidth: "100%",
                 boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-              }
+              },
             }}
             anchorEl={anchorElUser}
             anchorOrigin={{
@@ -175,12 +194,13 @@ const SellerHeader = () => {
             }}
             open={Boolean(anchorElUser)}
             onClose={handleCloseUserMenu}
+            slotProps={{
+              backdrop: {
+                invisible: true,
+              }
+            }}
           >
-            <MenuItem
-              component={Link} 
-              to="/seller/profile"
-              sx={{ py: 0.75 }}
-            >
+            <MenuItem component={Link} to="/seller/profile" sx={{ py: 0.75 }}>
               <AccountCircleIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Thông tin tài khoản</Typography>
             </MenuItem>
@@ -195,4 +215,4 @@ const SellerHeader = () => {
   );
 };
 
-export default SellerHeader; 
+export default SellerHeader;

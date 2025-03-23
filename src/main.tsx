@@ -33,6 +33,9 @@ import Profile from "./features/profile/Profile.tsx";
 
 import SellerLayout from "./layouts/seller/SellerLayout.tsx";
 import ProvideStoreInform from "./features/provideStoreInform/ProvideStoreInform.tsx";
+import CreateStore from "./features/createStore/CreateStore.tsx";
+import StoreProductManagement from "./features/productManagement/StoreProductManagement.tsx";
+import CreateProduct from "./features/createProduct/CreateProduct.tsx";
 
 const router = createBrowserRouter([
   {
@@ -91,8 +94,16 @@ const router = createBrowserRouter([
     element: <SellerLayout />,
     children: [
       {
-        path: "a",
-        element: <></>,
+        path: "create-store",
+        element: <CreateStore />,
+      },
+      {
+        path: "products",
+        element: <StoreProductManagement />,
+      },
+      {
+        path: "create-product",
+        element: <CreateProduct />,
       },
     ],
   },

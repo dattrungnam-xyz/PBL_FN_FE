@@ -10,6 +10,8 @@ const SellerLayout = () => {
         display: "flex", 
         flexDirection: "column", 
         minHeight: "100vh",
+        maxHeight: "100vh",
+        overflow: "hidden",
         bgcolor: "#F8FFF8", // Light green background
       }}
     >
@@ -29,7 +31,7 @@ const SellerLayout = () => {
             flex: 1,
             overflow: "auto",
             bgcolor: "transparent",
-            minHeight: "calc(100vh - 46px)",
+            maxHeight: "calc(100vh - 46px)",
             px: 3,
             py: 3,
             position: "relative",
@@ -51,7 +53,7 @@ const SellerLayout = () => {
               zIndex: 1,
               bgcolor: "rgba(255, 255, 255, 0.8)",
               borderRadius: 2,
-              p: 3,
+              p: 1,
               boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
             }}
           >
