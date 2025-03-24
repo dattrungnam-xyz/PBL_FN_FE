@@ -1,14 +1,27 @@
 import { Box } from "@mui/material";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import SellerHeader from "./SellerHeader";
 import SellerSidebar from "./SellerSidebar";
+import { RootState } from "../../stores";
+import { AuthState } from "../../stores/authSlice";
 
 const SellerLayout = () => {
+  const { isAuthenticated } = useSelector<RootState, AuthState>(
+    (state) => state.auth,
+  );
+
+  if (!isAuthenticated) {
+    toast.error("Bạn cần đăng nhập để truy cập vào trang này");
+    return <Navigate to="/" />;
+  }
+
   return (
-    <Box 
-      sx={{ 
-        display: "flex", 
-        flexDirection: "column", 
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
         minHeight: "100vh",
         maxHeight: "100vh",
         overflow: "hidden",
@@ -16,10 +29,10 @@ const SellerLayout = () => {
       }}
     >
       <SellerHeader />
-      <Box 
-        sx={{ 
-          display: "flex", 
-          flex: 1, 
+      <Box
+        sx={{
+          display: "flex",
+          flex: 1,
           position: "relative",
           background: "linear-gradient(135deg, #F8FFF8 0%, #E8F5E9 100%)", // Subtle green gradient
         }}

@@ -14,11 +14,26 @@ import {
   Stack,
   SelectChangeEvent,
   Avatar,
+  FormHelperText,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { styled } from "@mui/material/styles";
+import {
+  ICreateStoreError,
+  ICreateStore,
+  IProvince,
+  IDistrict,
+  IWard,
+} from "../../../interface";
+import {
+  getProvinces,
+  getDistricts,
+  getWards,
+} from "../../../services/location.service";
+import { convertToBase64 } from "../../../utils/convertToBase64";
+import { createStore } from "../../../services/store.service";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -32,9 +47,9 @@ const VisuallyHiddenInput = styled("input")({
   width: 1,
 });
 
-const CreateStore = () => {
-  const [formData, setFormData] = useState({
-    storeName: "",
+const UpdateStore = () => {
+  const [formData, setFormData] = useState<ICreateStore>({
+    name: "",
     description: "",
     address: "",
     province: "",
@@ -42,18 +57,55 @@ const CreateStore = () => {
     ward: "",
     phone: "",
     email: "",
-    avatar: null as File | null,
-    banner: null as File | null,
+    avatar: "",
+    banner: "",
   });
+  const [errors, setErrors] = useState<ICreateStoreError>({});
 
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [bannerPreview, setBannerPreview] = useState<string>("");
+
+  const [provinces, setProvinces] = useState<IProvince[]>([]);
+  const [districts, setDistricts] = useState<IDistrict[]>([]);
+  const [wards, setWards] = useState<IWard[]>([]);
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const provinces = await getProvinces();
+      setProvinces(provinces);
+    };
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      if (formData.province) {
+        const districts = await getDistricts(formData.province);
+        setDistricts(districts);
+      }
+    };
+    fetchDistricts();
+  }, [formData.province]);
+
+  useEffect(() => {
+    const fetchWards = async () => {
+      if (formData.district) {
+        const wards = await getWards(formData.district);
+        setWards(wards);
+      }
+    };
+    fetchWards();
+  }, [formData.district]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: undefined,
     }));
   };
 
@@ -63,17 +115,23 @@ const CreateStore = () => {
       ...prev,
       [name]: value,
     }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: undefined,
+    }));
   };
 
-  const handleFileChange = (
+  const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
     type: "avatar" | "banner",
   ) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
+      const base64String = await convertToBase64(file);
+
       setFormData((prev) => ({
         ...prev,
-        [type]: file,
+        [type]: base64String as string,
       }));
 
       if (type === "avatar") {
@@ -81,12 +139,29 @@ const CreateStore = () => {
       } else if (type === "banner") {
         setBannerPreview(URL.createObjectURL(file));
       }
+      setErrors((prev) => ({
+        ...prev,
+        [type]: undefined,
+      }));
     }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log(formData);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      await createStore(formData);
+    }
+  };
+
+  const validateForm = () => {
+    const errors: ICreateStoreError = {};
+    if (!formData.name) errors.name = "Tên cửa hàng là bắt buộc";
+    if (!formData.province) errors.province = "Tỉnh/Thành phố là bắt buộc";
+    if (!formData.phone) errors.phone = "Số điện thoại là bắt buộc";
+    if (!formData.email) errors.email = "Email là bắt buộc";
+
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   return (
@@ -108,7 +183,7 @@ const CreateStore = () => {
         </Typography>
       </Box>
 
-      <form onSubmit={handleSubmit}>
+      <form noValidate onSubmit={handleSubmit}>
         <Stack spacing={2}>
           {/* Store Media */}
           <Card>
@@ -247,10 +322,12 @@ const CreateStore = () => {
                 <TextField
                   fullWidth
                   label="Tên cửa hàng"
-                  name="storeName"
+                  name="name"
                   required
-                  value={formData.storeName}
+                  value={formData.name}
                   onChange={handleChange}
+                  error={!!errors.name}
+                  helperText={errors.name}
                   size="small"
                 />
                 <TextField
@@ -261,6 +338,8 @@ const CreateStore = () => {
                   rows={4}
                   value={formData.description}
                   onChange={handleChange}
+                  error={!!errors.description}
+                  helperText={errors.description}
                   size="small"
                 />
               </Stack>
@@ -285,44 +364,85 @@ const CreateStore = () => {
                   required
                   value={formData.address}
                   onChange={handleChange}
+                  error={!!errors.address}
+                  helperText={errors.address}
                   size="small"
                 />
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                  <FormControl fullWidth size="small">
+                  <FormControl fullWidth size="small" error={!!errors.province}>
                     <InputLabel>Tỉnh/Thành phố</InputLabel>
                     <Select
                       name="province"
                       value={formData.province}
                       label="Tỉnh/Thành phố"
                       onChange={handleSelectChange}
+                      MenuProps={{
+                        MenuListProps: {
+                          sx: {
+                            maxHeight: 300,
+                          },
+                        },
+                      }}
                     >
-                      <MenuItem value="hanoi">Hà Nội</MenuItem>
-                      <MenuItem value="hochiminh">TP. Hồ Chí Minh</MenuItem>
+                      {provinces.map((province) => (
+                        <MenuItem key={province.id} value={province.id}>
+                          {province.name}
+                        </MenuItem>
+                      ))}
                     </Select>
+                    {errors.province && (
+                      <FormHelperText>{errors.province}</FormHelperText>
+                    )}
                   </FormControl>
-                  <FormControl fullWidth size="small">
+                  <FormControl fullWidth size="small" error={!!errors.district}>
                     <InputLabel>Quận/Huyện</InputLabel>
                     <Select
                       name="district"
                       value={formData.district}
                       label="Quận/Huyện"
                       onChange={handleSelectChange}
+                      MenuProps={{
+                        MenuListProps: {
+                          sx: {
+                            maxHeight: 300,
+                          },
+                        },
+                      }}
                     >
-                      <MenuItem value="district1">Quận 1</MenuItem>
-                      <MenuItem value="district2">Quận 2</MenuItem>
+                      {districts.map((district) => (
+                        <MenuItem key={district.id} value={district.id}>
+                          {district.name}
+                        </MenuItem>
+                      ))}
                     </Select>
+                    {errors.district && (
+                      <FormHelperText>{errors.district}</FormHelperText>
+                    )}
                   </FormControl>
-                  <FormControl fullWidth size="small">
+                  <FormControl fullWidth size="small" error={!!errors.ward}>
                     <InputLabel>Phường/Xã</InputLabel>
                     <Select
                       name="ward"
                       value={formData.ward}
                       label="Phường/Xã"
                       onChange={handleSelectChange}
+                      MenuProps={{
+                        MenuListProps: {
+                          sx: {
+                            maxHeight: 300,
+                          },
+                        },
+                      }}
                     >
-                      <MenuItem value="ward1">Phường 1</MenuItem>
-                      <MenuItem value="ward2">Phường 2</MenuItem>
+                      {wards.map((ward) => (
+                        <MenuItem key={ward.id} value={ward.id}>
+                          {ward.name}
+                        </MenuItem>
+                      ))}
                     </Select>
+                    {errors.ward && (
+                      <FormHelperText>{errors.ward}</FormHelperText>
+                    )}
                   </FormControl>
                 </Stack>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
@@ -333,6 +453,8 @@ const CreateStore = () => {
                     required
                     value={formData.phone}
                     onChange={handleChange}
+                    error={!!errors.phone}
+                    helperText={errors.phone}
                     size="small"
                   />
                   <TextField
@@ -343,6 +465,8 @@ const CreateStore = () => {
                     required
                     value={formData.email}
                     onChange={handleChange}
+                    error={!!errors.email}
+                    helperText={errors.email}
                     size="small"
                   />
                 </Stack>
@@ -386,4 +510,4 @@ const CreateStore = () => {
   );
 };
 
-export default CreateStore;
+export default UpdateStore;

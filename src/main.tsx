@@ -33,9 +33,10 @@ import Profile from "./features/profile/Profile.tsx";
 
 import SellerLayout from "./layouts/seller/SellerLayout.tsx";
 import ProvideStoreInform from "./features/provideStoreInform/ProvideStoreInform.tsx";
-import CreateStore from "./features/createStore/CreateStore.tsx";
+import CreateStore from "./features/store/createStore/CreateStore.tsx";
 import StoreProductManagement from "./features/productManagement/StoreProductManagement.tsx";
 import CreateProduct from "./features/createProduct/CreateProduct.tsx";
+import UpdateStore from "./features/store/updateStore/UpdateStore.tsx";
 
 const router = createBrowserRouter([
   {
@@ -94,7 +95,11 @@ const router = createBrowserRouter([
     element: <SellerLayout />,
     children: [
       {
-        path: "create-store",
+        path: "",
+        element: <UpdateStore />,
+      },
+      {
+        path: "create",
         element: <CreateStore />,
       },
       {
@@ -166,7 +171,7 @@ createRoot(document.getElementById("root")!).render(
               clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
             >
               <GlobalMessageContainer>
-                <ToastContainer position="bottom-right" autoClose={4000} />
+                <ToastContainer position="top-right" autoClose={4000} />
                 <AuthInitializer>
                   <RouterProvider router={router} />
                 </AuthInitializer>

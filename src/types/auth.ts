@@ -7,6 +7,7 @@ export interface User {
   phone?: string;
   roles: Role[];
   createdAt: string;
+  storeId?: string;
 }
 
 export type Role = "admin" | "user" | "seller";

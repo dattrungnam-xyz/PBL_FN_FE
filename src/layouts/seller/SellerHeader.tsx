@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { AppDispatch, RootState } from "../../stores";
+import { AuthState, authActions } from "../../stores/authSlice";
 import {
   AppBar,
   Avatar,
@@ -20,11 +24,16 @@ import LogoutIcon from "@mui/icons-material/Logout";
 // import StorefrontIcon from "@mui/icons-material/Storefront";
 
 const SellerHeader = () => {
-  const theme = useTheme();
-  const navigate = useNavigate();
-
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [anchorElNotif, setAnchorElNotif] = useState<null | HTMLElement>(null);
+
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { isAuthenticated, user } = useSelector<RootState, AuthState>(
+    (state) => state.auth,
+  );
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
@@ -42,6 +51,11 @@ const SellerHeader = () => {
     setAnchorElNotif(null);
   };
 
+  const handleLogout = () => {
+    dispatch(authActions.logout());
+    navigate("/seller");
+  };
+
   return (
     <AppBar
       position="sticky"
@@ -50,7 +64,7 @@ const SellerHeader = () => {
         boxShadow: "none",
         borderBottom: "1px solid",
         borderColor: "divider",
-        zIndex: theme.zIndex.drawer + 1,
+        zIndex: 10,
       }}
     >
       <Toolbar
@@ -131,15 +145,10 @@ const SellerHeader = () => {
             }}
             open={Boolean(anchorElNotif)}
             onClose={handleCloseNotifMenu}
-            BackdropProps={{
-              sx: {
-                backgroundColor: 'transparent'
-              }
-            }}
             slotProps={{
               backdrop: {
-                invisible: true
-              }
+                invisible: true,
+              },
             }}
           >
             <MenuItem sx={{ py: 0.75 }}>
@@ -197,14 +206,14 @@ const SellerHeader = () => {
             slotProps={{
               backdrop: {
                 invisible: true,
-              }
+              },
             }}
           >
             <MenuItem component={Link} to="/seller/profile" sx={{ py: 0.75 }}>
               <AccountCircleIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Thông tin tài khoản</Typography>
             </MenuItem>
-            <MenuItem sx={{ py: 0.75 }}>
+            <MenuItem sx={{ py: 0.75 }} onClick={handleLogout}>
               <LogoutIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Đăng xuất</Typography>
             </MenuItem>

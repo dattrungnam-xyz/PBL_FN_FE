@@ -219,7 +219,7 @@ const ProvideStoreInform = () => {
           >
             <Button
               component={Link}
-              to="/seller/store/create"
+              to="/seller/create"
               variant="contained"
               size="medium"
               sx={{
