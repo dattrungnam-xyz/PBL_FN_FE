@@ -19,7 +19,6 @@ export const getDistricts = async (provinceId: string) => {
       size: 1000,
     },
   });
-  console.log(response.data);
   return response.data.data;
 };
 
@@ -30,6 +29,5 @@ export const getWards = async (districtId: string) => {
       size: 1000,
     },
   });
-  console.log(response.data);
   return response.data.data;
 };

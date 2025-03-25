@@ -289,7 +289,7 @@ const HomePage = () => {
               autoPlay
               responsive={responsive}
             >
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -299,7 +299,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -309,7 +309,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -319,7 +319,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -329,7 +329,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -339,7 +339,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -383,7 +383,7 @@ const HomePage = () => {
               autoPlay
               responsive={responsive}
             >
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -393,7 +393,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+                  <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -403,7 +403,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -413,7 +413,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -423,7 +423,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -433,7 +433,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-              <Box sx={{ p: 0.25 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"

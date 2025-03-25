@@ -53,7 +53,7 @@ const ProductCard = ({
           objectFit: "cover",
           transition: "transform 0.3s ease-in-out",
           "&:hover": {
-            transform: "scale(1.1)",
+            transform: "scale(1.01)",
           }
         }}
       />

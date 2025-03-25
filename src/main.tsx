@@ -33,10 +33,10 @@ import Profile from "./features/profile/Profile.tsx";
 
 import SellerLayout from "./layouts/seller/SellerLayout.tsx";
 import ProvideStoreInform from "./features/provideStoreInform/ProvideStoreInform.tsx";
-import CreateStore from "./features/store/createStore/CreateStore.tsx";
+import CreateStore from "./features/store/create/CreateStore.tsx";
 import StoreProductManagement from "./features/productManagement/StoreProductManagement.tsx";
-import CreateProduct from "./features/createProduct/CreateProduct.tsx";
-import UpdateStore from "./features/store/updateStore/UpdateStore.tsx";
+import CreateProduct from "./features/product/create/CreateProduct.tsx";
+import UpdateStore from "./features/store/update/UpdateStore.tsx";
 
 const router = createBrowserRouter([
   {

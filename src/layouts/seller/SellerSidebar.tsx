@@ -110,7 +110,7 @@ const menuGroups: MenuGroup[] = [
       {
         label: "Thông tin cửa hàng",
         icon: <StorefrontIcon />,
-        path: "/seller/store",
+        path: "/seller",
       },
       {
         label: "Khách hàng",

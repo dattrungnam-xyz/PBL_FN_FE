@@ -10,7 +10,7 @@ const CustomBackdrop: React.FC<{ open?: boolean }> = ({ open = true }) => {
         position: "fixed",
         top: 0,
         left: 0,
-        bgcolor: "rgba(0, 0, 0, 0.1)",
+        bgcolor: "rgba(0, 0, 0, 0.4)",
       })}
       open={open}
     >

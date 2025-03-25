@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -18,10 +16,11 @@ import {
   Avatar,
   FormHelperText,
 } from "@mui/material";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { styled } from "@mui/material/styles";
-import { toast } from "react-toastify";
 import {
   ICreateStoreError,
   ICreateStore,
@@ -35,9 +34,13 @@ import {
   getWards,
 } from "../../../services/location.service";
 import { convertToBase64 } from "../../../utils/convertToBase64";
-import { createStore } from "../../../services/store.service";
+import { getStore, updateStore } from "../../../services/store.service";
+import { RootState } from "../../../stores";
+import { AuthState } from "../../../stores/authSlice";
+import { Navigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import CustomBackdrop from "../../../components/UI/CustomBackdrop";
-import { AxiosError } from "axios";
+import ConfirmUpdateStoreDialog from "../dialog/ConfirmUpdateStoreDialog";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -51,7 +54,7 @@ const VisuallyHiddenInput = styled("input")({
   width: 1,
 });
 
-const CreateStore = () => {
+const UpdateStore = () => {
   const [formData, setFormData] = useState<ICreateStore>({
     name: "",
     description: "",
@@ -65,15 +68,20 @@ const CreateStore = () => {
     banner: "",
   });
   const [errors, setErrors] = useState<ICreateStoreError>({});
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [bannerPreview, setBannerPreview] = useState<string>("");
 
   const [provinces, setProvinces] = useState<IProvince[]>([]);
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [wards, setWards] = useState<IWard[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const navigate = useNavigate();
+  const { user } = useSelector<RootState, AuthState>((state) => state.auth);
+
+  const [initialData, setInitialData] = useState<ICreateStore | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -102,6 +110,47 @@ const CreateStore = () => {
     };
     fetchWards();
   }, [formData.district]);
+
+  useEffect(() => {
+    if (user?.storeId) {
+      const fetchStore = async () => {
+        try {
+          setLoading(true);
+          const store = await getStore();
+          setFormData(store);
+          setInitialData(store);
+          setAvatarPreview(store.avatar);
+          setBannerPreview(store.banner);
+        } catch (error) {
+          console.error("Error fetching store:", error);
+          toast.error("Không thể tải thông tin cửa hàng");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchStore();
+    }
+  }, [user, user?.storeId]);
+
+  useEffect(() => {
+    if (initialData) {
+      const hasFormChanged = Object.keys(formData).some((key) => {
+        if (key === "avatar" || key === "banner") {
+          return formData[key] !== initialData[key];
+        }
+        return (
+          formData[key as keyof ICreateStore] !==
+          initialData[key as keyof ICreateStore]
+        );
+      });
+      setHasChanges(hasFormChanged);
+    }
+  }, [formData, initialData]);
+
+  if (!user?.storeId) {
+    return <Navigate to="/seller/create" />;
+  }
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -155,17 +204,25 @@ const CreateStore = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      try {
-        setIsLoading(true);
-        await createStore(formData);
-        toast.success("Tạo cửa hàng thành công");
-        navigate("/seller");
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        toast.error("Tạo cửa hàng thất bại");
-      } finally {
-        setIsLoading(false);
+      if (hasChanges) {
+        setIsDialogOpen(true);
       }
+    }
+  };
+
+  const handleConfirmSubmit = async () => {
+    try {
+      setLoading(true);
+      await updateStore(formData);
+      toast.success("Cập nhật cửa hàng thành công");
+      setInitialData(formData);
+      setHasChanges(false);
+    } catch (error) {
+      console.error("Error updating store:", error);
+      toast.error("Không thể cập nhật cửa hàng");
+    } finally {
+      setLoading(false);
+      setIsDialogOpen(false);
     }
   };
 
@@ -182,7 +239,14 @@ const CreateStore = () => {
 
   return (
     <>
-      {isLoading && <CustomBackdrop />}
+      {loading && <CustomBackdrop />}
+      <ConfirmUpdateStoreDialog
+        open={isDialogOpen}
+        onClose={(confirm) =>
+          confirm ? handleConfirmSubmit() : setIsDialogOpen(false)
+        }
+        keepMounted={false}
+      />
       <Box sx={{ p: 1, maxWidth: 1200, margin: "0 auto" }}>
         <Box
           sx={{
@@ -197,7 +261,7 @@ const CreateStore = () => {
             fontWeight={600}
             sx={{ color: "text.primary" }}
           >
-            Tạo cửa hàng mới
+            Cập nhật cửa hàng
           </Typography>
         </Box>
 
@@ -519,6 +583,7 @@ const CreateStore = () => {
                 type="submit"
                 variant="contained"
                 size="large"
+                disabled={!hasChanges}
                 sx={{
                   bgcolor: "success.main",
                   minWidth: 120,
@@ -527,7 +592,7 @@ const CreateStore = () => {
                   },
                 }}
               >
-                Tạo cửa hàng
+                Cập nhật
               </Button>
             </Stack>
           </Stack>
@@ -537,4 +602,4 @@ const CreateStore = () => {
   );
 };
 
-export default CreateStore;
+export default UpdateStore;
