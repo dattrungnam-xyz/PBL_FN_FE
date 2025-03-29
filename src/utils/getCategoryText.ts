@@ -10,5 +10,7 @@ export const getCategoryText = (category: Category) => {
       return "Thảo dược";
     case Category.HANDICRAFTS_DECORATION:
       return "Đồ trang trí";
+    case Category.ALL:
+      return "Tất cả";
   }
 };

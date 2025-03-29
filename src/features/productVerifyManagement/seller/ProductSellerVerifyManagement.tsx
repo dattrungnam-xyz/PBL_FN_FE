@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Card,
   IconButton,
   InputAdornment,
@@ -26,23 +25,20 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { format } from "date-fns";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
+import HistoryIcon from "@mui/icons-material/History";
 import { useState, useEffect } from "react";
-import { Category } from "../../enums";
-import { RootState } from "../../stores";
 import { useSelector } from "react-redux";
-import { AuthState } from "../../stores/authSlice";
 import { useQuery } from "@tanstack/react-query";
-import { getProductByStoreId } from "../../services/product.service";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { SellingProductStatus, VerifyOCOPStatus } from "../../enums";
-import { getCategoryText } from "../../utils/getCategoryText";
-import { IProductTableData } from "../../interface/product.interface";
-import CustomBackdrop from "../../components/UI/CustomBackdrop";
+import { RootState } from "../../../stores";
+import { AuthState } from "../../../stores/authSlice";
+import { getProductByStoreId } from "../../../services/product.service";
+import { SellingProductStatus, VerifyOCOPStatus, Category } from "../../../enums";
+import { getCategoryText } from "../../../utils/getCategoryText";
+import { IProductTableData } from "../../../interface/product.interface";
+import CustomBackdrop from "../../../components/UI/CustomBackdrop";
 
 interface HeadCell {
   id: keyof IProductTableData;
@@ -75,7 +71,7 @@ const categories = [
   Category.ALL,
 ];
 
-const StoreProductManagement = () => {
+const ProductSellerVerifyManagement = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -84,9 +80,8 @@ const StoreProductManagement = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>(
     Category.ALL,
   );
-  const [selectedStatus, setSelectedStatus] = useState<SellingProductStatus>(
-    SellingProductStatus.ALL,
-  );
+  const [selectedVerifyStatus, setSelectedVerifyStatus] =
+    useState<VerifyOCOPStatus>(VerifyOCOPStatus.ALL);
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
 
   // Debounce search term
@@ -107,7 +102,7 @@ const StoreProductManagement = () => {
       page,
       rowsPerPage,
       selectedCategory,
-      selectedStatus,
+      selectedVerifyStatus,
       debouncedSearchTerm,
     ],
     queryFn: () =>
@@ -115,7 +110,7 @@ const StoreProductManagement = () => {
         page,
         limit: rowsPerPage,
         category: selectedCategory,
-        status: selectedStatus,
+        verifyStatus: selectedVerifyStatus,
         search: debouncedSearchTerm,
       }),
   });
@@ -139,11 +134,11 @@ const StoreProductManagement = () => {
     setPage(1);
   };
 
-  const handleStatusChange = (
-    event: SelectChangeEvent<SellingProductStatus>,
+  const handleVerifyStatusChange = (
+    event: SelectChangeEvent<VerifyOCOPStatus>,
   ) => {
-    const value = event.target.value as SellingProductStatus;
-    setSelectedStatus(value);
+    const value = event.target.value as VerifyOCOPStatus;
+    setSelectedVerifyStatus(value);
     window.history.pushState({}, "", `${window.location.pathname}?page=${1}`);
     setPage(1);
   };
@@ -172,6 +167,34 @@ const StoreProductManagement = () => {
     }).format(price);
   };
 
+  const getVerifyStatusText = (status: VerifyOCOPStatus) => {
+    switch (status) {
+      case VerifyOCOPStatus.VERIFIED:
+        return "Đã xác thực";
+      case VerifyOCOPStatus.REJECTED:
+        return "Từ chối";
+      case VerifyOCOPStatus.PENDING:
+        return "Chờ xác thực";
+      case VerifyOCOPStatus.ALL:
+        return "Tất cả";
+      default:
+        return "Chưa xác thực";
+    }
+  };
+
+  const getVerifyStatusColor = (status: VerifyOCOPStatus) => {
+    switch (status) {
+      case VerifyOCOPStatus.VERIFIED:
+        return "success";
+      case VerifyOCOPStatus.REJECTED:
+        return "error";
+      case VerifyOCOPStatus.PENDING:
+        return "warning";
+      default:
+        return "default";
+    }
+  };
+
   return (
     <>
       {isLoading && <CustomBackdrop />}
@@ -184,20 +207,8 @@ const StoreProductManagement = () => {
             justifyContent="space-between"
           >
             <Typography variant="h4" color="text.primary" fontWeight={600}>
-              Quản lý sản phẩm
+              Quản lý xác thực OCOP
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              sx={{
-                bgcolor: "success.main",
-                "&:hover": {
-                  bgcolor: "success.dark",
-                },
-              }}
-            >
-              Thêm sản phẩm
-            </Button>
           </Stack>
 
           {/* Search and Filter */}
@@ -236,19 +247,15 @@ const StoreProductManagement = () => {
                   </Select>
                 </FormControl>
                 <FormControl size="small" sx={{ minWidth: 200 }}>
-                  <InputLabel>Trạng thái</InputLabel>
+                  <InputLabel>Trạng thái xác thực</InputLabel>
                   <Select
-                    value={selectedStatus}
-                    label="Trạng thái"
-                    onChange={handleStatusChange}
+                    value={selectedVerifyStatus}
+                    label="Trạng thái xác thực"
+                    onChange={handleVerifyStatusChange}
                   >
-                    {Object.values(SellingProductStatus).map((status) => (
+                    {Object.values(VerifyOCOPStatus).map((status) => (
                       <MenuItem key={status} value={status}>
-                        {status === SellingProductStatus.SELLING
-                          ? "Đang bán"
-                          : status === SellingProductStatus.STOPPED
-                            ? "Ngừng bán"
-                            : "Tất cả"}
+                        {getVerifyStatusText(status)}
                       </MenuItem>
                     ))}
                   </Select>
@@ -267,16 +274,9 @@ const StoreProductManagement = () => {
                       <TableCell
                         key={headCell.id}
                         align={headCell.numeric ? "right" : "left"}
-                        // sortDirection={orderBy === headCell.id ? order : false}
                       >
                         {headCell.sortable ? (
-                          <TableSortLabel
-                          // active={orderBy === headCell.id}
-                          // direction={orderBy === headCell.id ? order : "asc"}
-                          // onClick={() => handleRequestSort(headCell.id)}
-                          >
-                            {headCell.label}
-                          </TableSortLabel>
+                          <TableSortLabel>{headCell.label}</TableSortLabel>
                         ) : (
                           headCell.label
                         )}
@@ -322,30 +322,8 @@ const StoreProductManagement = () => {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={
-                            product.verifyOcopStatus ===
-                            VerifyOCOPStatus.VERIFIED
-                              ? "Đã xác thực"
-                              : product.verifyOcopStatus ===
-                                  VerifyOCOPStatus.REJECTED
-                                ? "Từ chối"
-                                : product.verifyOcopStatus ===
-                                    VerifyOCOPStatus.PENDING
-                                  ? "Chờ xác thực"
-                                  : "Chưa xác thực"
-                          }
-                          color={
-                            product.verifyOcopStatus ===
-                            VerifyOCOPStatus.VERIFIED
-                              ? "success"
-                              : product.verifyOcopStatus ===
-                                  VerifyOCOPStatus.REJECTED
-                                ? "error"
-                                : product.verifyOcopStatus ===
-                                    VerifyOCOPStatus.PENDING
-                                  ? "warning"
-                                  : "default"
-                          }
+                          label={getVerifyStatusText(product.verifyOcopStatus)}
+                          color={getVerifyStatusColor(product.verifyOcopStatus)}
                           size="small"
                         />
                       </TableCell>
@@ -358,26 +336,35 @@ const StoreProductManagement = () => {
                           spacing={1}
                           justifyContent="center"
                         >
-                          <Tooltip title="Chỉnh sửa">
+                          <Tooltip title="Lịch sử xác thực">
                             <IconButton
                               size="small"
                               onClick={() =>
-                                navigate(`/seller/product/${product.id}`)
+                                navigate(
+                                  `/seller/product/${product.id}/verify-history`,
+                                )
                               }
-                              sx={{ color: "warning.main" }}
+                              sx={{ color: "info.main" }}
                             >
-                              <EditIcon fontSize="small" />
+                              <HistoryIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Xóa">
-                            <IconButton
-                              size="small"
-                              // onClick={() => handleDelete(product.id)}
-                              sx={{ color: "error.main" }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          {product.verifyOcopStatus !==
+                            VerifyOCOPStatus.VERIFIED && (
+                            <Tooltip title="Xác thực OCOP">
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  navigate(
+                                    `/seller/product/${product.id}/verify`,
+                                  )
+                                }
+                                sx={{ color: "success.main" }}
+                              >
+                                <SearchIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -405,4 +392,4 @@ const StoreProductManagement = () => {
   );
 };
 
-export default StoreProductManagement;
+export default ProductSellerVerifyManagement;

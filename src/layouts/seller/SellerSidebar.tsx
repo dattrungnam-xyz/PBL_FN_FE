@@ -50,6 +50,11 @@ const menuGroups: MenuGroup[] = [
         icon: <InventoryIcon />,
         path: "/seller/products",
       },
+      {
+        label: "Xác thực OCOP",
+        icon: <InventoryIcon />,
+        path: "/seller/verify-ocop-product",
+      },
     ],
   },
   {
@@ -214,9 +219,7 @@ const SellerSidebar = () => {
                       <ListItemIcon
                         sx={{
                           minWidth: 28,
-                          color: isActive(item.path)
-                            ? "#255F38"
-                            : "#1F7D53",
+                          color: isActive(item.path) ? "#255F38" : "#1F7D53",
                           "& svg": {
                             fontSize: "1.1rem",
                           },

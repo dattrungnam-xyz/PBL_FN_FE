@@ -23,9 +23,20 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { SelectChangeEvent } from "@mui/material/Select";
 import { styled } from "@mui/material/styles";
 import { Category, SellingProductStatus } from "../../../enums";
-import { getCategoryText, getSellingStatusText } from "../../../utils";
+import {
+  getCategoryText,
+  getSellingStatusText,
+  convertToBase64,
+} from "../../../utils";
 import ConfirmCreateProductDialog from "../dialog/ConfirmCreateProductDialog";
 import CustomBackdrop from "../../../components/UI/CustomBackdrop";
+import { ICreateProduct, ICreateProductError } from "../../../interface";
+import { createProduct } from "../../../services/product.service";
+import { toast } from "react-toastify";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../stores";
+import { AuthState } from "../../../stores/authSlice";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -39,26 +50,6 @@ const VisuallyHiddenInput = styled("input")({
   width: 1,
 });
 
-interface ProductFormData {
-  title: string;
-  description: string;
-  category: string;
-  price: string;
-  quantity: string;
-  status: SellingProductStatus;
-  images: string[];
-}
-
-interface FormErrors {
-  title?: string;
-  description?: string;
-  category?: string;
-  price?: string;
-  quantity?: string;
-  status?: string;
-  images?: string;
-}
-
 const categories = [
   Category.FOOD,
   Category.BEVERAGE,
@@ -67,8 +58,9 @@ const categories = [
 ];
 
 const CreateProduct = () => {
-  const [formData, setFormData] = useState<ProductFormData>({
-    title: "",
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<ICreateProduct>({
+    name: "",
     description: "",
     category: "",
     price: "",
@@ -77,31 +69,23 @@ const CreateProduct = () => {
     images: [],
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<ICreateProductError>({});
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
-  const convertToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-        } else {
-          reject(new Error("Failed to convert file to base64"));
-        }
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
+  const { user } = useSelector<RootState, AuthState>((state) => state.auth);
+
+  if (!user || !user.storeId) {
+    toast.error("Bạn chưa tạo cửa hàng");
+    return <Navigate to="/seller/create" />;
+  }
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+    const newErrors: ICreateProductError = {};
 
-    if (!formData.title.trim()) {
-      newErrors.title = "Vui lòng nhập tên sản phẩm";
+    if (!formData.name.trim()) {
+      newErrors.name = "Vui lòng nhập tên sản phẩm";
     }
 
     if (!formData.description.trim()) {
@@ -139,7 +123,7 @@ const CreateProduct = () => {
       [name]: value,
     }));
     // Clear error when user starts typing
-    if (errors[name as keyof FormErrors]) {
+    if (errors[name as keyof ICreateProductError]) {
       setErrors((prev) => ({
         ...prev,
         [name]: undefined,
@@ -154,7 +138,7 @@ const CreateProduct = () => {
       [name]: value,
     }));
     // Clear error when user makes a selection
-    if (errors[name as keyof FormErrors]) {
+    if (errors[name as keyof ICreateProductError]) {
       setErrors((prev) => ({
         ...prev,
         [name]: undefined,
@@ -168,19 +152,17 @@ const CreateProduct = () => {
       try {
         const newImages = Array.from(files);
         const base64Strings = await Promise.all(
-          newImages.map((file) => convertToBase64(file))
+          newImages.map((file) => convertToBase64(file)),
         );
-        
+
         setFormData((prev) => ({
           ...prev,
-          images: [...prev.images, ...base64Strings],
+          images: [...prev.images, ...base64Strings] as string[],
         }));
 
-        // Create preview URLs
         const newPreviews = newImages.map((file) => URL.createObjectURL(file));
         setImagePreviews((prev) => [...prev, ...newPreviews]);
 
-        // Clear error when images are added
         if (errors.images) {
           setErrors((prev) => ({
             ...prev,
@@ -215,10 +197,21 @@ const CreateProduct = () => {
     }
   };
 
-  const handleCreateProduct = () => {
+  const handleCreateProduct = async () => {
     setOpenConfirmDialog(false);
     console.log(formData);
     setLoading(true);
+
+    try {
+      const response = await createProduct(formData);
+      toast.success("Tạo sản phẩm thành công");
+      navigate(`/seller/product/${response.id}`);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast.error("Tạo sản phẩm thất bại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -266,12 +259,12 @@ const CreateProduct = () => {
                     required
                     fullWidth
                     label="Tên sản phẩm"
-                    name="title"
-                    value={formData.title}
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
                     size="small"
-                    error={!!errors.title}
-                    helperText={errors.title}
+                    error={!!errors.name}
+                    helperText={errors.name}
                   />
                   <TextField
                     required
