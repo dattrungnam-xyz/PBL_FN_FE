@@ -43,7 +43,7 @@ import { SellingProductStatus, VerifyOCOPStatus } from "../../enums";
 import { getCategoryText } from "../../utils/getCategoryText";
 import { IProductTableData } from "../../interface/product.interface";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
-
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 interface HeadCell {
   id: keyof IProductTableData;
   label: string;
@@ -87,6 +87,8 @@ const StoreProductManagement = () => {
   const [selectedStatus, setSelectedStatus] = useState<SellingProductStatus>(
     SellingProductStatus.ALL,
   );
+  const [selectedVerifyOcopStatus, setSelectedVerifyOcopStatus] =
+    useState<VerifyOCOPStatus>(VerifyOCOPStatus.ALL);
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
 
   // Debounce search term
@@ -108,6 +110,7 @@ const StoreProductManagement = () => {
       rowsPerPage,
       selectedCategory,
       selectedStatus,
+      selectedVerifyOcopStatus,
       debouncedSearchTerm,
     ],
     queryFn: () =>
@@ -117,6 +120,7 @@ const StoreProductManagement = () => {
         category: selectedCategory,
         status: selectedStatus,
         search: debouncedSearchTerm,
+        verifyStatus: selectedVerifyOcopStatus,
       }),
   });
 
@@ -137,6 +141,13 @@ const StoreProductManagement = () => {
     setSelectedCategory(value);
     window.history.pushState({}, "", `${window.location.pathname}?page=${1}`);
     setPage(1);
+  };
+
+  const handleVerifyOcopStatusChange = (
+    event: SelectChangeEvent<VerifyOCOPStatus>,
+  ) => {
+    const value = event.target.value as VerifyOCOPStatus;
+    setSelectedVerifyOcopStatus(value);
   };
 
   const handleStatusChange = (
@@ -231,6 +242,28 @@ const StoreProductManagement = () => {
                     {categories.map((category) => (
                       <MenuItem key={category} value={category}>
                         {getCategoryText(category)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                  <InputLabel>Trạng thái xác thực</InputLabel>
+                  <Select
+                    value={selectedVerifyOcopStatus}
+                    label="Trạng thái xác thực"
+                    onChange={handleVerifyOcopStatusChange}
+                  >
+                    {Object.values(VerifyOCOPStatus).map((status) => (
+                      <MenuItem key={status} value={status}>
+                        {status === VerifyOCOPStatus.VERIFIED
+                          ? "Đã xác thực"
+                          : status === VerifyOCOPStatus.REJECTED
+                            ? "Từ chối"
+                            : status === VerifyOCOPStatus.PENDING
+                              ? "Chờ xác thực"
+                              : status === VerifyOCOPStatus.NOT_SUBMITTED
+                                ? "Chưa gửi"
+                                : "Tất cả"}
                       </MenuItem>
                     ))}
                   </Select>
@@ -358,6 +391,23 @@ const StoreProductManagement = () => {
                           spacing={1}
                           justifyContent="center"
                         >
+                          {product.verifyOcopStatus ===
+                            VerifyOCOPStatus.NOT_SUBMITTED ||
+                          VerifyOCOPStatus.REJECTED ? (
+                            <Tooltip title="Xác thực">
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  navigate(
+                                    `/seller/product/${product.id}/verify`,
+                                  )
+                                }
+                                sx={{ color: "info.main" }}
+                              >
+                                <CheckCircleIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : null}
                           <Tooltip title="Chỉnh sửa">
                             <IconButton
                               size="small"

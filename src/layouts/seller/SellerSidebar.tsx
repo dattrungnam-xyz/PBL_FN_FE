@@ -53,7 +53,7 @@ const menuGroups: MenuGroup[] = [
       {
         label: "Xác thực OCOP",
         icon: <InventoryIcon />,
-        path: "/seller/verify-ocop-product",
+        path: "/seller/products/verify",
       },
     ],
   },

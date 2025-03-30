@@ -39,6 +39,8 @@ import CreateProduct from "./features/product/create/CreateProduct.tsx";
 import UpdateStore from "./features/store/update/UpdateStore.tsx";
 import UpdateProduct from "./features/product/update/UpdateProduct.tsx";
 import ProductSellerVerifyManagement from "./features/productVerifyManagement/seller/ProductSellerVerifyManagement.tsx";
+import VerifyProduct from "./features/productVerifyManagement/seller/VerifyProduct.tsx";
+import VerifyHistory from "./features/productVerifyManagement/seller/VerifyHistory.tsx";
 
 const router = createBrowserRouter([
   {
@@ -111,6 +113,18 @@ const router = createBrowserRouter([
       {
         path: "products/verify",
         element: <ProductSellerVerifyManagement />,
+      },
+      {
+        path: "product/verify",
+        element: <VerifyProduct />,
+      },
+      {
+        path: "product/:id/verify",
+        element: <VerifyProduct />,
+      },
+      {
+        path: "product/verify/history",
+        element: <VerifyHistory />,
       },
       {
         path: "product/create",
