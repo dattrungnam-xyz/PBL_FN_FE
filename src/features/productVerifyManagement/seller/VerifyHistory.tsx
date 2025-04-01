@@ -3,8 +3,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  Divider,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -23,72 +21,81 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
+  Tooltip,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../stores";
 import { AuthState } from "../../../stores/authSlice";
 import { toast } from "react-toastify";
 import CustomBackdrop from "../../../components/UI/CustomBackdrop";
-import { getProductByStoreId } from "../../../services/product.service";
-import { IProductTableData } from "../../../interface/product.interface";
 import { VerifyOCOPStatus } from "../../../enums";
-
-interface VerifyHistoryItem {
-  id: string;
-  productId: string;
-  productName: string;
-  productImage: string;
-  star: number;
-  unit: string;
-  address: string;
-  issueDate: string;
-  certificates: string[];
-  status: VerifyOCOPStatus;
-  createdAt: string;
-  updatedAt: string;
-}
+import StarIcon from "@mui/icons-material/Star";
+import { useNavigate } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+import { useQuery } from "@tanstack/react-query";
+import { getVerifyHistory } from "../../../services/verify.service";
+import { IVerifyTableData } from "../../../interface/verify.interface";
+import TagsList from "../../../components/TagList";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { useQueryClient } from "@tanstack/react-query";
+import { deleteVerify } from "../../../services/verify.service";
+import ConfirmDeleteVerifyDialog from "./dialog/ConfirmDeleteVerifyDialog";
 
 interface TableHeader {
-  id: keyof VerifyHistoryItem;
+  id: keyof IVerifyTableData | "action" | "star";
   label: string;
   minWidth?: number;
   align?: "right" | "left" | "center";
-  format?: (value: any) => string;
+  format?: (value: unknown) => string;
 }
 
 const tableHeaders: TableHeader[] = [
-  { id: "productName", label: "Sản phẩm", minWidth: 200 },
+  { id: "verifyDate", label: "Ngày xác thực", minWidth: 150 },
+  { id: "productName", label: "Sản phẩm xác thực", minWidth: 150 },
+  { id: "products", label: "Sản phẩm đăng bán", minWidth: 300 },
   { id: "star", label: "Số sao", minWidth: 100, align: "center" },
-  { id: "unit", label: "Đơn vị", minWidth: 100 },
-  { id: "address", label: "Địa chỉ", minWidth: 200 },
-  { id: "issueDate", label: "Ngày cấp", minWidth: 120 },
   { id: "status", label: "Trạng thái", minWidth: 120, align: "center" },
   { id: "createdAt", label: "Ngày tạo", minWidth: 150 },
   { id: "action", label: "Thao tác", minWidth: 100, align: "center" },
 ];
 
 const VerifyHistory = () => {
+  const navigate = useNavigate();
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState<VerifyOCOPStatus>(VerifyOCOPStatus.ALL);
-  const [selectedHistory, setSelectedHistory] = useState<VerifyHistoryItem | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<VerifyOCOPStatus>(
+    VerifyOCOPStatus.ALL,
+  );
+  const [selectedHistory, setSelectedHistory] =
+    useState<IVerifyTableData | null>(null);
   const [openModal, setOpenModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["products", user?.storeId, debouncedSearchTerm, selectedStatus],
+  const queryClient = useQueryClient();
+
+  const { data: verifyHistory, isLoading } = useQuery({
+    queryKey: [
+      "verifyHistory",
+      user?.storeId,
+      page,
+      rowsPerPage,
+      selectedStatus,
+      debouncedSearchTerm,
+    ],
     queryFn: () =>
-      getProductByStoreId(user?.storeId, {
+      getVerifyHistory(user?.storeId || "", {
+        page: page + 1,
+        limit: rowsPerPage,
+        status: selectedStatus,
         search: debouncedSearchTerm,
-        page: 1,
-        limit: 100,
-        verifyStatus: selectedStatus !== VerifyOCOPStatus.ALL ? selectedStatus : undefined,
       }),
     enabled: !!user?.storeId,
   });
@@ -96,16 +103,32 @@ const VerifyHistory = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 500);
+    }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [searchTerm]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteVerify(id);
+      toast.success("Xóa yêu cầu xác thực thành công");
+      queryClient.invalidateQueries({ queryKey: ["verifyHistory"] });
+    } catch {
+      toast.error("Có lỗi xảy ra khi xóa yêu cầu xác thực");
+    } finally {
+      setOpenDeleteModal(false);
+    }
+  };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
@@ -118,23 +141,8 @@ const VerifyHistory = () => {
     setSelectedStatus(event.target.value as VerifyOCOPStatus);
   };
 
-  const handleOpenModal = (product: IProductTableData) => {
-    // TODO: Replace with actual API call to get verification history
-    const mockHistory: VerifyHistoryItem = {
-      id: product.id,
-      productId: product.id,
-      productName: product.name,
-      productImage: product.images?.[0] || "",
-      star: 5,
-      unit: "kg",
-      address: "Địa chỉ mẫu",
-      issueDate: "2024-03-20",
-      certificates: ["cert1.jpg", "cert2.jpg"],
-      status: product.verifyOcopStatus,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setSelectedHistory(mockHistory);
+  const handleOpenModal = (history: IVerifyTableData) => {
+    setSelectedHistory(history);
     setOpenModal(true);
   };
 
@@ -146,15 +154,15 @@ const VerifyHistory = () => {
   const getStatusColor = (status: VerifyOCOPStatus) => {
     switch (status) {
       case VerifyOCOPStatus.VERIFIED:
-        return "success.main";
+        return "success";
       case VerifyOCOPStatus.REJECTED:
-        return "error.main";
+        return "error";
       case VerifyOCOPStatus.PENDING:
-        return "warning.main";
+        return "warning";
       case VerifyOCOPStatus.NOT_SUBMITTED:
-        return "info.main";
+        return "info";
       default:
-        return "text.primary";
+        return "default";
     }
   };
 
@@ -173,9 +181,7 @@ const VerifyHistory = () => {
     }
   };
 
-  if (isLoading) {
-    return <CustomBackdrop />;
-  }
+  // Filter data based on search term and status
 
   if (!user?.storeId) {
     toast.error("Bạn chưa tạo cửa hàng");
@@ -183,234 +189,413 @@ const VerifyHistory = () => {
   }
 
   return (
-    <Box sx={{ p: 1, maxWidth: 1200, margin: "0 auto" }}>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          py: 1,
-        }}
-      >
-        <Typography variant="h4" fontWeight={600} sx={{ color: "text.primary" }}>
-          Lịch sử xác thực OCOP
-        </Typography>
-      </Box>
+    <>
+      {isLoading && <CustomBackdrop />}
+      <Box sx={{ p: 1, maxWidth: 1200, margin: "0 auto" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            py: 1,
+          }}
+        >
+          <Typography
+            variant="h4"
+            fontWeight={600}
+            sx={{ color: "text.primary" }}
+          >
+            Lịch sử xác thực OCOP
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate("/seller/products/verify")}
+            startIcon={<AddIcon />}
+          >
+            Tạo xác thực
+          </Button>
+        </Box>
 
-      <Card>
-        <CardContent>
-          <Stack spacing={2}>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={2}
-              alignItems={{ xs: "stretch", sm: "center" }}
-            >
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Tìm kiếm theo tên sản phẩm hoặc mã sản phẩm"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-              <TextField
-                select
-                size="small"
-                label="Trạng thái"
-                value={selectedStatus}
-                onChange={handleStatusChange}
-                sx={{ minWidth: 200 }}
+        <Card>
+          <CardContent>
+            <Stack spacing={2}>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                alignItems={{ xs: "stretch", sm: "center" }}
               >
-                <MenuItem value={VerifyOCOPStatus.ALL}>Tất cả</MenuItem>
-                <MenuItem value={VerifyOCOPStatus.PENDING}>Chờ xác thực</MenuItem>
-                <MenuItem value={VerifyOCOPStatus.VERIFIED}>Đã xác thực</MenuItem>
-                <MenuItem value={VerifyOCOPStatus.REJECTED}>Từ chối</MenuItem>
-                <MenuItem value={VerifyOCOPStatus.NOT_SUBMITTED}>Chưa xác thực</MenuItem>
-              </TextField>
-            </Stack>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Tìm kiếm theo tên sản phẩm xác thực"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+                <TextField
+                  select
+                  size="small"
+                  label="Trạng thái"
+                  value={selectedStatus}
+                  onChange={handleStatusChange}
+                  sx={{ minWidth: 200 }}
+                >
+                  <MenuItem value={VerifyOCOPStatus.ALL}>Tất cả</MenuItem>
+                  <MenuItem value={VerifyOCOPStatus.PENDING}>
+                    Chờ xác thực
+                  </MenuItem>
+                  <MenuItem value={VerifyOCOPStatus.VERIFIED}>
+                    Đã xác thực
+                  </MenuItem>
+                  <MenuItem value={VerifyOCOPStatus.REJECTED}>Từ chối</MenuItem>
+                  <MenuItem value={VerifyOCOPStatus.NOT_SUBMITTED}>
+                    Chưa xác thực
+                  </MenuItem>
+                </TextField>
+              </Stack>
 
-            <TableContainer component={Paper}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {tableHeaders.map((header) => (
-                      <TableCell
-                        key={header.id}
-                        align={header.align}
-                        style={{ minWidth: header.minWidth }}
-                      >
-                        {header.label}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {products?.data
-                    ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((product) => (
-                      <TableRow hover key={product.id}>
+              <TableContainer component={Paper}>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      {tableHeaders.map((header) => (
+                        <TableCell
+                          key={header.id}
+                          align={header.align}
+                          style={{ minWidth: header.minWidth }}
+                        >
+                          {header.label}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {verifyHistory?.data.map((history) => (
+                      <TableRow hover key={history.id}>
                         <TableCell>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            {product.images?.[0] && (
-                              <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                style={{
-                                  width: 40,
-                                  height: 40,
-                                  objectFit: "cover",
-                                  borderRadius: 4,
-                                }}
-                              />
+                          {new Date(history.verifyDate).toLocaleDateString(
+                            "vi-VN",
+                          )}
+                        </TableCell>
+                        <TableCell>{history.productName}</TableCell>
+                        <TableCell>
+                          <TagsList
+                            items={history.products.map(
+                              (product) => product.name,
                             )}
-                            <Typography>{product.name}</Typography>
+                          />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Stack
+                            direction="row"
+                            spacing={0.5}
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <StarIcon
+                              sx={{ fontSize: 16, color: "warning.main" }}
+                            />
+                            <Typography variant="body2">
+                              {history.star}
+                            </Typography>
                           </Stack>
                         </TableCell>
-                        <TableCell align="center">{product.ocopStar || "-"}</TableCell>
-                        <TableCell>{product.unit || "-"}</TableCell>
-                        <TableCell>{product.address || "-"}</TableCell>
-                        <TableCell>{product.issueDate || "-"}</TableCell>
                         <TableCell align="center">
-                          <Typography
-                            sx={{
-                              color: getStatusColor(product.verifyOcopStatus),
-                              fontWeight: 500,
-                            }}
-                          >
-                            {getStatusText(product.verifyOcopStatus)}
-                          </Typography>
+                          <Chip
+                            label={getStatusText(history.status)}
+                            color={getStatusColor(history.status)}
+                            size="small"
+                          />
                         </TableCell>
                         <TableCell>
-                          {new Date(product.createdAt).toLocaleString("vi-VN")}
+                          {new Date(history.createdAt).toLocaleString("vi-VN")}
                         </TableCell>
                         <TableCell align="center">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenModal(product)}
-                            sx={{
-                              color: "success.main",
-                              "&:hover": {
-                                bgcolor: "success.lighter",
-                              },
-                            }}
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            justifyContent="center"
                           >
-                            <VisibilityIcon />
-                          </IconButton>
+                            <Tooltip title="Xem chi tiết">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenModal(history)}
+                                sx={{
+                                  color: "success.main",
+                                  "&:hover": {
+                                    bgcolor: "success.lighter",
+                                  },
+                                }}
+                              >
+                                <VisibilityIcon />
+                              </IconButton>
+                            </Tooltip>
+
+                            {history.status === VerifyOCOPStatus.PENDING && (
+                              <>
+                                <Tooltip title="Chỉnh sửa">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() =>
+                                      navigate(
+                                        `/seller/products/verify/${history.id}`,
+                                      )
+                                    }
+                                    sx={{
+                                      color: "warning.main",
+                                      "&:hover": {
+                                        bgcolor: "warning.lighter",
+                                      },
+                                    }}
+                                  >
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Xóa">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      setSelectedHistory(history);
+                                      setOpenDeleteModal(true);
+                                    }}
+                                    sx={{
+                                      color: "error.main",
+                                      "&:hover": {
+                                        bgcolor: "error.lighter",
+                                      },
+                                    }}
+                                  >
+                                    <DeleteOutlineIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </>
+                            )}
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-            <TablePagination
-              rowsPerPageOptions={[10, 25, 100]}
-              component="div"
-              count={products?.data?.length || 0}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Modal xem chi tiết */}
-      <Dialog
-        open={openModal}
-        onClose={handleCloseModal}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Chi tiết xác thực OCOP</DialogTitle>
-        <DialogContent>
-          {selectedHistory && (
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  label="Số sao"
-                  value={selectedHistory.star}
-                  disabled
-                  fullWidth
-                />
-                <TextField
-                  label="Trạng thái"
-                  value={getStatusText(selectedHistory.status)}
-                  disabled
-                  fullWidth
-                />
-              </Stack>
-              <TextField
-                label="Tên sản phẩm"
-                value={selectedHistory.productName}
-                disabled
-                fullWidth
+              <TablePagination
+                rowsPerPageOptions={[10, 25, 100]}
+                component="div"
+                count={verifyHistory?.total || 0}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
               />
-              <TextField
-                label="Đơn vị"
-                value={selectedHistory.unit}
-                disabled
-                fullWidth
-              />
-              <TextField
-                label="Địa chỉ"
-                value={selectedHistory.address}
-                disabled
-                fullWidth
-              />
-              <TextField
-                label="Ngày cấp"
-                value={selectedHistory.issueDate}
-                disabled
-                fullWidth
-              />
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Hình ảnh minh chứng
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {selectedHistory.certificates.map((cert, index) => (
-                    <Paper
-                      key={index}
-                      sx={{
-                        width: 150,
-                        height: 150,
-                        overflow: "hidden",
-                        border: "1px solid",
-                        borderColor: "divider",
-                        borderRadius: 1,
-                      }}
-                    >
-                      <img
-                        src={cert}
-                        alt={`Certificate ${index + 1}`}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </Paper>
-                  ))}
-                </Stack>
-              </Box>
             </Stack>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal}>Đóng</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          </CardContent>
+        </Card>
+
+        {/* Modal xem chi tiết */}
+        <Dialog
+          open={openModal}
+          onClose={handleCloseModal}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>Chi tiết xác thực OCOP</DialogTitle>
+          <DialogContent>
+            {selectedHistory && (
+              <Stack spacing={1} sx={{ mt: 1 }}>
+                {/* Thông tin xác thực */}
+                <Card variant="outlined">
+                  <CardContent>
+                    <Stack spacing={1}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                        Thông tin xác thực
+                      </Typography>
+                      <Stack direction="row" spacing={1}>
+                        <TextField
+                          label="Số sao OCOP"
+                          value={selectedHistory.star}
+                          size="small"
+                          disabled
+                          fullWidth
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <StarIcon sx={{ color: "warning.main" }} />
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                        <TextField
+                          label="Ngày xác thực"
+                          value={new Date(
+                            selectedHistory.verifyDate,
+                          ).toLocaleDateString("vi-VN")}
+                          disabled
+                          fullWidth
+                          size="small"
+                        />
+                      </Stack>
+                      <Stack direction="row" spacing={1}>
+                        <TextField
+                          label="Trạng thái"
+                          value={""}
+                          disabled
+                          fullWidth
+                          size="small"
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <Chip
+                                    label={getStatusText(
+                                      selectedHistory.status,
+                                    )}
+                                    color={getStatusColor(
+                                      selectedHistory.status,
+                                    )}
+                                    size="small"
+                                    sx={{ height: 24 }}
+                                  />
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                        <TextField
+                          label="Tên sản phẩm"
+                          value={selectedHistory.productName}
+                          disabled
+                          fullWidth
+                          size="small"
+                        />
+                        <TextField
+                          label="Đơn vị sản xuất"
+                          value={selectedHistory.manufacturer}
+                          disabled
+                          fullWidth
+                          size="small"
+                        />
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Card>
+
+                {/* Danh sách sản phẩm */}
+                <Card variant="outlined">
+                  <CardContent>
+                    <Stack spacing={1}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                        Danh sách sản phẩm
+                      </Typography>
+                      <Stack spacing={1}>
+                        {selectedHistory.products.map((product) => (
+                          <Paper key={product.id} sx={{ p: 1 }}>
+                            <Stack direction="row" spacing={1}>
+                              {product.images?.[0] && (
+                                <img
+                                  src={product.images[0]}
+                                  alt={product.name}
+                                  style={{
+                                    width: 60,
+                                    height: 60,
+                                    objectFit: "cover",
+                                    borderRadius: 4,
+                                  }}
+                                />
+                              )}
+                              <Stack spacing={0.5} flex={1}>
+                                <Typography
+                                  variant="subtitle1"
+                                  sx={{ fontWeight: 500 }}
+                                >
+                                  {product.name}
+                                </Typography>
+                                <Typography
+                                  variant="body1"
+                                  color="primary"
+                                  sx={{ fontWeight: 500 }}
+                                >
+                                  {product.price.toLocaleString("vi-VN")}đ
+                                </Typography>
+                              </Stack>
+                            </Stack>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Card>
+
+                {/* Hình ảnh minh chứng */}
+                <Card variant="outlined">
+                  <CardContent>
+                    <Stack spacing={1}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                        Hình ảnh minh chứng
+                      </Typography>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        flexWrap="wrap"
+                        useFlexGap
+                      >
+                        {selectedHistory.images.map((image, index) => (
+                          <Paper
+                            key={index}
+                            sx={{
+                              width: 150,
+                              height: 150,
+                              overflow: "hidden",
+                              border: "1px solid",
+                              borderColor: "divider",
+                              borderRadius: 1,
+                            }}
+                          >
+                            <img
+                              src={image}
+                              alt={`Certificate ${index + 1}`}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          </Paper>
+                        ))}
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Stack>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ px: 2, pb: 1 }}>
+            <Button variant="outlined" onClick={handleCloseModal}>
+              Đóng
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+      <ConfirmDeleteVerifyDialog
+        open={openDeleteModal}
+        onClose={(confirm) =>
+          confirm
+            ? handleDelete(selectedHistory?.id || "")
+            : setOpenDeleteModal(false)
+        }
+        keepMounted={false}
+      />
+    </>
   );
 };
 

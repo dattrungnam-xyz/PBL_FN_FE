@@ -18,6 +18,7 @@ import {
   DialogActions,
   MenuItem,
   InputAdornment,
+  Chip,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
@@ -25,15 +26,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import {
-  getProductById,
-  getProductByStoreId,
-} from "../../../services/product.service";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getProductByStoreId } from "../../../services/product.service";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../stores";
 import { AuthState } from "../../../stores/authSlice";
 import { toast } from "react-toastify";
+import { format } from "date-fns";
 import { Navigate } from "react-router-dom";
 import CustomBackdrop from "../../../components/UI/CustomBackdrop";
 import { convertToBase64, getCategoryText } from "../../../utils";
@@ -44,9 +43,15 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import PendingIcon from "@mui/icons-material/Pending";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
-import { createVerify } from "../../../services/verify.service";
-import { ICreateVerify } from "../../../interface/verify.interface";
-import ConfirmCreateVerifyDialog from "./dialog/ConfirmCreateVerifyDialog";
+import {
+  getVerifyById,
+  updateVerify,
+  deleteVerify,
+} from "../../../services/verify.service";
+import { ICreateVerify, IVerifyResponse } from "../../../interface";
+import ConfirmUpdateVerifyDialog from "./dialog/ConfirmUpdateVerifyDialog";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ConfirmDeleteVerifyDialog from "./dialog/ConfirmDeleteVerifyDialog";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -68,9 +73,10 @@ interface FormErrors {
   images?: string;
 }
 
-const VerifyProduct = () => {
+const UpdateVerifyProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
 
   const [selectedProducts, setSelectedProducts] = useState<IProductTableData[]>(
@@ -94,13 +100,38 @@ const VerifyProduct = () => {
   const [certificatePreviews, setCertificatePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [openSearchDialog, setOpenSearchDialog] = useState(false);
-  const [openConfirmCreateVerifyDialog, setOpenConfirmCreateVerifyDialog] =
-    useState(false);
+  const [openConfirmUpdateDialog, setOpenConfirmUpdateDialog] = useState(false);
+  const [openConfirmDeleteDialog, setOpenConfirmDeleteDialog] = useState(false);
 
-  const { data: initialProduct, isLoading: isLoadingProduct } = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => getProductById(id || ""),
-    enabled: !!id,
+  const { data: verifyData, isLoading: isLoadingVerify } =
+    useQuery<IVerifyResponse>({
+      queryKey: ["verify", id],
+      queryFn: () => getVerifyById(id || ""),
+      enabled: !!id,
+    });
+
+  const updateVerifyMutation = useMutation({
+    mutationFn: (data: ICreateVerify) => updateVerify(id || "", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["verify", id] });
+      toast.success("Cập nhật yêu cầu xác thực thành công");
+      navigate(`/seller/products/verify/${id}`);
+    },
+    onError: () => {
+      toast.error("Có lỗi xảy ra khi cập nhật yêu cầu xác thực");
+    },
+  });
+
+  const deleteVerifyMutation = useMutation({
+    mutationFn: () => deleteVerify(id || ""),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["verify", id] });
+      toast.success("Xóa yêu cầu xác thực thành công");
+      navigate("/seller/products/verify");
+    },
+    onError: () => {
+      toast.error("Có lỗi xảy ra khi xóa yêu cầu xác thực");
+    },
   });
 
   const { data: searchResults } = useQuery({
@@ -127,20 +158,99 @@ const VerifyProduct = () => {
   });
 
   useEffect(() => {
-    if (
-      initialProduct &&
-      !selectedProducts.find((p) => p.id === initialProduct.id)
-    ) {
-      setSelectedProducts((prev) => [...prev, initialProduct]);
+    if (verifyData) {
+      const formattedDate = verifyData.verifyDate
+        ? new Date(verifyData.verifyDate).toISOString().split("T")[0]
+        : "";
+
+      setFormData({
+        star: verifyData.star,
+        productName: verifyData.productName || "",
+        manufacturer: verifyData.manufacturer,
+        verifyDate: formattedDate,
+        images: verifyData.images,
+        productIds: verifyData.products.map((p) => p.id),
+      });
+      setCertificatePreviews(verifyData.images);
+
+      if (verifyData.products) {
+        setSelectedProducts(verifyData.products);
+      }
     }
-  }, [initialProduct, selectedProducts]);
+  }, [verifyData]);
 
   if (!user || !user.storeId) {
     toast.error("Bạn chưa tạo cửa hàng");
     return <Navigate to="/seller/create" />;
   }
 
-  // Add initial product to selected products if it exists
+  if (isLoadingVerify) {
+    return <CustomBackdrop />;
+  }
+
+  if (!verifyData) {
+    toast.error("Không tìm thấy thông tin xác thực");
+    return <Navigate to="/seller/products/verify" />;
+  }
+
+  const handleSubmit = async () => {
+    console.log(formData);
+    if (validateForm()) {
+      setLoading(true);
+      try {
+        const payload = {
+          ...formData,
+          productIds: selectedProducts.map((p) => p.id),
+        };
+        await updateVerifyMutation.mutateAsync(payload);
+      } finally {
+        setOpenConfirmUpdateDialog(false);
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await deleteVerifyMutation.mutateAsync();
+    } finally {
+      setOpenConfirmDeleteDialog(false);
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status: VerifyOCOPStatus) => {
+    switch (status) {
+      case VerifyOCOPStatus.VERIFIED:
+        return "success";
+      case VerifyOCOPStatus.REJECTED:
+        return "error";
+      case VerifyOCOPStatus.PENDING:
+        return "warning";
+      case VerifyOCOPStatus.NOT_SUBMITTED:
+        return "info";
+      default:
+        return "default";
+    }
+  };
+
+  const getStatusText = (status: VerifyOCOPStatus) => {
+    switch (status) {
+      case VerifyOCOPStatus.VERIFIED:
+        return "Đã xác thực";
+      case VerifyOCOPStatus.REJECTED:
+        return "Từ chối";
+      case VerifyOCOPStatus.PENDING:
+        return "Chờ xác thực";
+      case VerifyOCOPStatus.NOT_SUBMITTED:
+        return "Chưa xác thực";
+      default:
+        return status;
+    }
+  };
+
+  const isEditable = verifyData.status === VerifyOCOPStatus.PENDING;
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -239,31 +349,6 @@ const VerifyProduct = () => {
     setSelectedProducts((prev) => prev.filter((p) => p.id !== productId));
   };
 
-  const handleSubmit = async () => {
-    if (validateForm()) {
-      setLoading(true);
-      try {
-        const payload = {
-          ...formData,
-          productIds: selectedProducts.map((p) => p.id),
-        };
-        const response = await createVerify(payload);
-        navigate(`/seller/products/verify/${response.id}`);
-        toast.success("Gửi yêu cầu xác thực thành công");
-      } catch (error) {
-        console.error("Error submitting verification:", error);
-        toast.error("Có lỗi xảy ra khi gửi yêu cầu xác thực");
-      } finally {
-        setOpenConfirmCreateVerifyDialog(false);
-        setLoading(false);
-      }
-    }
-  };
-
-  if (isLoadingProduct) {
-    return <CustomBackdrop />;
-  }
-
   return (
     <>
       {loading && <CustomBackdrop />}
@@ -276,27 +361,61 @@ const VerifyProduct = () => {
             py: 1,
           }}
         >
-          <Typography
-            variant="h4"
-            fontWeight={600}
-            sx={{ color: "text.primary" }}
-          >
-            Xác thực sản phẩm OCOP
-          </Typography>
-          <Button
-            variant="outlined"
-            onClick={() => setOpenSearchDialog(true)}
-            sx={{
-              color: "success.main",
-              borderColor: "success.main",
-              "&:hover": {
-                borderColor: "success.dark",
-                bgcolor: "success.lighter",
-              },
-            }}
-          >
-            Thêm sản phẩm
-          </Button>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography
+              variant="h4"
+              fontWeight={600}
+              sx={{ color: "text.primary" }}
+            >
+              Cập nhật xác thực OCOP
+            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Chip
+                label={getStatusText(verifyData.status)}
+                color={getStatusColor(verifyData.status)}
+                size="small"
+              />
+              <Typography variant="body2" color="text.secondary">
+                Tạo lúc:{" "}
+                {format(new Date(verifyData.createdAt), "dd/MM/yyyy HH:mm")}
+              </Typography>
+            </Stack>
+          </Stack>
+          <Stack direction="row" spacing={1}>
+            {isEditable && (
+              <>
+                <Button
+                  variant="outlined"
+                  onClick={() => setOpenSearchDialog(true)}
+                  sx={{
+                    color: "success.main",
+                    borderColor: "success.main",
+                    "&:hover": {
+                      borderColor: "success.dark",
+                      bgcolor: "success.lighter",
+                    },
+                  }}
+                >
+                  Thêm sản phẩm
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setOpenConfirmDeleteDialog(true)}
+                  startIcon={<DeleteOutlineIcon />}
+                  sx={{
+                    color: "error.main",
+                    borderColor: "error.main",
+                    "&:hover": {
+                      borderColor: "error.dark",
+                      bgcolor: "error.lighter",
+                    },
+                  }}
+                >
+                  Xóa
+                </Button>
+              </>
+            )}
+          </Stack>
         </Box>
 
         <form noValidate onSubmit={handleSubmit}>
@@ -353,18 +472,20 @@ const VerifyProduct = () => {
                               {product.price.toLocaleString("vi-VN")}đ
                             </Typography>
                           </Stack>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleRemoveProduct(product.id)}
-                            sx={{
-                              color: "success.dark",
-                              "&:hover": {
-                                color: "error.main",
-                              },
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
+                          {isEditable && (
+                            <IconButton
+                              size="small"
+                              onClick={() => handleRemoveProduct(product.id)}
+                              sx={{
+                                color: "success.dark",
+                                "&:hover": {
+                                  color: "error.main",
+                                },
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          )}
                         </Stack>
                       </Paper>
                     ))}
@@ -397,18 +518,21 @@ const VerifyProduct = () => {
                     <Rating
                       value={formData.star}
                       onChange={(_event, newValue) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          star: newValue || 0,
-                        }));
-                        if (errors.star) {
-                          setErrors((prev) => ({
+                        if (isEditable) {
+                          setFormData((prev) => ({
                             ...prev,
-                            star: undefined,
+                            star: newValue || 0,
                           }));
+                          if (errors.star) {
+                            setErrors((prev) => ({
+                              ...prev,
+                              star: undefined,
+                            }));
+                          }
                         }
                       }}
                       size="large"
+                      readOnly={!isEditable}
                     />
                     {errors.star && (
                       <FormHelperText error>{errors.star}</FormHelperText>
@@ -425,6 +549,7 @@ const VerifyProduct = () => {
                     size="small"
                     error={!!errors.productName}
                     helperText={errors.productName}
+                    disabled={!isEditable}
                   />
 
                   <TextField
@@ -437,6 +562,7 @@ const VerifyProduct = () => {
                     size="small"
                     error={!!errors.manufacturer}
                     helperText={errors.manufacturer}
+                    disabled={!isEditable}
                   />
 
                   <TextField
@@ -450,6 +576,7 @@ const VerifyProduct = () => {
                     size="small"
                     error={!!errors.verifyDate}
                     helperText={errors.verifyDate}
+                    disabled={!isEditable}
                     slotProps={{
                       inputLabel: {
                         shrink: true,
@@ -492,73 +619,82 @@ const VerifyProduct = () => {
                                   objectFit: "cover",
                                 }}
                               />
-                              <IconButton
-                                size="small"
-                                sx={{
-                                  position: "absolute",
-                                  top: 4,
-                                  right: 4,
-                                  bgcolor: "background.paper",
-                                }}
-                                onClick={() => handleRemoveCertificate(index)}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
+                              {isEditable && (
+                                <IconButton
+                                  size="small"
+                                  sx={{
+                                    position: "absolute",
+                                    top: 4,
+                                    right: 4,
+                                    bgcolor: "background.paper",
+                                  }}
+                                  onClick={() => handleRemoveCertificate(index)}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              )}
                             </Paper>
                           </Box>
                         ))}
-                        <Box
-                          sx={{
-                            width: 150,
-                            height: 150,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            border: "1px dashed",
-                            borderColor: errors.images
-                              ? "error.main"
-                              : "divider",
-                            borderRadius: 1,
-                            bgcolor: "grey.50",
-                          }}
-                        >
-                          <Stack alignItems="center" spacing={1}>
-                            <AddPhotoAlternateIcon
-                              sx={{ fontSize: 40, color: "text.secondary" }}
-                            />
-                            <Typography variant="body2" color="text.secondary">
-                              Thêm hình ảnh
-                            </Typography>
-                          </Stack>
-                        </Box>
+                        {isEditable && (
+                          <Box
+                            sx={{
+                              width: 150,
+                              height: 150,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              border: "1px dashed",
+                              borderColor: errors.images
+                                ? "error.main"
+                                : "divider",
+                              borderRadius: 1,
+                              bgcolor: "grey.50",
+                            }}
+                          >
+                            <Stack alignItems="center" spacing={1}>
+                              <AddPhotoAlternateIcon
+                                sx={{ fontSize: 40, color: "text.secondary" }}
+                              />
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                Thêm hình ảnh
+                              </Typography>
+                            </Stack>
+                          </Box>
+                        )}
                       </Stack>
                       {errors.images && (
                         <FormHelperText error>{errors.images}</FormHelperText>
                       )}
-                      <Button
-                        component="label"
-                        variant="outlined"
-                        startIcon={<CloudUploadIcon />}
-                        sx={{
-                          color: "success.main",
-                          borderColor: errors.images
-                            ? "error.main"
-                            : "success.main",
-                          "&:hover": {
+                      {isEditable && (
+                        <Button
+                          component="label"
+                          variant="outlined"
+                          startIcon={<CloudUploadIcon />}
+                          sx={{
+                            color: "success.main",
                             borderColor: errors.images
-                              ? "error.dark"
-                              : "success.dark",
-                          },
-                        }}
-                      >
-                        Tải lên hình ảnh minh chứng
-                        <VisuallyHiddenInput
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handleCertificateChange}
-                        />
-                      </Button>
+                              ? "error.main"
+                              : "success.main",
+                            "&:hover": {
+                              borderColor: errors.images
+                                ? "error.dark"
+                                : "success.dark",
+                            },
+                          }}
+                        >
+                          Tải lên hình ảnh minh chứng
+                          <VisuallyHiddenInput
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleCertificateChange}
+                          />
+                        </Button>
+                      )}
                     </Stack>
                   </Box>
                 </Stack>
@@ -582,21 +718,23 @@ const VerifyProduct = () => {
               >
                 Hủy
               </Button>
-              <Button
-                onClick={() => setOpenConfirmCreateVerifyDialog(true)}
-                variant="contained"
-                size="large"
-                disabled={selectedProducts.length === 0}
-                sx={{
-                  bgcolor: "success.main",
-                  minWidth: 120,
-                  "&:hover": {
-                    bgcolor: "success.dark",
-                  },
-                }}
-              >
-                Gửi yêu cầu
-              </Button>
+              {isEditable && (
+                <Button
+                  onClick={() => setOpenConfirmUpdateDialog(true)}
+                  variant="contained"
+                  size="large"
+                  disabled={selectedProducts.length === 0}
+                  sx={{
+                    bgcolor: "success.main",
+                    minWidth: 120,
+                    "&:hover": {
+                      bgcolor: "success.dark",
+                    },
+                  }}
+                >
+                  Cập nhật
+                </Button>
+              )}
             </Stack>
           </Stack>
         </form>
@@ -882,10 +1020,19 @@ const VerifyProduct = () => {
           <Button onClick={() => setOpenSearchDialog(false)}>Đóng</Button>
         </DialogActions>
       </Dialog>
-      <ConfirmCreateVerifyDialog
-        open={openConfirmCreateVerifyDialog}
+      <ConfirmUpdateVerifyDialog
+        open={openConfirmUpdateDialog}
         onClose={(confirm) =>
-          confirm ? handleSubmit() : setOpenConfirmCreateVerifyDialog(false)
+          confirm ? handleSubmit() : setOpenConfirmUpdateDialog(false)
+        }
+        keepMounted={false}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteVerifyDialog
+        open={openConfirmDeleteDialog}
+        onClose={(confirm) =>
+          confirm ? handleDelete() : setOpenConfirmDeleteDialog(false)
         }
         keepMounted={false}
       />
@@ -893,4 +1040,4 @@ const VerifyProduct = () => {
   );
 };
 
-export default VerifyProduct;
+export default UpdateVerifyProduct;
