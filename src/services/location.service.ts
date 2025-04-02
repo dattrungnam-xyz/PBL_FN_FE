@@ -31,3 +31,18 @@ export const getWards = async (districtId: string) => {
   });
   return response.data.data;
 };
+
+export const getProvinceName = async (provinceId: string) => {
+  const response = await axios.get(`${BASE_URL}/provinces/${provinceId}`);
+  return response.data.data.name;
+};
+
+export const getDistrictName = async (districtId: string) => {
+  const response = await axios.get(`${BASE_URL}/districts/${districtId}`);
+  return response.data.data.name;
+};
+
+export const getWardName = async (wardId: string) => {
+  const response = await axios.get(`${BASE_URL}/wards/${wardId}`);
+  return response.data.data.name;
+};

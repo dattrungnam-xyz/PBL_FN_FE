@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,23 +12,27 @@ import {
   Select,
   MenuItem,
   Typography,
+  FormHelperText,
+  SelectChangeEvent,
 } from "@mui/material";
-
-export interface AddressData {
-  type: "home" | "office" | "other";
-  name: string;
-  phone: string;
-  city: string;
-  district: string;
-  ward: string;
-  address: string;
-}
+import {
+  ICreateUserAddress,
+  IDistrict,
+  IProvince,
+  IUserAddress,
+  IWard,
+} from "../../interface";
+import {
+  getDistricts,
+  getProvinces,
+  getWards,
+} from "../../services/location.service";
 
 interface AddressDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: AddressData) => void;
-  editData?: AddressData;
+  onSubmit: (data: ICreateUserAddress | IUserAddress) => void;
+  editData?: IUserAddress;
 }
 
 const AddressDialog: React.FC<AddressDialogProps> = ({
@@ -37,19 +41,168 @@ const AddressDialog: React.FC<AddressDialogProps> = ({
   onSubmit,
   editData,
 }) => {
+  const [provinces, setProvinces] = useState<IProvince[]>([]);
+  const [districts, setDistricts] = useState<IDistrict[]>([]);
+  const [wards, setWards] = useState<IWard[]>([]);
+
+  const [formData, setFormData] = useState<ICreateUserAddress>({
+    type: "home",
+    name: "",
+    phone: "",
+    province: "",
+    district: "",
+    ward: "",
+    address: "",
+    textAddress: "",
+  });
+  const [errors, setErrors] = useState<Partial<ICreateUserAddress>>({});
+
+  useEffect(() => {
+    if (editData) {
+      setFormData(editData);
+    } else {
+      setFormData({
+        type: "home",
+        name: "",
+        phone: "",
+        province: "",
+        district: "",
+        ward: "",
+        address: "",
+        textAddress: "",
+      });
+    }
+  }, [editData]);
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const provinces = await getProvinces();
+      setProvinces(provinces);
+    };
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      if (formData.province) {
+        const districts = await getDistricts(formData.province);
+        setDistricts(districts);
+      } else {
+        setDistricts([]);
+      }
+    };
+    fetchDistricts();
+  }, [formData.province]);
+
+  useEffect(() => {
+    const fetchWards = async () => {
+      if (formData.district) {
+        const wards = await getWards(formData.district);
+        setWards(wards);
+      } else {
+        setWards([]);
+      }
+    };
+    fetchWards();
+  }, [formData.district]);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name as keyof ICreateUserAddress]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleTypeChange = (
+    event: SelectChangeEvent<"home" | "office" | "other">,
+  ) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name as keyof ICreateUserAddress]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleLocationChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "province") {
+      setDistricts([]);
+      setFormData((prev) => ({ ...prev, district: "" }));
+      setErrors((prev) => ({ ...prev, district: "" }));
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      setErrors((prev) => ({ ...prev, ward: "" }));
+    } else if (name === "district") {
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      setErrors((prev) => ({ ...prev, ward: "" }));
+    }
+    if (errors[name as keyof ICreateUserAddress]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Partial<ICreateUserAddress> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Vui lòng nhập họ và tên";
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Vui lòng nhập số điện thoại";
+    }
+    if (!formData.province) {
+      newErrors.province = "Vui lòng chọn tỉnh/thành phố";
+    }
+    if (!formData.district) {
+      newErrors.district = "Vui lòng chọn quận/huyện";
+    }
+    if (!formData.ward) {
+      newErrors.ward = "Vui lòng chọn phường/xã";
+    }
+    if (!formData.address.trim()) {
+      newErrors.address = "Vui lòng nhập địa chỉ";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    const formData = new FormData(e.target as HTMLFormElement);
-    onSubmit({
-      type: formData.get("type") as AddressData["type"],
-      name: formData.get("name") as string,
-      phone: formData.get("phone") as string,
-      city: formData.get("city") as string,
-      district: formData.get("district") as string,
-      ward: formData.get("ward") as string,
-      address: formData.get("address") as string,
-    });
+    formData.textAddress = `${formData.address}, ${
+      wards.find((ward) => ward.id === formData.ward)?.name
+    }, ${
+      districts.find((district) => district.id === formData.district)?.name
+    }, ${
+      provinces.find((province) => province.id === formData.province)?.name
+    }`;
+
+    if (validateForm()) {
+      if (editData) {
+        onSubmit({
+          ...formData,
+          id: editData.id,
+          isDefault: editData.isDefault,
+        });
+      } else {
+        onSubmit(formData);
+      }
+      setFormData({
+        type: "home",
+        name: "",
+        phone: "",
+        province: "",
+        district: "",
+        ward: "",
+        address: "",
+        textAddress: "",
+      });
+    }
   };
 
   return (
@@ -66,8 +219,9 @@ const AddressDialog: React.FC<AddressDialogProps> = ({
               <InputLabel>Loại địa chỉ</InputLabel>
               <Select
                 name="type"
-                defaultValue={editData?.type || "home"}
+                value={formData.type}
                 label="Loại địa chỉ"
+                onChange={handleTypeChange}
               >
                 <MenuItem value="home">Nhà riêng</MenuItem>
                 <MenuItem value="office">Văn phòng</MenuItem>
@@ -79,57 +233,113 @@ const AddressDialog: React.FC<AddressDialogProps> = ({
               name="name"
               size="small"
               label="Họ và tên"
-              defaultValue={editData?.name}
+              value={formData.name}
+              onChange={handleInputChange}
               fullWidth
-              required
+              error={!!errors.name}
+              helperText={errors.name}
             />
 
             <TextField
               name="phone"
               size="small"
               label="Số điện thoại"
-              defaultValue={editData?.phone}
+              value={formData.phone}
+              onChange={handleInputChange}
               fullWidth
-              required
+              error={!!errors.phone}
+              helperText={errors.phone}
             />
 
-            <TextField
-              name="city"
-              size="small"
-              label="Tỉnh/Thành phố"
-              defaultValue={editData?.city}
-              fullWidth
-              required
-            />
+            <FormControl fullWidth size="small" error={!!errors.province}>
+              <InputLabel>Tỉnh/Thành phố</InputLabel>
+              <Select
+                name="province"
+                value={formData.province}
+                label="Tỉnh/Thành phố"
+                onChange={handleLocationChange}
+                MenuProps={{
+                  MenuListProps: {
+                    sx: {
+                      maxHeight: 300,
+                    },
+                  },
+                }}
+              >
+                {provinces.map((province) => (
+                  <MenuItem key={province.id} value={province.id}>
+                    {province.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.province && (
+                <FormHelperText>{errors.province}</FormHelperText>
+              )}
+            </FormControl>
 
-            <TextField
-              name="district"
-              size="small"
-              label="Quận/Huyện"
-              defaultValue={editData?.district}
-              fullWidth
-              required
-            />
+            <FormControl fullWidth size="small" error={!!errors.district}>
+              <InputLabel>Quận/Huyện</InputLabel>
+              <Select
+                name="district"
+                value={formData.district}
+                label="Quận/Huyện"
+                onChange={handleLocationChange}
+                disabled={!formData.province}
+                MenuProps={{
+                  MenuListProps: {
+                    sx: {
+                      maxHeight: 300,
+                    },
+                  },
+                }}
+              >
+                {districts.map((district) => (
+                  <MenuItem key={district.id} value={district.id}>
+                    {district.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.district && (
+                <FormHelperText>{errors.district}</FormHelperText>
+              )}
+            </FormControl>
 
-            <TextField
-              name="ward"
-              size="small"
-              label="Phường/Xã"
-              defaultValue={editData?.ward}
-              fullWidth
-              required
-            />
+            <FormControl fullWidth size="small" error={!!errors.ward}>
+              <InputLabel>Phường/Xã</InputLabel>
+              <Select
+                name="ward"
+                value={formData.ward}
+                label="Phường/Xã"
+                onChange={handleLocationChange}
+                disabled={!formData.district}
+                MenuProps={{
+                  MenuListProps: {
+                    sx: {
+                      maxHeight: 300,
+                    },
+                  },
+                }}
+              >
+                {wards.map((ward) => (
+                  <MenuItem key={ward.id} value={ward.id}>
+                    {ward.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.ward && <FormHelperText>{errors.ward}</FormHelperText>}
+            </FormControl>
 
             <TextField
               name="address"
               size="small"
-              label="Địa chỉ cụ thể"
-              defaultValue={editData?.address}
+              label="Địa chỉ"
+              value={formData.address}
+              onChange={handleInputChange}
               fullWidth
-              required
               multiline
               rows={2}
-              placeholder="Số nhà, tên đường..."
+              error={!!errors.address}
+              helperText={errors.address}
             />
           </Stack>
         </DialogContent>

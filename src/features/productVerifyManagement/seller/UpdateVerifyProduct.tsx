@@ -127,7 +127,7 @@ const UpdateVerifyProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["verify", id] });
       toast.success("Xóa yêu cầu xác thực thành công");
-      navigate("/seller/products/verify");
+      navigate("/seller/products/verify/history");
     },
     onError: () => {
       toast.error("Có lỗi xảy ra khi xóa yêu cầu xác thực");
