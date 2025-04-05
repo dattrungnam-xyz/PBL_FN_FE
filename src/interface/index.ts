@@ -1,8 +1,13 @@
 import { IProvince, IDistrict, IWard } from "./location.interface";
-import { ICreateStore, ICreateStoreError } from "./store.interface";
-import { ICreateProduct, ICreateProductError } from "./product.interface";
-import { ICreateVerify, IVerifyResponse } from "./verify.interface";
+import { ICreateStore, ICreateStoreError, IStore } from "./store.interface";
+import {
+  ICreateProduct,
+  ICreateProductError,
+  IProduct,
+} from "./product.interface";
+import { ICreateVerify, IVerifyResponse, IVerify } from "./verify.interface";
 import { ICreateUserAddress, IUserAddress } from "./userAddress.interface";
+import { ICartGroupByStore } from "./cart.interface";
 export type {
   IProvince,
   IDistrict,
@@ -15,4 +20,8 @@ export type {
   IVerifyResponse,
   ICreateUserAddress,
   IUserAddress,
+  IProduct,
+  IStore,
+  IVerify,
+  ICartGroupByStore,
 };

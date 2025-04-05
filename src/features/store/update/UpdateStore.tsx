@@ -66,6 +66,9 @@ const UpdateStore = () => {
     email: "",
     avatar: "",
     banner: "",
+    provinceName: "",
+    districtName: "",
+    wardName: "",
   });
   const [errors, setErrors] = useState<ICreateStoreError>({});
 
@@ -174,6 +177,16 @@ const UpdateStore = () => {
       ...prev,
       [name]: undefined,
     }));
+    if (name === "province") {
+      setDistricts([]);
+      setFormData((prev) => ({ ...prev, district: "", ward: "" }));
+      setErrors((prev) => ({ ...prev, district: "", ward: "" }));
+      setWards([]);
+    } else if (name === "district") {
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      setErrors((prev) => ({ ...prev, ward: "" }));
+    }
   };
 
   const handleFileChange = async (
@@ -213,6 +226,14 @@ const UpdateStore = () => {
   const handleConfirmSubmit = async () => {
     try {
       setLoading(true);
+      formData.wardName =
+        wards.find((ward) => ward.id === formData.ward)?.name || "";
+      formData.districtName =
+        districts.find((district) => district.id === formData.district)?.name ||
+        "";
+      formData.provinceName =
+        provinces.find((province) => province.id === formData.province)?.name ||
+        "";
       await updateStore(formData);
       toast.success("Cập nhật cửa hàng thành công");
       setInitialData(formData);

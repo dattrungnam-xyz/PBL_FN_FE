@@ -131,11 +131,9 @@ const AddressDialog: React.FC<AddressDialogProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (name === "province") {
       setDistricts([]);
-      setFormData((prev) => ({ ...prev, district: "" }));
-      setErrors((prev) => ({ ...prev, district: "" }));
+      setFormData((prev) => ({ ...prev, district: "", ward: "" }));
+      setErrors((prev) => ({ ...prev, district: "", ward: "" }));
       setWards([]);
-      setFormData((prev) => ({ ...prev, ward: "" }));
-      setErrors((prev) => ({ ...prev, ward: "" }));
     } else if (name === "district") {
       setWards([]);
       setFormData((prev) => ({ ...prev, ward: "" }));

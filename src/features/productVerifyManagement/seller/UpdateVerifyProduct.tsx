@@ -43,6 +43,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import PendingIcon from "@mui/icons-material/Pending";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
+import StarIcon from "@mui/icons-material/Star";
 import {
   getVerifyById,
   updateVerify,
@@ -471,6 +472,24 @@ const UpdateVerifyProduct = () => {
                             >
                               {product.price.toLocaleString("vi-VN")}đ
                             </Typography>
+                            {product.star ? (
+                              <Stack
+                                direction="row"
+                                sx={{ alignItems: "center" }}
+                                spacing={0.25}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  color="text.primary"
+                                >
+                                  {product.star}
+                                </Typography>
+                                <StarIcon
+                                  fontSize="small"
+                                  sx={{ color: "success.dark" }}
+                                />
+                              </Stack>
+                            ) : null}
                           </Stack>
                           {isEditable && (
                             <IconButton
@@ -989,9 +1008,36 @@ const UpdateVerifyProduct = () => {
                                 ) : null}
                               </Typography>
                             </Stack>
-                            <Typography variant="body2" color="text.secondary">
-                              {product.price.toLocaleString("vi-VN")}đ
-                            </Typography>
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                            >
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {product.price.toLocaleString("vi-VN")}đ
+                              </Typography>
+                              {product.star ? (
+                                <Stack
+                                  direction="row"
+                                  sx={{ alignItems: "center" }}
+                                  spacing={0.25}
+                                >
+                                  <Typography
+                                    variant="body2"
+                                    color="text.primary"
+                                  >
+                                    {product.star}
+                                  </Typography>
+                                  <StarIcon
+                                    fontSize="small"
+                                    sx={{ color: "success.dark" }}
+                                  />
+                                </Stack>
+                              ) : null}
+                            </Stack>
                           </Stack>
                         </Stack>
                         <Button

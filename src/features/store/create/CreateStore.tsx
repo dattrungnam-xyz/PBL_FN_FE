@@ -37,9 +37,10 @@ import {
 import { convertToBase64 } from "../../../utils/convertToBase64";
 import { createStore } from "../../../services/store.service";
 import CustomBackdrop from "../../../components/UI/CustomBackdrop";
-import { AuthState } from "../../../stores/authSlice";
-import { useSelector } from "react-redux";
+import { authActions, AuthState } from "../../../stores/authSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../stores";
+import { me } from "../../../services/auth.service";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -65,7 +66,12 @@ const CreateStore = () => {
     email: "",
     avatar: "",
     banner: "",
+    provinceName: "",
+    districtName: "",
+    wardName: "",
   });
+  const dispatch = useDispatch();
+
   const [errors, setErrors] = useState<ICreateStoreError>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
@@ -127,6 +133,16 @@ const CreateStore = () => {
       ...prev,
       [name]: undefined,
     }));
+    if (name === "province") {
+      setDistricts([]);
+      setFormData((prev) => ({ ...prev, district: "", ward: "" }));
+      setErrors((prev) => ({ ...prev, district: "", ward: "" }));
+      setWards([]);
+    } else if (name === "district") {
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      setErrors((prev) => ({ ...prev, ward: "" }));
+    }
   };
 
   const handleFileChange = async (
@@ -159,11 +175,31 @@ const CreateStore = () => {
     if (validateForm()) {
       try {
         setIsLoading(true);
+        formData.wardName =
+          wards.find((ward) => ward.id === formData.ward)?.name || "";
+        formData.districtName =
+          districts.find((district) => district.id === formData.district)
+            ?.name || "";
+        formData.provinceName =
+          provinces.find((province) => province.id === formData.province)
+            ?.name || "";
+
         await createStore(formData);
         toast.success("Tạo cửa hàng thành công");
+        const token = localStorage.getItem("token");
+        const refreshToken = localStorage.getItem("refreshToken");
+        const user = await me(token!);
+        dispatch(
+          authActions.login({
+            token: token!,
+            user,
+            refreshToken: refreshToken!,
+          }),
+        );
+
         navigate("/seller");
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
+        console.error("Error creating store:", error);
         toast.error("Tạo cửa hàng thất bại");
       } finally {
         setIsLoading(false);

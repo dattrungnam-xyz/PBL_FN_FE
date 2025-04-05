@@ -9,119 +9,124 @@ import {
   Avatar,
   Checkbox,
 } from "@mui/material";
+import { toast } from "react-toastify";
 import { Content } from "../../layouts";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { useState, useMemo } from "react";
-
-// Sample data - replace with actual data from API/Redux store
-const sampleCartItems = [
-  {
-    id: 1,
-    name: "Sản phẩm 1",
-    price: 100000,
-    image: "",  // Empty for placeholder
-    quantity: 2,
-    store: {
-      id: 1,
-      name: "Cửa hàng A",
-      isVerified: true,
-    },
-  },
-  {
-    id: 2,
-    name: "Sản phẩm 2",
-    price: 150000,
-    image: "", // Empty for placeholder
-    quantity: 1,
-    store: {
-      id: 1,
-      name: "Cửa hàng A",
-      isVerified: true,
-    },
-  },
-  {
-    id: 3,
-    name: "Sản phẩm 3",
-    price: 200000,
-    image: "", // Empty for placeholder
-    quantity: 1,
-    store: {
-      id: 2,
-      name: "Cửa hàng B",
-      isVerified: true,
-    },
-  },
-];
+import { useState, useEffect } from "react";
+import { getCart } from "../../services/cart.service";
+import { ICartGroupByStore } from "../../interface";
+import {
+  removeCartItem,
+  updateCartItem,
+} from "../../services/cartItems.service";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState(sampleCartItems);
+  const [cartItems, setCartItems] = useState<ICartGroupByStore[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
 
-  // Group items by store
-  const groupedItems = useMemo(() => {
-    const groups = cartItems.reduce((acc, item) => {
-      const storeId = item.store.id;
-      if (!acc[storeId]) {
-        acc[storeId] = {
-          store: item.store,
-          items: [],
-        };
+  useEffect(() => {
+    const fetchCart = async () => {
+      const response = await getCart();
+      setCartItems(response || []);
+    };
+    fetchCart();
+  }, []);
+
+  const handleQuantityChange = async (id: number | string, delta: number) => {
+    const item = cartItems
+      .flatMap((item) => item.items)
+      .find((item) => item.id === id);
+
+    if (item) {
+      if (item.quantity + delta > item.product.quantity) {
+        toast.error(
+          `Số lượng sản phẩm không đủ, còn tối đa ${item.product.quantity} sản phẩm`,
+        );
+        return;
       }
-      acc[storeId].items.push(item);
-      return acc;
-    }, {} as Record<number, { store: typeof sampleCartItems[0]['store']; items: typeof sampleCartItems }>);
-
-    return Object.values(groups);
-  }, [cartItems]);
-
-  const handleQuantityChange = (id: number, delta: number) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              quantity: Math.max(1, Math.min(item.quantity + delta, 99)),
-            }
-          : item
-      )
-    );
+    }
+    try {
+      await updateCartItem(id, item!.quantity + delta);
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item.items.some((item) => item.id === id)
+            ? {
+                ...item,
+                items: item.items.map((item) =>
+                  item.id === id
+                    ? {
+                        ...item,
+                        quantity: Math.max(1, item.quantity + delta),
+                      }
+                    : item,
+                ),
+              }
+            : item,
+        ),
+      );
+    } catch (error) {
+      console.log(error);
+      toast.error("Lỗi khi cập nhật số lượng sản phẩm");
+    }
   };
 
-  const handleRemoveItem = (id: number) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-    setSelectedItems((prev) => prev.filter((itemId) => itemId !== id));
+  const handleRemoveItem = async (id: number | string) => {
+    try {
+      await removeCartItem(id);
+      setCartItems((prev) =>
+        prev
+          .map((item) => ({
+            ...item,
+            items: item.items.filter((item) => item.id !== id),
+          }))
+          .filter((item) => item.items.length > 0),
+      );
+      setSelectedItems((prev) => prev.filter((itemId) => itemId !== id));
+    } catch (error) {
+      console.log(error);
+      toast.error("Lỗi khi xóa sản phẩm khỏi giỏ hàng");
+    }
   };
 
   const handleSelectItem = (id: number) => {
     setSelectedItems((prev) =>
-      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+      prev.includes(id)
+        ? prev.filter((itemId) => itemId !== id)
+        : [...prev, id],
     );
   };
 
-  const handleSelectStore = (storeItems: typeof sampleCartItems) => {
-    const storeItemIds = storeItems.map(item => item.id);
-    const allSelected = storeItemIds.every(id => selectedItems.includes(id));
-    
+  const handleSelectStore = (storeItems: ICartGroupByStore) => {
+    const storeItemIds = storeItems.items.map((item) => item.id);
+    const allSelected = storeItemIds.every((id) => selectedItems.includes(id));
+
     if (allSelected) {
-      setSelectedItems(prev => prev.filter(id => !storeItemIds.includes(id)));
+      setSelectedItems((prev) =>
+        prev.filter((id) => !storeItemIds.includes(id)),
+      );
     } else {
-      setSelectedItems(prev => [...new Set([...prev, ...storeItemIds])]);
+      setSelectedItems((prev) => [...new Set([...prev, ...storeItemIds])]);
     }
   };
 
   const handleSelectAll = () => {
     setSelectedItems(
-      selectedItems.length === cartItems.length
+      selectedItems.length === cartItems.flatMap((item) => item.items).length
         ? []
-        : cartItems.map((item) => item.id)
+        : cartItems.flatMap((item) => item.items).map((item) => item.id),
     );
   };
 
-  const subtotal = cartItems
+  const handleCheckout = async () => {
+    // TODO: Implement checkout
+  };
+
+  const subtotal = (cartItems || [])
+    .flatMap((item) => item.items)
     .filter((item) => selectedItems.includes(item.id))
-    .reduce((sum, item) => sum + item.price * item.quantity, 0);
+    .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const total = subtotal;
 
   return (
@@ -139,20 +144,27 @@ const Cart = () => {
         >
           {/* Cart Items */}
           <Box>
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
                 gap: 1,
-                mb: { xs: 1, sm: 1.5 },
+                mb: { xs: 0.5, sm: 1 },
                 minHeight: 40,
               }}
             >
-              {cartItems.length > 0 && (
+              {cartItems?.length > 0 && (
                 <Checkbox
                   size={window.innerWidth < 600 ? "small" : "medium"}
-                  checked={selectedItems.length === cartItems.length}
-                  indeterminate={selectedItems.length > 0 && selectedItems.length < cartItems.length}
+                  checked={
+                    selectedItems.length ===
+                    cartItems.flatMap((item) => item.items).length
+                  }
+                  indeterminate={
+                    selectedItems.length > 0 &&
+                    selectedItems.length <
+                      cartItems.flatMap((item) => item.items).length
+                  }
                   onChange={handleSelectAll}
                 />
               )}
@@ -164,14 +176,14 @@ const Cart = () => {
                   fontWeight: 700,
                 }}
               >
-                Giỏ hàng ({cartItems.length})
+                Giỏ hàng ({cartItems?.flatMap((item) => item.items).length})
               </Typography>
             </Box>
 
             <Stack spacing={{ xs: 1, sm: 1.5 }}>
-              {groupedItems.map((group) => (
+              {cartItems.map((group) => (
                 <Paper
-                  key={group.store.id}
+                  key={group.seller.id}
                   elevation={0}
                   sx={{
                     border: 1,
@@ -182,31 +194,44 @@ const Cart = () => {
                   {/* Store Header */}
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
+                      display: "flex",
+                      alignItems: "center",
                       gap: 1,
-                      p: { xs: 1, sm: 1.5 },
+                      p: { xs: 0.5, sm: 1 },
                       borderBottom: 1,
-                      borderColor: 'divider',
+                      borderColor: "divider",
                     }}
                   >
                     <Checkbox
                       size={window.innerWidth < 600 ? "small" : "medium"}
-                      checked={group.items.every(item => selectedItems.includes(item.id))}
+                      checked={group.items.every((item) =>
+                        selectedItems.includes(item.id),
+                      )}
                       indeterminate={
-                        group.items.some(item => selectedItems.includes(item.id)) &&
-                        !group.items.every(item => selectedItems.includes(item.id))
+                        group.items.some((item) =>
+                          selectedItems.includes(item.id),
+                        ) &&
+                        !group.items.every((item) =>
+                          selectedItems.includes(item.id),
+                        )
                       }
-                      onChange={() => handleSelectStore(group.items)}
+                      onChange={() => handleSelectStore(group)}
                     />
-                    <Typography
-                      sx={{
-                        fontSize: { xs: "0.875rem", sm: "1rem" },
-                        fontWeight: 600,
-                      }}
-                    >
-                      {group.store.name}
-                    </Typography>
+                    <Stack direction="row" alignItems="center" gap={0.25}>
+                      <img
+                        src={group.seller.avatar}
+                        alt={group.seller.name}
+                        style={{ width: 32, height: 32 }}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: { xs: "0.875rem", sm: "1rem" },
+                          fontWeight: 600,
+                        }}
+                      >
+                        {group.seller.name}
+                      </Typography>
+                    </Stack>
                   </Box>
 
                   {/* Store Items */}
@@ -215,10 +240,16 @@ const Cart = () => {
                       <Box
                         key={item.id}
                         sx={{
-                          p: { xs: 1, sm: 1.5 },
+                          p: { xs: 0.5, sm: 1 },
                         }}
                       >
-                        <Box sx={{ display: "flex", gap: { xs: 1, sm: 1.5 }, alignItems: "center" }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: { xs: 0.5, sm: 1 },
+                            alignItems: "center",
+                          }}
+                        >
                           <Checkbox
                             size={window.innerWidth < 600 ? "small" : "medium"}
                             checked={selectedItems.includes(item.id)}
@@ -227,13 +258,13 @@ const Cart = () => {
                           {/* Product Image */}
                           <Avatar
                             variant="square"
-                            src={item.image}
-                            alt={item.name}
-                            sx={{ 
-                              width: { xs: 60, sm: 80 }, 
+                            src={item.product.images[0]}
+                            alt={item.product.name}
+                            sx={{
+                              width: { xs: 60, sm: 80 },
                               height: { xs: 60, sm: 80 },
-                              bgcolor: 'grey.300',
-                              fontSize: { xs: '1.5rem', sm: '2rem' },
+                              bgcolor: "grey.300",
+                              fontSize: { xs: "1.5rem", sm: "2rem" },
                             }}
                           >
                             S
@@ -252,7 +283,7 @@ const Cart = () => {
                                 whiteSpace: "nowrap",
                               }}
                             >
-                              {item.name}
+                              {item.product.name}
                             </Typography>
 
                             <Typography
@@ -263,7 +294,21 @@ const Cart = () => {
                                 mb: 0.5,
                               }}
                             >
-                              {item.price.toLocaleString()}đ
+                              {item.product.price.toLocaleString()}đ
+                            </Typography>
+
+                            <Typography
+                              color="text.secondary"
+                              sx={{
+                                fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                                mb: 0.5,
+                              }}
+                            >
+                              Tổng:{" "}
+                              {(
+                                item.product.price * item.quantity
+                              ).toLocaleString()}
+                              đ
                             </Typography>
 
                             <Box
@@ -275,25 +320,27 @@ const Cart = () => {
                               }}
                             >
                               {/* Quantity Controls */}
-                              <Stack 
-                                direction="row" 
-                                alignItems="center" 
+                              <Stack
+                                direction="row"
+                                alignItems="center"
                                 sx={{
                                   border: 1,
-                                  borderColor: 'divider',
+                                  borderColor: "divider",
                                   borderRadius: 1,
                                   height: 32,
                                 }}
                               >
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleQuantityChange(item.id, -1)}
+                                  onClick={() =>
+                                    handleQuantityChange(item.id, -1)
+                                  }
                                   disabled={item.quantity <= 1}
-                                  sx={{ 
+                                  sx={{
                                     p: 0.5,
                                     borderRadius: 0,
                                     borderRight: 1,
-                                    borderColor: 'divider',
+                                    borderColor: "divider",
                                   }}
                                 >
                                   <RemoveIcon sx={{ fontSize: "1rem" }} />
@@ -310,30 +357,58 @@ const Cart = () => {
                                 </Typography>
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleQuantityChange(item.id, 1)}
+                                  onClick={() =>
+                                    handleQuantityChange(item.id, 1)
+                                  }
                                   disabled={item.quantity >= 99}
-                                  sx={{ 
+                                  sx={{
                                     p: 0.5,
                                     borderRadius: 0,
                                     borderLeft: 1,
-                                    borderColor: 'divider',
+                                    borderColor: "divider",
                                   }}
                                 >
                                   <AddIcon sx={{ fontSize: "1rem" }} />
                                 </IconButton>
                               </Stack>
 
-                              {/* Remove Button */}
-                              <IconButton
-                                size="small"
-                                onClick={() => handleRemoveItem(item.id)}
-                                sx={{ 
-                                  p: 0.5,
-                                  color: 'text.secondary',
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
                                 }}
                               >
-                                <DeleteOutlineIcon sx={{ fontSize: "1.25rem" }} />
-                              </IconButton>
+                                <Typography
+                                  color="primary"
+                                  sx={{
+                                    fontSize: {
+                                      xs: "0.875rem",
+                                      sm: "0.938rem",
+                                    },
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {(
+                                    item.product.price * item.quantity
+                                  ).toLocaleString()}
+                                  đ
+                                </Typography>
+
+                                {/* Remove Button */}
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleRemoveItem(item.id)}
+                                  sx={{
+                                    p: 0.5,
+                                    color: "text.secondary",
+                                  }}
+                                >
+                                  <DeleteOutlineIcon
+                                    sx={{ fontSize: "1.25rem" }}
+                                  />
+                                </IconButton>
+                              </Box>
                             </Box>
                           </Box>
                         </Box>
@@ -344,7 +419,7 @@ const Cart = () => {
               ))}
             </Stack>
 
-            {cartItems.length === 0 && (
+            {cartItems?.length === 0 && (
               <Paper
                 elevation={0}
                 sx={{
@@ -355,10 +430,10 @@ const Cart = () => {
                   borderRadius: 1,
                 }}
               >
-                <Typography 
-                  color="text.secondary" 
-                  sx={{ 
-                    fontSize: { xs: "0.813rem", sm: "0.875rem" } 
+                <Typography
+                  color="text.secondary"
+                  sx={{
+                    fontSize: { xs: "0.813rem", sm: "0.875rem" },
                   }}
                 >
                   Giỏ hàng của bạn đang trống
@@ -386,10 +461,10 @@ const Cart = () => {
                 sx={{
                   fontSize: { xs: "0.875rem", sm: "1rem" },
                   fontWeight: 600,
-                  color: 'text.primary',
+                  color: "text.primary",
                   minHeight: 40,
-                  display: 'flex',
-                  alignItems: 'center',
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
                 Tổng tiền ({selectedItems.length} sản phẩm)
@@ -403,8 +478,8 @@ const Cart = () => {
                     alignItems: "center",
                   }}
                 >
-                  <Typography 
-                    color="text.secondary" 
+                  <Typography
+                    color="text.secondary"
                     sx={{ fontSize: "0.875rem" }}
                   >
                     Tạm tính
@@ -423,8 +498,8 @@ const Cart = () => {
                     alignItems: "center",
                   }}
                 >
-                  <Typography 
-                    sx={{ 
+                  <Typography
+                    sx={{
                       fontSize: "0.875rem",
                       fontWeight: 600,
                     }}
@@ -433,7 +508,7 @@ const Cart = () => {
                   </Typography>
                   <Typography
                     color="primary"
-                    sx={{ 
+                    sx={{
                       fontSize: "1rem",
                       fontWeight: 600,
                     }}
@@ -446,14 +521,15 @@ const Cart = () => {
                   variant="contained"
                   fullWidth
                   disabled={selectedItems.length === 0}
+                  onClick={handleCheckout}
                   sx={{
                     mt: 1,
                     py: 1,
                     fontSize: "0.875rem",
                     fontWeight: 600,
-                    bgcolor: 'primary.main',
-                    '&:hover': {
-                      bgcolor: 'primary.dark',
+                    bgcolor: "primary.main",
+                    "&:hover": {
+                      bgcolor: "primary.dark",
                     },
                   }}
                 >

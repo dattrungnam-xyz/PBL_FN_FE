@@ -17,6 +17,7 @@ import {
   Paper,
   Link,
   Alert,
+  Rating,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
@@ -68,9 +69,10 @@ const UpdateProduct = () => {
   const [formData, setFormData] = useState<ICreateProduct>({
     name: "",
     description: "",
-    category: "",
-    price: "",
-    quantity: "",
+    category: Category.FOOD,
+    price: 0,
+    quantity: 0,
+    star: 0,
     status: SellingProductStatus.SELLING,
     images: [],
   });
@@ -105,7 +107,8 @@ const UpdateProduct = () => {
           price: data.price.toString(),
           quantity: data.quantity.toString(),
           status: data.status,
-          images: data.images,
+          images: data.images || [],
+          star: data.star || 0,
         });
 
         setInitialData({
@@ -115,10 +118,11 @@ const UpdateProduct = () => {
           price: data.price.toString(),
           quantity: data.quantity.toString(),
           status: data.status,
-          images: data.images,
+          images: data.images || [],
+          star: data.star || 0,
         });
 
-        setImagePreviews(data.images);
+        setImagePreviews(data.images || []);
         setIsOcopVerified(data.isOcopVerified);
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -157,18 +161,24 @@ const UpdateProduct = () => {
 
     if (!formData.price) {
       newErrors.price = "Vui lòng nhập giá sản phẩm";
-    } else if (parseFloat(formData.price) <= 0) {
+    } else if (formData.price <= 0) {
       newErrors.price = "Giá sản phẩm phải lớn hơn 0";
     }
 
     if (!formData.quantity) {
       newErrors.quantity = "Vui lòng nhập số lượng";
-    } else if (parseInt(formData.quantity) <= 0) {
+    } else if (formData.quantity <= 0) {
       newErrors.quantity = "Số lượng phải lớn hơn 0";
     }
 
     if (formData.images.length === 0) {
       newErrors.images = "Vui lòng tải lên ít nhất một hình ảnh sản phẩm";
+    }
+
+    if (!formData.star) {
+      newErrors.star = "Vui lòng nhập điểm sản phẩm";
+    } else if (formData.star < 0 || formData.star > 5) {
+      newErrors.star = "Điểm sản phẩm phải nằm trong khoảng từ 0 đến 5";
     }
 
     setErrors(newErrors);
@@ -424,6 +434,44 @@ const UpdateProduct = () => {
                       helperText={errors.quantity}
                     />
                   </Stack>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography
+                      variant="subtitle2"
+                      color={errors.star ? "error" : "text.secondary"}
+                      sx={{ mb: 0.25 }}
+                    >
+                      Sao OCOP*
+                    </Typography>
+                    <Rating
+                      value={formData.star}
+                      onChange={(_event, newValue) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          star: newValue || 0,
+                        }));
+                        if (errors.star) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            star: undefined,
+                          }));
+                        }
+                      }}
+                      size="large"
+                      sx={{
+                        "& .MuiRating-iconFilled": {
+                          color: "primary.main",
+                        },
+                        "& .MuiRating-iconHover": {
+                          color: "primary.light",
+                        },
+                      }}
+                    />
+                    {errors.star && (
+                      <FormHelperText error sx={{ mt: 0.25 }}>
+                        {errors.star}
+                      </FormHelperText>
+                    )}
+                  </Box>
                 </Stack>
               </CardContent>
             </Card>
@@ -450,7 +498,7 @@ const UpdateProduct = () => {
                         flexWrap="wrap"
                         useFlexGap
                       >
-                        {imagePreviews.map((preview, index) => (
+                        {imagePreviews?.map((preview, index) => (
                           <Box key={index}>
                             <Paper
                               sx={{

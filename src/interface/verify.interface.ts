@@ -35,3 +35,15 @@ export interface IVerifyTableData {
   updatedAt: string;
   products: IProductTableData[];
 }
+
+export interface IVerify {
+  id: string;
+  status: VerifyOCOPStatus;
+  star: number;
+  productName: string;
+  manufacturer: string;
+  verifyDate: string;
+  images: string[];
+  createdAt: string;
+  deletedAt: string | null;
+}

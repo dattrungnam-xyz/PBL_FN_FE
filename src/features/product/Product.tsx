@@ -9,9 +9,14 @@ import {
   TextField,
   Paper,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { getProductById } from "../../services/product.service";
 import { Content } from "../../layouts";
+import { IProduct } from "../../interface";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -26,115 +31,95 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import ProductCard from "../../components/ProductCard";
+import { getCategoryText } from "../../utils";
+import { addToCart } from "../../services/cart.service";
+import { toast } from "react-toastify";
+interface Review {
+  id: number;
+  user: {
+    name: string;
+    avatar: string;
+  };
+  rating: number;
+  comment: string;
+  date: string;
+}
 
-// Sample data - replace with actual data from API
-const productData = {
-  id: 1,
-  name: "Sản phẩm mẫu",
-  price: 150000,
-  originalPrice: 200000,
-  rating: 4.5,
-  reviewCount: 128,
-  location: "Hà Nội",
-  description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.`,
-  images: [
-    "https://via.placeholder.com/600",
-    "https://via.placeholder.com/600",
-    "https://via.placeholder.com/600",
-    "https://via.placeholder.com/600",
-  ],
-  category: "Thực phẩm",
-  stock: 50,
-  store: {
-    name: "Cửa hàng Thực phẩm Sạch",
-    avatar: "https://via.placeholder.com/150",
-    rating: 4.8,
-    reviewCount: 256,
-    followers: 1200,
-    description:
-      "Chuyên cung cấp các sản phẩm thực phẩm sạch, an toàn, chất lượng cao từ các nhà cung cấp uy tín.",
-    phone: "0123456789",
-    email: "contact@store.com",
-    address: "123 Đường ABC, Quận 1, TP.HCM",
-    openingHours: "08:00 - 22:00",
-    isVerified: true,
-  },
-  reviews: [
-    {
-      id: 1,
-      user: {
-        name: "Nguyễn Văn A",
-        avatar: "https://via.placeholder.com/40",
-      },
-      rating: 5,
-      comment: "Sản phẩm rất tốt, đóng gói cẩn thận. Sẽ mua lại!",
-      date: "2024-03-15",
-    },
-    {
-      id: 2,
-      user: {
-        name: "Trần Thị B",
-        avatar: "https://via.placeholder.com/40",
-      },
-      rating: 4,
-      comment: "Chất lượng tốt, giá hợp lý. Giao hàng nhanh.",
-      date: "2024-03-14",
-    },
-  ],
-  relatedProducts: [
-    {
-      id: 2,
-      name: "Sản phẩm liên quan 1",
-      price: 180000,
-      image: "https://via.placeholder.com/300",
-      rating: 4.5,
-      reviewCount: 45,
-    },
-    {
-      id: 3,
-      name: "Sản phẩm liên quan 2",
-      price: 220000,
-      image: "https://via.placeholder.com/300",
-      rating: 4.8,
-      reviewCount: 32,
-    },
-    {
-      id: 4,
-      name: "Sản phẩm liên quan 3",
-      price: 150000,
-      image: "https://via.placeholder.com/300",
-      rating: 4.2,
-      reviewCount: 28,
-    },
-  ],
-};
+interface RelatedProduct {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  rating: number;
+  reviewCount: number;
+}
 
 const Product = () => {
+  const { id } = useParams<{ id: string }>();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showStoreDetails, setShowStoreDetails] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
+  const {
+    data: productData,
+    isLoading,
+    error,
+  } = useQuery<IProduct>({
+    queryKey: ["product", id],
+    queryFn: () => getProductById(id!),
+    enabled: !!id,
+  });
+
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => {
       const newValue = prev + delta;
-      return Math.max(1, Math.min(newValue, productData.stock));
+      return Math.max(1, Math.min(newValue, productData?.quantity || 1));
     });
   };
 
-  const handleAddToCart = () => {
-    // Implement add to cart logic
-    console.log("Add to cart:", { productId: productData.id, quantity });
+  const handleAddToCart = async () => {
+    try {
+      if (!productData?.id) {
+        throw new Error("Product ID is required");
+      }
+      await addToCart(productData.id, quantity);
+      toast.success("Đã thêm vào giỏ hàng");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
+  if (isLoading) {
+    return (
+      <Content>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+          <CircularProgress />
+        </Box>
+      </Content>
+    );
+  }
+
+  if (error || !productData) {
+    return (
+      <Content>
+        <Box sx={{ p: 3, textAlign: "center" }}>
+          <Typography color="error">
+            {error instanceof Error ? error.message : "Không tìm thấy sản phẩm"}
+          </Typography>
+        </Box>
+      </Content>
+    );
+  }
+
   return (
     <Content>
-      <Box sx={{ py: { xs: 1, sm: 2, md: 3 } }}>
+      <Box sx={{ py: { xs: 1, sm: 1.5, md: 2 } }}>
         <Box
           sx={{
             maxWidth: 1200,
@@ -204,7 +189,7 @@ const Product = () => {
                     },
                   }}
                 >
-                  {productData.images.map((image, index) => (
+                  {productData.images.map((image: string, index: number) => (
                     <Box
                       key={index}
                       onClick={() => setSelectedImage(index)}
@@ -241,19 +226,17 @@ const Product = () => {
 
               {/* Right Column - Product Info */}
               <Box>
-                {/* Product Title */}
                 <Typography
-                  variant="h4"
+                  variant="h5"
                   sx={{
-                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
-                    mb: { xs: 1.5, sm: 2 },
+                    fontSize: { xs: "1rem", sm: "1.5rem", md: "2rem" },
+                    mb: { xs: 1, sm: 1.5 },
                     fontWeight: 600,
                   }}
                 >
                   {productData.name}
                 </Typography>
 
-                {/* Price */}
                 <Stack
                   direction="row"
                   spacing={1}
@@ -268,9 +251,9 @@ const Product = () => {
                       fontWeight: 600,
                     }}
                   >
-                    {productData.price.toLocaleString()}đ
+                    {productData?.price?.toLocaleString()}đ
                   </Typography>
-                  <Typography
+                  {/* <Typography
                     variant="body1"
                     color="text.secondary"
                     sx={{
@@ -278,19 +261,19 @@ const Product = () => {
                       fontSize: { xs: "0.875rem", sm: "1rem" },
                     }}
                   >
-                    {productData.originalPrice.toLocaleString()}đ
-                  </Typography>
+                    {productData.price?.toLocaleString()}đ
+                  </Typography> */}
                 </Stack>
 
                 {/* Rating and Reviews */}
-                <Stack
+                {/* <Stack
                   direction="row"
                   spacing={1}
                   alignItems="center"
                   sx={{ mb: { xs: 1, sm: 1.5 } }}
                 >
                   <Rating
-                    value={productData.rating}
+                    value={productData.star}
                     precision={0.5}
                     readOnly
                     size="small"
@@ -300,16 +283,16 @@ const Product = () => {
                     color="text.secondary"
                     sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                   >
-                    ({productData.reviewCount} đánh giá)
+                    ({productData.reviewCount || 0} đánh giá)
                   </Typography>
-                </Stack>
+                </Stack> */}
 
                 {/* Location */}
                 <Stack
                   direction="row"
                   spacing={1}
                   alignItems="center"
-                  sx={{ mb: { xs: 1.5, sm: 2 } }}
+                  sx={{ mb: { xs: 1, sm: 1.5 } }}
                 >
                   <LocationOnIcon
                     color="action"
@@ -320,26 +303,26 @@ const Product = () => {
                     color="text.secondary"
                     sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                   >
-                    {productData.location}
+                    {productData?.seller?.provinceName}
                   </Typography>
                 </Stack>
 
-                <Divider sx={{ my: { xs: 1.5, sm: 2 } }} />
+                <Divider sx={{ my: { xs: 1, sm: 1.5 } }} />
 
                 {/* Category */}
                 <Chip
-                  label={productData.category}
+                  label={getCategoryText(productData.category)}
                   color="primary"
                   variant="outlined"
                   size="small"
                   sx={{
-                    mb: { xs: 1.5, sm: 2 },
+                    mb: { xs: 1, sm: 1.5 },
                     fontSize: { xs: "0.75rem", sm: "0.875rem" },
                   }}
                 />
 
                 {/* Quantity Selector */}
-                <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
+                <Box sx={{ mb: { xs: 1, sm: 1.5 } }}>
                   <Typography
                     variant="subtitle1"
                     sx={{
@@ -361,8 +344,9 @@ const Product = () => {
                     </IconButton>
                     <TextField
                       value={quantity}
+                      onChange={(e) => setQuantity(Number(e.target.value))}
                       size="small"
-                      slotProps={{ input: { readOnly: true } }}
+                      slotProps={{ input: { readOnly: false } }}
                       sx={{
                         width: { xs: 50, sm: 60 },
                         "& .MuiInputBase-input": {
@@ -373,7 +357,7 @@ const Product = () => {
                     <IconButton
                       size="small"
                       onClick={() => handleQuantityChange(1)}
-                      disabled={quantity >= productData.stock}
+                      disabled={quantity >= productData.quantity}
                       sx={{ p: { xs: 0.5, sm: 1 } }}
                     >
                       <AddIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
@@ -383,7 +367,7 @@ const Product = () => {
                       color="text.secondary"
                       sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                     >
-                      Còn {productData.stock} sản phẩm
+                      Còn {productData.quantity} sản phẩm
                     </Typography>
                   </Stack>
                 </Box>
@@ -401,7 +385,6 @@ const Product = () => {
                     onClick={handleAddToCart}
                     sx={{
                       flex: 1,
-                      py: { xs: 0.75, sm: 1 },
                       fontSize: { xs: "0.875rem", sm: "1rem" },
                       fontWeight: 500,
                     }}
@@ -412,13 +395,13 @@ const Product = () => {
                     size="large"
                     onClick={() => setIsFavorite(!isFavorite)}
                     color={isFavorite ? "error" : "default"}
-                    sx={{ p: { xs: 1, sm: 1.5 } }}
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
                   >
                     {isFavorite ? (
-                      <FavoriteIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+                      <FavoriteIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
                     ) : (
                       <FavoriteBorderIcon
-                        sx={{ fontSize: { xs: 24, sm: 28 } }}
+                        sx={{ fontSize: { xs: 18, sm: 24 } }}
                       />
                     )}
                   </IconButton>
@@ -451,8 +434,8 @@ const Product = () => {
             >
               <Stack direction="row" spacing={2} alignItems="center">
                 <Avatar
-                  src={productData.store.avatar}
-                  alt={productData.store.name}
+                  src={productData.seller?.avatar}
+                  alt={productData.seller?.name}
                   sx={{
                     width: { xs: 40, sm: 50 },
                     height: { xs: 40, sm: 50 },
@@ -469,18 +452,10 @@ const Product = () => {
                         fontWeight: 600,
                       }}
                     >
-                      {productData.store.name}
+                      {productData.seller?.name}
                     </Typography>
-                    {productData.store.isVerified && (
-                      <Chip
-                        label="Đã xác thực"
-                        color="success"
-                        size="small"
-                        sx={{ height: 20 }}
-                      />
-                    )}
                   </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  {/* <Stack direction="row" spacing={1} alignItems="center">
                     <Rating
                       value={productData.store.rating}
                       precision={0.5}
@@ -494,7 +469,7 @@ const Product = () => {
                     >
                       ({productData.store.reviewCount} đánh giá)
                     </Typography>
-                  </Stack>
+                  </Stack> */}
                 </Box>
               </Stack>
               {showStoreDetails ? (
@@ -519,7 +494,7 @@ const Product = () => {
                       variant="body2"
                       sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                     >
-                      {productData.store.phone}
+                      {productData.seller?.phone}
                     </Typography>
                   </Stack>
                   <Stack direction="row" spacing={1} alignItems="center">
@@ -533,21 +508,13 @@ const Product = () => {
                       variant="body2"
                       sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                     >
-                      {productData.store.address}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <AccessTimeIcon
-                      sx={{
-                        fontSize: { xs: 16, sm: 18 },
-                        color: "text.secondary",
-                      }}
-                    />
-                    <Typography
-                      variant="body2"
-                      sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
-                    >
-                      {productData.store.openingHours}
+                      {productData.seller?.address}
+                      {", "}
+                      {productData.seller?.wardName}
+                      {", "}
+                      {productData.seller?.districtName}
+                      {", "}
+                      {productData.seller?.provinceName}
                     </Typography>
                   </Stack>
                 </Stack>
@@ -592,7 +559,7 @@ const Product = () => {
               }}
             >
               <Tab label="Mô tả sản phẩm" />
-              <Tab label={`Đánh giá (${productData.reviews.length})`} />
+              <Tab label={`Đánh giá (${productData.reviews?.length || 0})`} />
             </Tabs>
 
             {activeTab === 0 && (
@@ -610,9 +577,9 @@ const Product = () => {
 
             {activeTab === 1 && (
               <Stack spacing={3}>
-                {productData.reviews.map((review) => (
+                {productData.reviews?.map((review) => (
                   <Box key={review.id}>
-                    <Stack
+                    {/* <Stack
                       direction="row"
                       spacing={2}
                       alignItems="center"
@@ -646,7 +613,7 @@ const Product = () => {
                           </Typography>
                         </Stack>
                       </Box>
-                    </Stack>
+                    </Stack> */}
                     <Typography
                       variant="body2"
                       sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
@@ -680,7 +647,7 @@ const Product = () => {
             >
               Sản phẩm liên quan
             </Typography>
-            <Box
+            {/* <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: {
@@ -700,7 +667,7 @@ const Product = () => {
                   location={productData.location}
                 />
               ))}
-            </Box>
+            </Box> */}
           </Paper>
         </Box>
       </Box>
