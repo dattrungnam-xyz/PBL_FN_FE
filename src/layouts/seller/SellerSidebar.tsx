@@ -66,9 +66,19 @@ const menuGroups: MenuGroup[] = [
         path: "/seller/orders",
         subItems: [
           {
+            label: "Chờ thanh toán",
+            icon: <ListAltIcon />,
+            path: "/seller/orders/unpaid",
+          },
+          {
             label: "Chờ xác nhận",
             icon: <ListAltIcon />,
             path: "/seller/orders/pending",
+          },
+          {
+            label: "Đang chuẩn bị",
+            icon: <LocalShippingIcon />,
+            path: "/seller/orders/preparing",
           },
           {
             label: "Đang giao",

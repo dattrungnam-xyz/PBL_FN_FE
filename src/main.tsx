@@ -41,6 +41,15 @@ import UpdateProduct from "./features/product/update/UpdateProduct.tsx";
 import VerifyProduct from "./features/productVerifyManagement/seller/VerifyProduct.tsx";
 import VerifyHistory from "./features/productVerifyManagement/seller/VerifyHistory.tsx";
 import UpdateVerifyProduct from "./features/productVerifyManagement/seller/UpdateVerifyProduct.tsx";
+import UnPaid from "./features/orderManagement/UnPaid.tsx";
+import Pending from "./features/orderManagement/Pending.tsx";
+import PrepareForShipping from "./features/orderManagement/PrepareForShipping.tsx";
+import Shipping from "./features/orderManagement/Shipping.tsx";
+import Completed from "./features/orderManagement/Completed.tsx";
+import Refunded from "./features/orderManagement/Refunded.tsx";
+import RequireRefund from "./features/orderManagement/RequireRefund.tsx";
+import Cancelled from "./features/orderManagement/Cancelled.tsx";
+import RequireCancelled from "./features/orderManagement/RequireCancelled.tsx";
 
 const router = createBrowserRouter([
   {
@@ -130,10 +139,45 @@ const router = createBrowserRouter([
         path: "product/create",
         element: <CreateProduct />,
       },
-
       {
         path: "product/:id",
         element: <UpdateProduct />,
+      },
+      {
+        path: "orders/unpaid",
+        element: <UnPaid />,
+      },
+      {
+        path: "orders/pending",
+        element: <Pending />,
+      },
+      {
+        path: "orders/preparing-for-shipping",
+        element: <PrepareForShipping />,
+      },
+      {
+        path: "orders/shipping",
+        element: <Shipping />,
+      },
+      {
+        path: "orders/completed",
+        element: <Completed />,
+      },
+      {
+        path: "orders/cancelled",
+        element: <Cancelled />,
+      },
+      {
+        path: "orders/refunded",
+        element: <Refunded />,
+      },
+      {
+        path: "orders/require-refund",
+        element: <RequireRefund />,
+      },
+      {
+        path: "orders/require-cancelled",
+        element: <RequireCancelled />,
       },
     ],
   },

@@ -9,6 +9,7 @@ import {
   Avatar,
   Checkbox,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Content } from "../../layouts";
 import AddIcon from "@mui/icons-material/Add";
@@ -25,7 +26,7 @@ import {
 const Cart = () => {
   const [cartItems, setCartItems] = useState<ICartGroupByStore[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchCart = async () => {
       const response = await getCart();
@@ -120,7 +121,8 @@ const Cart = () => {
   };
 
   const handleCheckout = async () => {
-    // TODO: Implement checkout
+    localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
+    navigate("/payment");
   };
 
   const subtotal = (cartItems || [])

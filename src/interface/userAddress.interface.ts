@@ -1,5 +1,6 @@
+type AddressType = "home" | "office" | "other";
 export interface ICreateUserAddress {
-  type: "home" | "office" | "other";
+  type: AddressType;
   name: string;
   phone: string;
   province: string;
@@ -16,3 +17,18 @@ export interface IUserAddress extends ICreateUserAddress {
 // export interface IUpdateUserAddress extends ICreateUserAddress {
 //   id: string;
 // }
+
+export interface IAddress {
+  address: string;
+  createdAt: string;
+  deletedAt: string | null;
+  district: string;
+  id: string;
+  isDefault: boolean;
+  name: string;
+  phone: string;
+  province: string;
+  textAddress: string;
+  type: AddressType;
+  ward: string;
+}

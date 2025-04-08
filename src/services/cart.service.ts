@@ -13,3 +13,12 @@ export const getCart = async (): Promise<ICartGroupByStore[]> => {
   const response = await axios.get<ICartGroupByStore[]>("/carts/");
   return response.data;
 };
+
+export const getCartCheckOut = async (
+  selectedItems: (number | string)[],
+): Promise<ICartGroupByStore[]> => {
+  const response = await axios.post<ICartGroupByStore[]>("/carts/checkout", {
+    selectedItems,
+  });
+  return response.data;
+};

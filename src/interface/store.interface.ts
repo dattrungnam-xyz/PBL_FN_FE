@@ -17,7 +17,7 @@ export interface ICreateStore {
 export type ICreateStoreError = Partial<Record<keyof ICreateStore, string>>;
 
 export interface IStore {
-  id: number;
+  id: string;
   name: string;
   description: string;
   phone: string;

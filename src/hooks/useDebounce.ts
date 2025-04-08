@@ -1,28 +1,17 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-type DebounceOptions = {
-  delay?: number;
-  callbackFn?: () => void;
-};
-
-function useDebounce<T>(value: T, options: DebounceOptions = {}) {
-  const { delay = 500, callbackFn } = options;
-  const [debouncedValue, setDebouncedValue] = useState(value);
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    // Set a timeout to update the debounced value after the specified delay
-    const handler = setTimeout(() => {
+    const timer = setTimeout(() => {
       setDebouncedValue(value);
-      callbackFn?.();
     }, delay);
 
-    // Cleanup the timeout on value change
     return () => {
-      clearTimeout(handler);
+      clearTimeout(timer);
     };
-  }, [value, delay, callbackFn]);
+  }, [value, delay]);
 
   return debouncedValue;
 }
-
-export default useDebounce;

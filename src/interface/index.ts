@@ -8,6 +8,14 @@ import {
 import { ICreateVerify, IVerifyResponse, IVerify } from "./verify.interface";
 import { ICreateUserAddress, IUserAddress } from "./userAddress.interface";
 import { ICartGroupByStore } from "./cart.interface";
+import {
+  ICreateOrder,
+  ICreateOrderDetail,
+  IOrder,
+  IOrderDetail,
+} from "./order.interface";
+import { IAddress } from "./userAddress.interface";
+
 export type {
   IProvince,
   IDistrict,
@@ -24,4 +32,9 @@ export type {
   IStore,
   IVerify,
   ICartGroupByStore,
+  ICreateOrder,
+  ICreateOrderDetail,
+  IOrder,
+  IOrderDetail,
+  IAddress,
 };
