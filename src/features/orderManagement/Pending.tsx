@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -19,18 +19,18 @@ import {
   Checkbox,
   Tooltip,
 } from "@mui/material";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getOrdersSellerByStatus,
+  rejectOrder,
   updateOrderStatus,
+  updateOrdersStatus,
 } from "../../services/order.service";
 import { IOrder, IWard, IDistrict, IProvince } from "../../interface";
 import { OrderStatus } from "../../enums";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SearchIcon from "@mui/icons-material/Search";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import InventoryIcon from "@mui/icons-material/Inventory";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
-import OrderDetailModal from "./component/OrderDetailModal";
 import {
   getDistricts,
   getProvinces,
@@ -40,7 +40,11 @@ import LocationFilter from "./component/LocationFilter";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import viLocale from "date-fns/locale/vi";
+import ConfirmDialog from "./dialog/ConfirmDialog";
+import PaginatedData from "../../types/PaginatedData";
+import OrderDetailRejectModal from "./component/OrderDetailRejectModal";
 
 interface FilterState {
   search: string;
@@ -68,7 +72,37 @@ const Pending = () => {
   const [provinces, setProvinces] = useState<IProvince[]>([]);
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [wards, setWards] = useState<IWard[]>([]);
-  const queryClient = useQueryClient();
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [openConfirmDialogSingle, setOpenConfirmDialogSingle] = useState(false);
+  const [orders, setOrders] = useState<PaginatedData<IOrder> | undefined>(
+    undefined,
+  );
+  const [selectedOrderUpdateId, setSelectedOrderUpdateId] = useState<
+    string | null
+  >(null);
+  const [loading, setLoading] = useState(false);
+  const [reason, setReason] = useState("");
+
+  const getOrders = useCallback(async () => {
+    setLoading(true);
+    const orders = await getOrdersSellerByStatus({
+      orderStatus: OrderStatus.PENDING,
+      page: page + 1,
+      limit: rowsPerPage,
+      search: filters.search,
+      province: filters.province,
+      district: filters.district,
+      ward: filters.ward,
+      startDate: filters.startDate?.toISOString(),
+      endDate: filters.endDate?.toISOString(),
+    });
+    setOrders(orders);
+    setLoading(false);
+  }, [filters, page, rowsPerPage]);
+
+  useEffect(() => {
+    getOrders();
+  }, [getOrders]);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -80,7 +114,7 @@ const Pending = () => {
 
   useEffect(() => {
     const fetchDistricts = async () => {
-      if (filters.province) {
+      if (filters.province && filters.province !== "all") {
         const districts = await getDistricts(filters.province);
         setDistricts(districts);
       } else {
@@ -92,7 +126,7 @@ const Pending = () => {
 
   useEffect(() => {
     const fetchWards = async () => {
-      if (filters.district) {
+      if (filters.district && filters.district !== "all") {
         const wards = await getWards(filters.district);
         setWards(wards);
       } else {
@@ -101,22 +135,6 @@ const Pending = () => {
     };
     fetchWards();
   }, [filters.district]);
-
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ["pending-orders", page, rowsPerPage, filters],
-    queryFn: () =>
-      getOrdersSellerByStatus({
-        orderStatus: OrderStatus.PENDING,
-        page: page + 1,
-        limit: rowsPerPage,
-        search: filters.search,
-        province: filters.province,
-        district: filters.district,
-        ward: filters.ward,
-        startDate: filters.startDate?.toISOString(),
-        endDate: filters.endDate?.toISOString(),
-      }),
-  });
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -153,22 +171,35 @@ const Pending = () => {
     });
   };
 
-  const { mutate: updateStatus } = useMutation({
-    mutationFn: (orderIds: string[]) =>
-      Promise.all(
-        orderIds.map((id) =>
-          updateOrderStatus(id, OrderStatus.PREPARING_FOR_SHIPPING),
-        ),
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
-      setSelectedOrders([]);
-    },
-  });
+  const handlePrepareForShippingSingle = async () => {
+    try {
+      if (!selectedOrderUpdateId) {
+        return;
+      }
+      await updateOrderStatus(
+        selectedOrderUpdateId,
+        OrderStatus.PREPARING_FOR_SHIPPING,
+      );
+      getOrders();
+      setOpenConfirmDialogSingle(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const handlePrepareForShipping = () => {
-    if (selectedOrders.length > 0) {
-      updateStatus(selectedOrders);
+  const handlePrepareForShipping = async () => {
+    try {
+      if (selectedOrders.length === 0) {
+        return;
+      }
+      await updateOrdersStatus(
+        selectedOrders,
+        OrderStatus.PREPARING_FOR_SHIPPING,
+      );
+      getOrders();
+      setOpenConfirmDialog(false);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -180,7 +211,21 @@ const Pending = () => {
     setPage(0);
   };
 
-  if (isLoading) return <CustomBackdrop />;
+  const handleRejectOrder = async () => {
+    if (!selectedOrder) {
+      return;
+    }
+    try {
+      await rejectOrder(selectedOrder.id, reason);
+      setReason("");
+      getOrders();
+      setOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (loading) return <CustomBackdrop />;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={viLocale}>
@@ -213,8 +258,8 @@ const Pending = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    startIcon={<LocalShippingIcon />}
-                    onClick={handlePrepareForShipping}
+                    startIcon={<InventoryIcon />}
+                    onClick={() => setOpenConfirmDialog(true)}
                     size="small"
                   >
                     Chuẩn bị giao hàng ({selectedOrders.length})
@@ -416,35 +461,38 @@ const Pending = () => {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Stack direction="row" spacing={0.5}>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            color="inherit"
-                            sx={{
-                              fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                              height: { xs: 24, sm: 28 },
-                            }}
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setOpen(true);
-                            }}
-                          >
-                            Chi tiết
-                          </Button>
-                          <Tooltip title="Chuẩn bị giao hàng">
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              color="primary"
-                              sx={{
-                                fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                                height: { xs: 24, sm: 28 },
+                        <Stack direction="row" spacing={1}>
+                          <Tooltip title="Chi tiết">
+                            <VisibilityIcon
+                              fontSize="small"
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setOpen(true);
                               }}
-                              onClick={() => updateStatus([order.id])}
-                            >
-                              <LocalShippingIcon fontSize="small" />
-                            </Button>
+                              sx={{
+                                cursor: "pointer",
+                                color: "primary.main",
+                                "&:hover": {
+                                  color: "primary.dark",
+                                },
+                              }}
+                            />
+                          </Tooltip>
+                          <Tooltip title="Chuẩn bị giao hàng">
+                            <InventoryIcon
+                              fontSize="small"
+                              onClick={() => {
+                                setSelectedOrderUpdateId(order.id);
+                                setOpenConfirmDialogSingle(true);
+                              }}
+                              sx={{
+                                cursor: "pointer",
+                                color: "primary.main",
+                                "&:hover": {
+                                  color: "primary.dark",
+                                },
+                              }}
+                            />
                           </Tooltip>
                         </Stack>
                       </TableCell>
@@ -465,10 +513,47 @@ const Pending = () => {
           </Paper>
         </Box>
       </Box>
-      <OrderDetailModal
+      <OrderDetailRejectModal
         open={open}
         onClose={() => setOpen(false)}
         order={selectedOrder}
+        reason={reason}
+        setReason={setReason}
+      >
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={handleRejectOrder}
+          sx={{ fontSize: "0.813rem" }}
+          color="error"
+        >
+          Từ chối
+        </Button>
+      </OrderDetailRejectModal>
+      <ConfirmDialog
+        open={openConfirmDialog}
+        onClose={(confirm) =>
+          confirm ? handlePrepareForShipping() : setOpenConfirmDialog(false)
+        }
+        keepMounted={false}
+        title="Chuẩn bị giao hàng"
+        content="Bạn có chắc chắn muốn chuẩn bị giao hàng cho các đơn hàng này?"
+        confirmText="Chuẩn bị giao hàng"
+        cancelText="Hủy bỏ"
+      />
+
+      <ConfirmDialog
+        open={openConfirmDialogSingle}
+        onClose={(confirm) =>
+          confirm
+            ? handlePrepareForShippingSingle()
+            : setOpenConfirmDialogSingle(false)
+        }
+        keepMounted={false}
+        title="Chuẩn bị giao hàng"
+        content="Bạn có chắc chắn muốn chuẩn bị giao hàng cho đơn hàng này?"
+        confirmText="Chuẩn bị giao hàng"
+        cancelText="Hủy bỏ"
       />
     </LocalizationProvider>
   );

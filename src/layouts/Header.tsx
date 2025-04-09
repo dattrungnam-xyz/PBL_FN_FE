@@ -16,7 +16,6 @@ import {
   Toolbar,
   Typography,
   Box,
-  Badge,
   IconButton,
 } from "@mui/material";
 import {
@@ -31,6 +30,7 @@ import { AuthState, authActions } from "../stores/authSlice";
 import { canAccessAdminPage, isAdmin, isSeller } from "../types/auth";
 import AdminIcon from "../components/UI/AdminIcon";
 import SearchBar from "../components/SearchBar";
+import InventoryIcon from "@mui/icons-material/Inventory";
 
 // import CustomNavLink from "../UI/NavLink";
 import Logo from "../assets/logos/logo.jpg";
@@ -98,9 +98,7 @@ const Header: React.FC = () => {
           >
             <Link to="/cart">
               <IconButton size="small" sx={{ color: "text.primary" }}>
-                <Badge badgeContent={2} color="primary">
-                  <ShoppingCart sx={{ fontSize: "1.5rem" }} />
-                </Badge>
+                <ShoppingCart sx={{ fontSize: "1.5rem" }} />
               </IconButton>
             </Link>
             <Typography>{user?.name}</Typography>
@@ -164,12 +162,20 @@ const Header: React.FC = () => {
                     </Link>
                   ) : (
                     <>
-                      <Link to="/admin">
+                      <Link to="/seller">
                         <MenuItem>
                           <ListItemIcon>
                             <AdminIcon sx={{ fontSize: "20px" }} />
                           </ListItemIcon>
                           <ListItemText>Đăng kí bán hàng</ListItemText>
+                        </MenuItem>
+                      </Link>
+                      <Link to="/orders">
+                        <MenuItem>
+                          <ListItemIcon>
+                            <InventoryIcon sx={{ fontSize: "20px" }} />
+                          </ListItemIcon>
+                          <ListItemText>Đơn hàng của tôi</ListItemText>
                         </MenuItem>
                       </Link>
                     </>

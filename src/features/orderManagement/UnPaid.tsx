@@ -10,25 +10,19 @@ import {
   TableRow,
   TablePagination,
   Typography,
-  Button,
   Stack,
   Avatar,
   TextField,
   InputAdornment,
   Card,
-  Checkbox,
   Tooltip,
 } from "@mui/material";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getOrdersSellerByStatus,
-  updateOrderStatus,
-} from "../../services/order.service";
+import { useQuery } from "@tanstack/react-query";
+import { getOrdersSellerByStatus } from "../../services/order.service";
 import { IOrder, IWard, IDistrict, IProvince } from "../../interface";
 import { OrderStatus } from "../../enums";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SearchIcon from "@mui/icons-material/Search";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
 import OrderDetailModal from "./component/OrderDetailModal";
 import {
@@ -58,7 +52,6 @@ const UnPaid = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
-  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     province: "all",
@@ -70,7 +63,6 @@ const UnPaid = () => {
   const [provinces, setProvinces] = useState<IProvince[]>([]);
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [wards, setWards] = useState<IWard[]>([]);
-  const queryClient = useQueryClient();
   const debouncedSearch = useDebounce(filters.search, 500);
 
   useEffect(() => {
@@ -114,7 +106,7 @@ const UnPaid = () => {
     ],
     queryFn: () =>
       getOrdersSellerByStatus({
-        orderStatus: OrderStatus.PENDING,
+        orderStatus: OrderStatus.PENDING_PAYMENT,
         page: page + 1,
         limit: rowsPerPage,
         search: debouncedSearch,
@@ -140,44 +132,6 @@ const UnPaid = () => {
   const handleFilterChange = (field: keyof FilterState, value: string) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
     setPage(0);
-  };
-
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = orders?.data?.map((order) => order.id) || [];
-      setSelectedOrders(newSelected);
-    } else {
-      setSelectedOrders([]);
-    }
-  };
-
-  const handleSelectOrder = (orderId: string) => {
-    setSelectedOrders((prev) => {
-      if (prev.includes(orderId)) {
-        return prev.filter((id) => id !== orderId);
-      } else {
-        return [...prev, orderId];
-      }
-    });
-  };
-
-  const { mutate: updateStatus } = useMutation({
-    mutationFn: (orderIds: string[]) =>
-      Promise.all(
-        orderIds.map((id) =>
-          updateOrderStatus(id, OrderStatus.PREPARING_FOR_SHIPPING),
-        ),
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
-      setSelectedOrders([]);
-    },
-  });
-
-  const handlePrepareForShipping = () => {
-    if (selectedOrders.length > 0) {
-      updateStatus(selectedOrders);
-    }
   };
 
   const handleDateChange = (
@@ -217,17 +171,6 @@ const UnPaid = () => {
                 alignItems="center"
               >
                 <Typography variant="h6">Tìm kiếm và lọc</Typography>
-                {selectedOrders.length > 0 && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<LocalShippingIcon />}
-                    onClick={handlePrepareForShipping}
-                    size="small"
-                  >
-                    Chuẩn bị giao hàng ({selectedOrders.length})
-                  </Button>
-                )}
               </Stack>
               <Box
                 display="flex"
@@ -301,21 +244,6 @@ const UnPaid = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        indeterminate={
-                          selectedOrders.length > 0 &&
-                          orders?.data &&
-                          selectedOrders.length < orders.data.length
-                        }
-                        checked={
-                          orders?.data &&
-                          orders.data.length > 0 &&
-                          selectedOrders.length === orders.data.length
-                        }
-                        onChange={handleSelectAllClick}
-                      />
-                    </TableCell>
                     <TableCell sx={{ width: "5%" }}>STT</TableCell>
                     <TableCell sx={{ width: "20%" }}>Người mua</TableCell>
                     <TableCell sx={{ width: "20%" }}>Địa chỉ</TableCell>
@@ -327,12 +255,6 @@ const UnPaid = () => {
                 <TableBody>
                   {orders?.data?.map((order: IOrder, index: number) => (
                     <TableRow key={order.id}>
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={selectedOrders.includes(order.id)}
-                          onChange={() => handleSelectOrder(order.id)}
-                        />
-                      </TableCell>
                       <TableCell>
                         <Typography
                           color="text.secondary"
@@ -424,7 +346,7 @@ const UnPaid = () => {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Stack direction="row" spacing={0.5}>
+                        <Stack direction="row" spacing={1}>
                           <Tooltip title="Chi tiết">
                             <VisibilityIcon
                               fontSize="small"
@@ -441,20 +363,6 @@ const UnPaid = () => {
                               }}
                             />
                           </Tooltip>
-                          {/* <Tooltip title="Chuẩn bị giao hàng">
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              color="primary"
-                              sx={{
-                                fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                                height: { xs: 24, sm: 28 },
-                              }}
-                              onClick={() => updateStatus([order.id])}
-                            >
-                              <LocalShippingIcon fontSize="small" />
-                            </Button>
-                          </Tooltip> */}
                         </Stack>
                       </TableCell>
                     </TableRow>

@@ -50,6 +50,7 @@ import Refunded from "./features/orderManagement/Refunded.tsx";
 import RequireRefund from "./features/orderManagement/RequireRefund.tsx";
 import Cancelled from "./features/orderManagement/Cancelled.tsx";
 import RequireCancelled from "./features/orderManagement/RequireCancelled.tsx";
+import Rejected from "./features/orderManagement/Rejected.tsx";
 
 const router = createBrowserRouter([
   {
@@ -178,6 +179,10 @@ const router = createBrowserRouter([
       {
         path: "orders/require-cancelled",
         element: <RequireCancelled />,
+      },
+      {
+        path: "orders/rejected",
+        element: <Rejected />,
       },
     ],
   },

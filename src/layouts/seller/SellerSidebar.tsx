@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Box,
   Drawer,
@@ -12,11 +13,17 @@ import {
   // useTheme,
 } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import {
+  Inventory as InventoryIcon,
+  ListAlt as ListAltIcon,
+  LocalShipping as LocalShippingIcon,
+  Cancel as CancelIcon,
+  AssignmentReturn as AssignmentReturnIcon,
+  Payment as PaymentIcon,
+  CheckCircle as CheckCircleIcon,
+} from "@mui/icons-material";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import ListAltIcon from "@mui/icons-material/ListAlt";
 // import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
@@ -67,7 +74,7 @@ const menuGroups: MenuGroup[] = [
         subItems: [
           {
             label: "Chờ thanh toán",
-            icon: <ListAltIcon />,
+            icon: <PaymentIcon />,
             path: "/seller/orders/unpaid",
           },
           {
@@ -77,8 +84,8 @@ const menuGroups: MenuGroup[] = [
           },
           {
             label: "Đang chuẩn bị",
-            icon: <LocalShippingIcon />,
-            path: "/seller/orders/preparing",
+            icon: <InventoryIcon />,
+            path: "/seller/orders/preparing-for-shipping",
           },
           {
             label: "Đang giao",
@@ -87,13 +94,33 @@ const menuGroups: MenuGroup[] = [
           },
           {
             label: "Hoàn thành",
-            icon: <ListAltIcon />,
+            icon: <CheckCircleIcon />,
             path: "/seller/orders/completed",
           },
           {
+            label: "Yêu cầu hủy",
+            icon: <CancelIcon />,
+            path: "/seller/orders/require-cancelled",
+          },
+          {
             label: "Đã hủy",
-            icon: <ListAltIcon />,
+            icon: <CancelIcon />,
             path: "/seller/orders/cancelled",
+          },
+          {
+            label: "Yêu cầu hoàn hàng",
+            icon: <AssignmentReturnIcon />,
+            path: "/seller/orders/require-refund",
+          },
+          {
+            label: "Đã hoàn hàng",
+            icon: <AssignmentReturnIcon />,
+            path: "/seller/orders/refunded",
+          },
+          {
+            label: "Đã từ chối",
+            icon: <CancelIcon />,
+            path: "/seller/orders/rejected",
           },
         ],
       },
@@ -316,12 +343,14 @@ const SellerSidebar = () => {
                               </ListItemIcon>
                               <ListItemText
                                 primary={subItem.label}
-                                primaryTypographyProps={{
-                                  variant: "caption",
-                                  fontSize: "0.75rem",
-                                  fontWeight: isActive(subItem.path)
-                                    ? 600
-                                    : 400,
+                                slotProps={{
+                                  primary: {
+                                    variant: "caption",
+                                    fontSize: "0.75rem",
+                                    fontWeight: isActive(subItem.path)
+                                      ? 600
+                                      : 400,
+                                  },
                                 }}
                               />
                             </ListItemButton>

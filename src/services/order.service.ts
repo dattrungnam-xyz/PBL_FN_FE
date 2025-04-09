@@ -52,8 +52,26 @@ export const updateOrderStatus = async (
   orderId: string,
   status: OrderStatus,
 ) => {
-  const response = await axios.put(`/orders/${orderId}/status`, {
+  const response = await axios.patch(`/orders/${orderId}/status`, {
     status,
+  });
+  return response.data;
+};
+
+export const updateOrdersStatus = async (
+  orderIds: string[],
+  status: OrderStatus,
+) => {
+  const response = await axios.patch(`/orders/status`, {
+    orderIds,
+    status,
+  });
+  return response.data;
+};
+
+export const rejectOrder = async (orderId: string, reason: string) => {
+  const response = await axios.patch(`/orders/${orderId}/reject`, {
+    reason,
   });
   return response.data;
 };

@@ -9,20 +9,29 @@ import {
   Button,
   Avatar,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
+import { TabContext, TabPanel } from "@mui/lab";
 import { Content } from "../../layouts";
-import { useState } from "react";
-import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import { useEffect, useState } from "react";
 import PaymentOutlinedIcon from "@mui/icons-material/PaymentOutlined";
 import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
-import { useQuery } from "@tanstack/react-query";
-import { getUserOrders } from "../../services/order.service";
-import { IOrder } from "../../interface";
+import { getUserOrders, updateOrderStatus } from "../../services/order.service";
+import { IOrder, IOrderDetail } from "../../interface";
 import { OrderStatus } from "../../enums";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DoNotDisturbIcon from "@mui/icons-material/DoNotDisturb";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import ReviewModal from "./component/ReviewModal";
+import RefundModal from "./component/RefundModal";
+import CancelModal from "./component/CancelModal";
 
 const orderStatuses = {
   pending_payment: {
@@ -30,64 +39,57 @@ const orderStatuses = {
     color: "warning",
     icon: <PaymentOutlinedIcon sx={{ fontSize: "1rem" }} />,
   },
+  pending: {
+    label: "Chờ xác nhận",
+    color: "info",
+    icon: <HourglassEmptyIcon sx={{ fontSize: "1rem" }} />,
+  },
+  confirmed: {
+    label: "Đã xác nhận",
+    color: "info",
+    icon: <CheckCircleIcon sx={{ fontSize: "1rem" }} />,
+  },
   preparing_for_shipping: {
     label: "Đang chuẩn bị",
     color: "info",
     icon: <InventoryOutlinedIcon sx={{ fontSize: "1rem" }} />,
   },
-  pending: {
-    label: "Chờ xác nhận",
-    color: "info",
-    icon: <InventoryOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  },
-  confirmed: {
-    label: "Xác nhận",
-    color: "info",
-    icon: <InventoryOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  },
   shipping: {
-    label: "Vận chuyển",
+    label: "Đang giao hàng",
     color: "info",
-    icon: <LocalShippingOutlinedIcon sx={{ fontSize: "1rem" }} />,
+    icon: <LocalShippingIcon sx={{ fontSize: "1rem" }} />,
   },
   completed: {
     label: "Hoàn thành",
     color: "success",
     icon: <CheckCircleOutlineIcon sx={{ fontSize: "1rem" }} />,
   },
+  require_cancel: {
+    label: "Yêu cầu hủy",
+    color: "error",
+    icon: <DoNotDisturbIcon sx={{ fontSize: "1rem" }} />,
+  },
   cancelled: {
     label: "Đã hủy",
     color: "error",
     icon: <CancelOutlinedIcon sx={{ fontSize: "1rem" }} />,
   },
+  require_refund: {
+    label: "Yêu cầu hoàn tiền",
+    color: "error",
+    icon: <ReceiptIcon sx={{ fontSize: "1rem" }} />,
+  },
   refunded: {
-    label: "Trả hàng/Hoàn tiền",
+    label: "Đã hoàn tiền",
     color: "error",
     icon: <AssignmentReturnOutlinedIcon sx={{ fontSize: "1rem" }} />,
   },
+  rejected: {
+    label: "Đã từ chối",
+    color: "error",
+    icon: <DoNotDisturbIcon sx={{ fontSize: "1rem" }} />,
+  },
 } as const;
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`order-tabpanel-${index}`}
-      aria-labelledby={`order-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box>{children}</Box>}
-    </div>
-  );
-}
 
 // Order status chip component
 const StatusChip = ({ status }: { status: OrderStatus }) => {
@@ -108,314 +110,33 @@ const StatusChip = ({ status }: { status: OrderStatus }) => {
   );
 };
 
-const OrderItem = ({ order }: { order: IOrder }) => {
-  const renderActionButtons = () => {
-    switch (order.orderStatus) {
-      case OrderStatus.PENDING_PAYMENT:
-        return (
-          <>
-            <Button
-              variant="outlined"
-              size="small"
-              color="inherit"
-              sx={{ fontSize: "0.813rem" }}
-            >
-              Hủy
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              sx={{ fontSize: "0.813rem" }}
-            >
-              Thanh toán
-            </Button>
-          </>
-        );
-      case OrderStatus.SHIPPING:
-      case OrderStatus.CONFIRMED:
-        return (
-          <>
-            <Button
-              variant="outlined"
-              size="small"
-              color="inherit"
-              sx={{ fontSize: "0.813rem" }}
-            >
-              Theo dõi
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              sx={{ fontSize: "0.813rem" }}
-            >
-              Đã nhận hàng
-            </Button>
-          </>
-        );
-      case OrderStatus.COMPLETED:
-        return (
-          <>
-            <Button
-              variant="outlined"
-              size="small"
-              color="inherit"
-              sx={{ fontSize: "0.813rem" }}
-            >
-              Mua lại
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              sx={{ fontSize: "0.813rem" }}
-            >
-              Đánh giá
-            </Button>
-          </>
-        );
-      case OrderStatus.CANCELLED:
-        return (
-          <Button
-            variant="outlined"
-            size="small"
-            color="inherit"
-            sx={{ fontSize: "0.813rem" }}
-          >
-            Mua lại
-          </Button>
-        );
-      case OrderStatus.REFUNDED:
-        return (
-          <Button
-            variant="outlined"
-            size="small"
-            color="inherit"
-            sx={{ fontSize: "0.813rem" }}
-          >
-            Chi tiết hoàn tiền
-          </Button>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        border: 1,
-        borderColor: "divider",
-        borderRadius: 1,
-        overflow: "hidden",
-      }}
-    >
-      {/* Order Header */}
-      <Box
-        sx={{
-          p: { xs: 0.75, sm: 1 },
-          borderBottom: 1,
-          borderColor: "divider",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 0.75,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-          <Typography
-            sx={{
-              fontSize: { xs: "0.875rem", sm: "1rem" },
-              fontWeight: 600,
-            }}
-          >
-            {order.seller.name}
-          </Typography>
-          <StatusChip status={order.orderStatus} />
-        </Box>
-        <Typography
-          color="text.secondary"
-          sx={{
-            fontSize: { xs: "0.75rem", sm: "0.813rem" },
-            whiteSpace: "nowrap",
-          }}
-        >
-          Đơn hàng: {order.id}
-        </Typography>
-      </Box>
-
-      {/* Order Items */}
-      <Stack divider={<Divider />}>
-        {order.orderDetails.map((item) => (
-          <Box
-            key={item.id}
-            sx={{
-              p: { xs: 0.75, sm: 1 },
-              display: "flex",
-              gap: 0.75,
-              alignItems: "center",
-            }}
-          >
-            <Avatar
-              variant="square"
-              src={item.product.images[0]}
-              alt={item.product.name}
-              sx={{
-                width: 40,
-                height: 40,
-                bgcolor: "grey.300",
-                fontSize: "0.875rem",
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-              }}
-            >
-              S
-            </Avatar>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography
-                sx={{
-                  fontSize: { xs: "0.938rem", sm: "1.125rem" },
-                  fontWeight: 500,
-                  mb: 0.25,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {item.product.name}
-              </Typography>
-              <Typography
-                color="text.secondary"
-                sx={{
-                  fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                }}
-              >
-                <span>{item.price.toLocaleString()}đ</span>
-                <span>×</span>
-                <span>{item.quantity}</span>
-              </Typography>
-            </Box>
-          </Box>
-        ))}
-      </Stack>
-
-      {/* Order Footer */}
-      <Box
-        sx={{
-          p: { xs: 0.5, sm: 0.75 },
-          borderTop: 1,
-          borderColor: "divider",
-          display: "flex",
-          flexDirection: "column",
-          gap: 0.5,
-          bgcolor: "background.paper",
-        }}
-      >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
-          <Typography
-            color="text.secondary"
-            sx={{
-              fontSize: { xs: "0.75rem", sm: "0.813rem" },
-              display: "flex",
-              alignItems: "center",
-              gap: 0.5,
-            }}
-          >
-            <AccessTimeIcon sx={{ fontSize: "0.75rem" }} />
-            {new Date(order.createdAt).toLocaleDateString("vi-VN", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Typography>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                  color: "text.secondary",
-                }}
-              >
-                Phí vận chuyển:
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                  color: "text.secondary",
-                }}
-              >
-                {order.shippingFee.toLocaleString()}đ
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                  color: "text.secondary",
-                }}
-              >
-                Tổng tiền:
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: { xs: "0.875rem", sm: "0.938rem" },
-                  fontWeight: 600,
-                  color: "primary.main",
-                }}
-              >
-                {order.totalPrice.toLocaleString()}đ
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-        <Stack
-          direction="row"
-          spacing={0.5}
-          sx={{
-            "& .MuiButton-root": {
-              minWidth: { xs: "auto", sm: 90 },
-              px: { xs: 0.5, sm: 1 },
-              fontSize: { xs: "0.75rem", sm: "0.813rem" },
-              height: { xs: 24, sm: 28 },
-            },
-          }}
-        >
-          {renderActionButtons()}
-        </Stack>
-      </Box>
-    </Paper>
-  );
-};
-
 const Orders = () => {
-  const [tabValue, setTabValue] = useState(0);
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const [tabValue, setTabValue] = useState("0");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [selectedOrderDetail, setSelectedOrderDetail] =
+    useState<IOrderDetail | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   };
 
-  const { data: orders } = useQuery({
-    queryKey: ["orders"],
-    queryFn: getUserOrders,
-  });
+  const getOrders = async () => {
+    try {
+      const orders = await getUserOrders();
+      setOrders(orders);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    getOrders();
+  }, []);
 
   // Filter orders based on tab
   const getFilteredOrders = (status?: OrderStatus) => {
@@ -423,15 +144,447 @@ const Orders = () => {
     if (!status) return orders;
     return orders.filter((order: IOrder) => order.orderStatus === status);
   };
+  const handleOpenReviewModal = (order: IOrder, orderDetail: IOrderDetail) => {
+    setSelectedOrder(order);
+    setSelectedOrderDetail(orderDetail);
+    setIsReviewModalOpen(true);
+  };
+
+  const handleCloseReviewModal = () => {
+    setSelectedOrder(null);
+    setSelectedOrderDetail(null);
+    setIsReviewModalOpen(false);
+  };
+
+  const handleOpenRefundModal = (order: IOrder) => {
+    setSelectedOrder(order);
+    setIsRefundModalOpen(true);
+  };
+
+  const handleCloseRefundModal = () => {
+    setSelectedOrder(null);
+    setIsRefundModalOpen(false);
+  };
+
+  const handleOpenCancelModal = (order: IOrder) => {
+    setSelectedOrder(order);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setSelectedOrder(null);
+    setIsCancelModalOpen(false);
+  };
+
+  const OrderItem = ({ order }: { order: IOrder }) => {
+    const handleUpdateOrderStatus = async (status: OrderStatus) => {
+      try {
+        await updateOrderStatus(order.id, status);
+        getOrders();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    const renderActionButtons = () => {
+      switch (order.orderStatus) {
+        case OrderStatus.PENDING_PAYMENT:
+          return (
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                sx={{ fontSize: "0.813rem" }}
+              >
+                Hủy đơn
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                color="primary"
+                sx={{ fontSize: "0.813rem" }}
+              >
+                Thanh toán
+              </Button>
+            </Stack>
+          );
+        case OrderStatus.PENDING:
+          return (
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                sx={{ fontSize: "0.813rem" }}
+                onClick={() => handleOpenCancelModal(order)}
+              >
+                Hủy đơn
+              </Button>
+            </Stack>
+          );
+
+        case OrderStatus.SHIPPING:
+          return (
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained"
+                size="small"
+                color="success"
+                sx={{ fontSize: "0.813rem" }}
+                onClick={() => handleUpdateOrderStatus(OrderStatus.COMPLETED)}
+              >
+                Đã nhận hàng
+              </Button>
+            </Stack>
+          );
+        case OrderStatus.COMPLETED:
+          return (
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                size="small"
+                color="primary"
+                sx={{ fontSize: "0.813rem" }}
+              >
+                Mua lại
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                sx={{ fontSize: "0.813rem" }}
+                onClick={() => handleOpenRefundModal(order)}
+              >
+                Yêu cầu hoàn tiền
+              </Button>
+            </Stack>
+          );
+        case OrderStatus.REQUIRE_CANCEL:
+          return (
+            <Button
+              variant="outlined"
+              size="small"
+              color="error"
+              sx={{ fontSize: "0.813rem" }}
+            >
+              Chi tiết hủy đơn
+            </Button>
+          );
+        case OrderStatus.CANCELLED:
+          return (
+            <Button
+              variant="outlined"
+              size="small"
+              color="primary"
+              sx={{ fontSize: "0.813rem" }}
+            >
+              Mua lại
+            </Button>
+          );
+        case OrderStatus.REQUIRE_REFUND:
+          return (
+            <Button
+              variant="outlined"
+              size="small"
+              color="error"
+              sx={{ fontSize: "0.813rem" }}
+            >
+              Chi tiết yêu cầu hoàn tiền
+            </Button>
+          );
+        case OrderStatus.REFUNDED:
+          return (
+            <Button
+              variant="outlined"
+              size="small"
+              color="info"
+              sx={{ fontSize: "0.813rem" }}
+            >
+              Chi tiết hoàn tiền
+            </Button>
+          );
+        case OrderStatus.REJECTED:
+          return (
+            <Button
+              variant="outlined"
+              size="small"
+              color="primary"
+              sx={{ fontSize: "0.813rem" }}
+            >
+              Mua lại
+            </Button>
+          );
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 2,
+          overflow: "hidden",
+          mb: 1.5,
+          transition: "all 0.2s ease-in-out",
+          "&:hover": {
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          },
+        }}
+      >
+        {/* Order Header */}
+        <Box
+          sx={{
+            p: { xs: 1, sm: 1.5 },
+            borderBottom: 1,
+            borderColor: "divider",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
+            bgcolor: "background.paper",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography
+              sx={{
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+                fontWeight: 600,
+              }}
+            >
+              {order.seller.name}
+            </Typography>
+            <StatusChip status={order.orderStatus} />
+          </Box>
+          <Typography
+            color="text.secondary"
+            sx={{
+              fontSize: { xs: "0.75rem", sm: "0.813rem" },
+              whiteSpace: "nowrap",
+            }}
+          >
+            Đơn hàng: {order.id}
+          </Typography>
+        </Box>
+
+        {/* Order Items */}
+        <Stack divider={<Divider />}>
+          {order.orderDetails.map((item) => (
+            <Box
+              key={item.id}
+              sx={{
+                p: { xs: 1, sm: 1.5 },
+                display: "flex",
+                gap: 1,
+                alignItems: "center",
+                bgcolor: "background.paper",
+              }}
+            >
+              <Avatar
+                variant="square"
+                src={item.product.images[0]}
+                alt={item.product.name}
+                sx={{
+                  width: 48,
+                  height: 48,
+                  bgcolor: "grey.100",
+                  fontSize: "0.875rem",
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 1,
+                }}
+              >
+                S
+              </Avatar>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  sx={{
+                    fontSize: { xs: "0.938rem", sm: "1.125rem" },
+                    fontWeight: 500,
+                    mb: 0.5,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item.product.name}
+                </Typography>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}
+                >
+                  <Typography
+                    color="text.secondary"
+                    sx={{
+                      fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                    }}
+                  >
+                    <span>{item.price.toLocaleString()}đ</span>
+                    <span>×</span>
+                    <span>{item.quantity}</span>
+                  </Typography>
+                  {order.orderStatus === OrderStatus.COMPLETED && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="primary"
+                      sx={{
+                        fontSize: "0.813rem",
+                        minWidth: "unset",
+                        width: "fit-content",
+                        height: 24,
+                        px: 1,
+                      }}
+                      onClick={() => handleOpenReviewModal(order, item)}
+                    >
+                      Đánh giá
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                  fontWeight: 600,
+                  color: "primary.main",
+                  minWidth: "fit-content",
+                }}
+              >
+                {(item.price * item.quantity).toLocaleString()}đ
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+
+        {/* Order Footer */}
+        <Box
+          sx={{
+            p: { xs: 1, sm: 1.5 },
+            borderTop: 1,
+            borderColor: "divider",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            bgcolor: "background.paper",
+          }}
+        >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+            <Typography
+              color="text.secondary"
+              sx={{
+                fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+              }}
+            >
+              <AccessTimeIcon sx={{ fontSize: "0.75rem" }} />
+              {new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                    color: "text.secondary",
+                  }}
+                >
+                  Phí vận chuyển:
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                    color: "text.secondary",
+                  }}
+                >
+                  {order.shippingFee.toLocaleString()}đ
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                    color: "text.secondary",
+                  }}
+                >
+                  Tổng tiền:
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: { xs: "0.875rem", sm: "0.938rem" },
+                    fontWeight: 600,
+                    color: "primary.main",
+                  }}
+                >
+                  {order.totalPrice.toLocaleString()}đ
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              "& .MuiButton-root": {
+                minWidth: { xs: "auto", sm: 90 },
+                px: { xs: 1, sm: 1.5 },
+                fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                height: { xs: 28, sm: 32 },
+                borderRadius: 1,
+              },
+            }}
+          >
+            {renderActionButtons()}
+          </Stack>
+        </Box>
+      </Paper>
+    );
+  };
 
   return (
     <Content>
-      <Box sx={{ py: { xs: 0.5, sm: 1, md: 1.5 } }}>
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
         <Box
           sx={{
             maxWidth: 1200,
+            width: "100%",
             mx: "auto",
-            px: { xs: 0.5, sm: 1 },
+            px: { xs: 1, sm: 2 },
+            py: { xs: 1, sm: 2 },
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
           }}
         >
           {/* Page Title */}
@@ -440,81 +593,282 @@ const Orders = () => {
             sx={{
               fontSize: { xs: "1.125rem", sm: "1.25rem" },
               fontWeight: 600,
-              mb: { xs: 0.5, sm: 1 },
+              mb: { xs: 1, sm: 2 },
             }}
           >
             Đơn hàng của tôi
           </Typography>
 
-          {/* Order Status Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              variant="scrollable"
-              scrollButtons="auto"
-              aria-label="order status tabs"
-            >
-              <Tab label="Tất cả" />
-              <Tab label="Chờ thanh toán" />
-              <Tab label="Đang chuẩn bị" />
-              <Tab label="Vận chuyển" />
-              <Tab label="Chờ giao hàng" />
-              <Tab label="Hoàn thành" />
-              <Tab label="Đã hủy" />
-              <Tab label="Trả hàng/Hoàn tiền" />
-            </Tabs>
-          </Box>
+          {/* Main Content */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              flex: 1,
+              overflow: "hidden",
+              gap: 2,
+            }}
+          >
+            {/* Tabs */}
+            <TabContext value={tabValue}>
+              <Box
+                sx={{
+                  borderColor: "divider",
+                  width: { xs: "100%", md: 200 },
+                  flexShrink: 0,
+                }}
+              >
+                <Tabs
+                  orientation={isMobile ? "horizontal" : "vertical"}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  allowScrollButtonsMobile
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  aria-label="order status tabs"
+                  sx={{
+                    "& .MuiTab-root": {
+                      fontSize: { xs: "0.875rem", sm: "0.938rem" },
+                      minHeight: { xs: 40, sm: 48 },
+                      px: { xs: 1.5, sm: 2 },
+                      alignItems: "flex-start",
+                      textAlign: "left",
+                    },
+                    "& .MuiTabs-indicator": {
+                      left: { md: 0 },
+                    },
+                  }}
+                >
+                  <Tab label="Tất cả" value="0" />
+                  <Tab label="Chờ thanh toán" value="1" />
+                  <Tab label="Chờ xác nhận" value="2" />
+                  <Tab label="Đang chuẩn bị" value="3" />
+                  <Tab label="Vận chuyển" value="4" />
+                  <Tab label="Hoàn thành" value="5" />
+                  <Tab label="Yêu cầu hủy" value="6" />
+                  <Tab label="Đã hủy" value="7" />
+                  <Tab label="Yêu cầu hoàn tiền" value="8" />
+                  <Tab label="Đã hoàn tiền" value="9" />
+                  <Tab label="Đã từ chối" value="10" />
+                </Tabs>
+              </Box>
 
-          {/* Tab Panels */}
-          <Stack spacing={{ xs: 0.5, sm: 1 }}>
-            <TabPanel value={tabValue} index={0}>
-              {getFilteredOrders().map((order: IOrder) => (
-                <OrderItem key={order.id} order={order} />
-              ))}
-            </TabPanel>
-            <TabPanel value={tabValue} index={1}>
-              {getFilteredOrders(OrderStatus.PREPARING_FOR_SHIPPING).map(
-                (order: IOrder) => (
-                  <OrderItem key={order.id} order={order} />
-                ),
-              )}
-            </TabPanel>
-            <TabPanel value={tabValue} index={1}>
-              {getFilteredOrders(OrderStatus.PENDING_PAYMENT).map(
-                (order: IOrder) => (
-                  <OrderItem key={order.id} order={order} />
-                ),
-              )}
-            </TabPanel>
-            <TabPanel value={tabValue} index={2}>
-              {getFilteredOrders(OrderStatus.SHIPPING).map((order: IOrder) => (
-                <OrderItem key={order.id} order={order} />
-              ))}
-            </TabPanel>
-            <TabPanel value={tabValue} index={3}>
-              {getFilteredOrders(OrderStatus.CONFIRMED).map((order: IOrder) => (
-                <OrderItem key={order.id} order={order} />
-              ))}
-            </TabPanel>
-            <TabPanel value={tabValue} index={4}>
-              {getFilteredOrders(OrderStatus.COMPLETED).map((order: IOrder) => (
-                <OrderItem key={order.id} order={order} />
-              ))}
-            </TabPanel>
-            <TabPanel value={tabValue} index={5}>
-              {getFilteredOrders(OrderStatus.CANCELLED).map((order: IOrder) => (
-                <OrderItem key={order.id} order={order} />
-              ))}
-            </TabPanel>
-            <TabPanel value={tabValue} index={6}>
-              {getFilteredOrders(OrderStatus.REFUNDED).map((order: IOrder) => (
-                <OrderItem key={order.id} order={order} />
-              ))}
-            </TabPanel>
-          </Stack>
+              {/* Tab Panels */}
+              <Box
+                sx={{
+                  flex: 1,
+                  overflow: "hidden",
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 2,
+                  bgcolor: "background.paper",
+                  transition: "all 0.2s ease-in-out",
+                  "&:hover": {
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  },
+                }}
+              >
+                <TabPanel
+                  value="0"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5} sx={{ pb: 2 }}>
+                    {getFilteredOrders().map((order: IOrder) => (
+                      <OrderItem key={order.id} order={order} />
+                    ))}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="1"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.PENDING_PAYMENT).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="2"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.PENDING).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="3"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.PREPARING_FOR_SHIPPING).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="4"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.SHIPPING).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="5"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.COMPLETED).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="6"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.REQUIRE_CANCEL).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="7"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.CANCELLED).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="8"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.REQUIRE_REFUND).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="9"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.REFUNDED).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+                <TabPanel
+                  value="10"
+                  sx={{
+                    height: "100%",
+                    p: { xs: 1, sm: 1.5 },
+                    overflow: "auto",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    {getFilteredOrders(OrderStatus.REJECTED).map(
+                      (order: IOrder) => (
+                        <OrderItem key={order.id} order={order} />
+                      ),
+                    )}
+                  </Stack>
+                </TabPanel>
+              </Box>
+            </TabContext>
+          </Box>
         </Box>
       </Box>
+      {selectedOrder && selectedOrderDetail && (
+        <ReviewModal
+          open={isReviewModalOpen}
+          onClose={handleCloseReviewModal}
+          order={selectedOrder}
+          orderDetail={selectedOrderDetail}
+        />
+      )}
+      {selectedOrder && (
+        <RefundModal
+          open={isRefundModalOpen}
+          onClose={handleCloseRefundModal}
+          order={selectedOrder}
+        />
+      )}
+      {selectedOrder && (
+        <CancelModal
+          open={isCancelModalOpen}
+          onClose={handleCloseCancelModal}
+          order={selectedOrder}
+        />
+      )}
     </Content>
   );
 };
