@@ -50,9 +50,11 @@ const CancelModal = ({ open, onClose, order }: CancelModalProps) => {
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+          },
         },
       }}
     >
@@ -71,7 +73,7 @@ const CancelModal = ({ open, onClose, order }: CancelModalProps) => {
         </Box>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 1 }}>
-        <Stack spacing={2}>
+        <Stack spacing={1}>
           {/* Order Information */}
           <Box>
             <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
@@ -156,6 +158,45 @@ const CancelModal = ({ open, onClose, order }: CancelModalProps) => {
                   </Box>
                 </Box>
               ))}
+            </Box>
+          </Box>
+
+          {/* Shipping Address */}
+          <Box>
+            <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
+              Địa chỉ giao hàng
+            </Typography>
+            <Box
+              sx={{
+                p: 1,
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+                bgcolor: "background.paper",
+              }}
+            >
+              <Stack spacing={0.5}>
+                <Box>
+                  <Typography color="text.secondary" variant="body2">
+                    Người nhận:
+                  </Typography>
+                  <Typography variant="body2">{order.address.name}</Typography>
+                </Box>
+                <Box>
+                  <Typography color="text.secondary" variant="body2">
+                    Số điện thoại:
+                  </Typography>
+                  <Typography variant="body2">{order.address.phone}</Typography>
+                </Box>
+                <Box>
+                  <Typography color="text.secondary" variant="body2">
+                    Địa chỉ:
+                  </Typography>
+                  <Typography variant="body2">
+                    {order.address.textAddress}
+                  </Typography>
+                </Box>
+              </Stack>
             </Box>
           </Box>
 

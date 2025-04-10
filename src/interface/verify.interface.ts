@@ -21,6 +21,7 @@ export interface IVerifyResponse {
   createdAt: string;
   deletedAt: string | null;
   products: IProductTableData[];
+  rejectReason?: string;
 }
 
 export interface IVerifyTableData {
@@ -34,6 +35,7 @@ export interface IVerifyTableData {
   createdAt: string;
   updatedAt: string;
   products: IProductTableData[];
+  rejectReason?: string;
 }
 
 export interface IVerify {
@@ -46,4 +48,5 @@ export interface IVerify {
   images: string[];
   createdAt: string;
   deletedAt: string | null;
+  rejectReason?: string;
 }

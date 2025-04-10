@@ -33,6 +33,10 @@ export interface IOrder {
   totalPrice: number;
   shippingFee: number;
   user: IUser;
+  cancelReason: string | null;
+  refundReason: string | null;
+  refundReasonImage: string[];
+  rejectReason: string | null;
 }
 
 export interface IOrderDetail {
@@ -42,4 +46,9 @@ export interface IOrderDetail {
   quantity: number;
   price: number;
   product: IProduct;
+}
+
+export interface IRefundRequest {
+  refundReason: string;
+  refundReasonImage: string[];
 }

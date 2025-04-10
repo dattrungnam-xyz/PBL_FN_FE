@@ -13,6 +13,7 @@ import {
   ICreateOrderDetail,
   IOrder,
   IOrderDetail,
+  IRefundRequest,
 } from "./order.interface";
 import { IAddress } from "./userAddress.interface";
 
@@ -37,4 +38,5 @@ export type {
   IOrder,
   IOrderDetail,
   IAddress,
+  IRefundRequest,
 };

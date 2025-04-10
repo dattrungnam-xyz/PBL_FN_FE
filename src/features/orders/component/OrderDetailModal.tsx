@@ -2,93 +2,34 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
   Box,
   Typography,
-  TextField,
   Stack,
   IconButton,
   Avatar,
   Divider,
+  Chip,
+  DialogActions,
+  Button,
 } from "@mui/material";
-import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { IOrder, IRefundRequest } from "../../../interface";
+import { IOrder } from "../../../interface";
+import { getOrderStatusText } from "../../../utils";
+import { OrderStatus } from "../../../enums/orderStatus.enum";
 import Proof from "./Proof";
+import { useState } from "react";
 
-interface RefundModalProps {
+interface OrderDetailModalProps {
   open: boolean;
   onClose: () => void;
   order: IOrder;
-  onSubmit: (refundRequest: IRefundRequest) => void;
 }
 
-const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
-  const [refundRequest, setRefundRequest] = useState<IRefundRequest>({
-    refundReason: "",
-    refundReasonImage: [],
-  });
-
-  const [errors, setErrors] = useState<string[]>([]);
+const OrderDetailModal = ({ open, onClose, order }: OrderDetailModalProps) => {
   const [selectedProof, setSelectedProof] = useState<{
     file: string;
     index: number;
   } | null>(null);
-
-  const handleReasonChange = (value: string) => {
-    setRefundRequest((prev) => ({
-      ...prev,
-      refundReason: value,
-    }));
-    setErrors((prev) =>
-      prev.filter((error) => error !== "Vui lòng nhập lý do yêu cầu trả hàng"),
-    );
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    const newFiles: string[] = [];
-    const fileReaders: FileReader[] = [];
-
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      fileReaders.push(reader);
-
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          newFiles.push(e.target.result as string);
-
-          if (newFiles.length === files.length) {
-            setRefundRequest((prev) => ({
-              ...prev,
-              refundReasonImage: [...prev.refundReasonImage, ...newFiles],
-            }));
-            setErrors((prev) =>
-              prev.filter(
-                (error) =>
-                  error !==
-                  "Vui lòng tải lên ít nhất một hình ảnh hoặc video làm bằng chứng",
-              ),
-            );
-          }
-        }
-      };
-
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setRefundRequest((prev) => ({
-      ...prev,
-      refundReasonImage: prev.refundReasonImage.filter((_, i) => i !== index),
-    }));
-  };
 
   const handleOpenProof = (file: string, index: number) => {
     setSelectedProof({ file, index });
@@ -98,25 +39,31 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
     setSelectedProof(null);
   };
 
-  const handleSubmit = () => {
-    const newErrors: string[] = [];
-
-    if (refundRequest.refundReason === "") {
-      newErrors.push("Vui lòng nhập lý do yêu cầu trả hàng");
+  const getStatusColor = (status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.PENDING:
+        return "warning";
+      case OrderStatus.PENDING_PAYMENT:
+        return "info";
+      case OrderStatus.PREPARING_FOR_SHIPPING:
+        return "primary";
+      case OrderStatus.SHIPPING:
+        return "success";
+      case OrderStatus.COMPLETED:
+        return "success";
+      case OrderStatus.CANCELLED:
+        return "error";
+      case OrderStatus.REFUNDED:
+        return "error";
+      case OrderStatus.REJECTED:
+        return "error";
+      case OrderStatus.REQUIRE_CANCEL:
+        return "error";
+      case OrderStatus.REQUIRE_REFUND:
+        return "error";
+      default:
+        return "default";
     }
-
-    if (refundRequest.refundReasonImage.length === 0) {
-      newErrors.push(
-        "Vui lòng tải lên ít nhất một hình ảnh hoặc video làm bằng chứng",
-      );
-    }
-
-    if (newErrors.length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    onSubmit(refundRequest);
-    onClose();
   };
 
   return (
@@ -142,14 +89,26 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
               justifyContent: "space-between",
             }}
           >
-            <Typography variant="h6">Yêu cầu trả hàng</Typography>
+            <Typography variant="h6">Chi tiết đơn hàng</Typography>
             <IconButton onClick={onClose} size="small">
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent dividers sx={{ p: 1 }}>
-          <Stack spacing={2}>
+          <Stack spacing={1}>
+            {/* Order Status */}
+            <Box>
+              <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
+                Trạng thái đơn hàng
+              </Typography>
+              <Chip
+                label={getOrderStatusText(order.orderStatus)}
+                color={getStatusColor(order.orderStatus)}
+                size="small"
+              />
+            </Box>
+
             {/* Order Information */}
             <Box>
               <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
@@ -248,44 +207,63 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
               </Box>
             </Box>
 
-            {/* Reason Input */}
-            <Box>
-              <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
-                Lý do yêu cầu trả hàng
-              </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                size="small"
-                placeholder="Vui lòng mô tả chi tiết lý do yêu cầu trả hàng..."
-                value={refundRequest.refundReason}
-                onChange={(e) => handleReasonChange(e.target.value)}
-                error={errors.includes("Vui lòng nhập lý do yêu cầu trả hàng")}
-                helperText={
-                  errors.includes("Vui lòng nhập lý do yêu cầu trả hàng")
-                    ? "Vui lòng nhập lý do yêu cầu trả hàng"
-                    : ""
-                }
-              />
-            </Box>
+            {/* Refund Information */}
+            {order.refundReason && (
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={500}
+                  sx={{ mb: 0.5 }}
+                >
+                  Lý do yêu cầu trả hàng
+                </Typography>
+                <Box
+                  sx={{
+                    p: 1,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <Typography variant="body2">{order.refundReason}</Typography>
+                </Box>
+              </Box>
+            )}
+
+            {order.cancelReason && (
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={500}
+                  sx={{ mb: 0.5 }}
+                >
+                  Lý do hủy đơn
+                </Typography>
+                <Box
+                  sx={{
+                    p: 1,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <Typography variant="body2">{order.cancelReason}</Typography>
+                </Box>
+              </Box>
+            )}
 
             {/* Refund Images/Videos */}
-            <Box>
-              <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
-                Hình ảnh/Video minh chứng
-              </Typography>
-              <Box
-                sx={{
-                  p: 1,
-                  border: 1,
-                  borderColor: errors.includes("refundReasonImage")
-                    ? "error.main"
-                    : "divider",
-                  borderRadius: 1,
-                  bgcolor: "background.paper",
-                }}
-              >
+            {order.refundReasonImage && order.refundReasonImage.length > 0 && (
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={500}
+                  sx={{ mb: 0.5 }}
+                >
+                  Hình ảnh/Video minh chứng
+                </Typography>
                 <Box
                   sx={{
                     display: "flex",
@@ -293,7 +271,7 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
                     flexWrap: "wrap",
                   }}
                 >
-                  {refundRequest.refundReasonImage.map((file, index) => {
+                  {order.refundReasonImage.map((file, index) => {
                     const isImage =
                       file.startsWith("data:image/") ||
                       file.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
@@ -337,86 +315,60 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
                             }}
                           />
                         )}
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFile(index);
-                          }}
-                          sx={{
-                            position: "absolute",
-                            right: 4,
-                            top: 4,
-                            bgcolor: "rgba(0, 0, 0, 0.5)",
-                            color: "white",
-                            "&:hover": {
-                              bgcolor: "rgba(0, 0, 0, 0.7)",
-                            },
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
                       </Box>
                     );
                   })}
-                  <Box
-                    component="label"
-                    htmlFor="file-upload"
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      border: 1,
-                      borderColor: "divider",
-                      borderRadius: 1,
-                      cursor: "pointer",
-                      "&:hover": {
-                        borderColor: "primary.main",
-                        bgcolor: "action.hover",
-                      },
-                    }}
-                  >
-                    <AddPhotoAlternateIcon color="action" />
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mt: 0.5 }}
-                      fontSize="12px"
-                    >
-                      Thêm minh chứng
+                </Box>
+              </Box>
+            )}
+
+            {/* Shipping Information */}
+            <Box>
+              <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
+                Thông tin giao hàng
+              </Typography>
+              <Box
+                sx={{
+                  p: 1,
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Stack spacing={0.5}>
+                  <Box>
+                    <Typography color="text.secondary" variant="body2">
+                      Người nhận:
+                    </Typography>
+                    <Typography variant="body2">
+                      {order.address.name}
                     </Typography>
                   </Box>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    accept="image/*,video/*"
-                    multiple
-                    onChange={handleFileUpload}
-                    style={{ display: "none" }}
-                  />
-                </Box>
-                {errors.includes("refundReasonImage") && (
-                  <Typography
-                    color="error"
-                    variant="caption"
-                    sx={{ mt: 0.5, display: "block" }}
-                  >
-                    Vui lòng tải lên ít nhất một hình ảnh hoặc video minh chứng
-                  </Typography>
-                )}
+                  <Box>
+                    <Typography color="text.secondary" variant="body2">
+                      Số điện thoại:
+                    </Typography>
+                    <Typography variant="body2">
+                      {order.address.phone}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography color="text.secondary" variant="body2">
+                      Địa chỉ:
+                    </Typography>
+                    <Typography variant="body2">
+                      {order.address.textAddress}
+                    </Typography>
+                  </Box>
+                </Stack>
               </Box>
             </Box>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 1 }}>
           <Button onClick={onClose} size="small">
-            Hủy
-          </Button>
-          <Button variant="contained" onClick={handleSubmit} size="small">
-            Gửi yêu cầu
+            Đóng
           </Button>
         </DialogActions>
       </Dialog>
@@ -433,4 +385,4 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
   );
 };
 
-export default RefundModal;
+export default OrderDetailModal;

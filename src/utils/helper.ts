@@ -1,3 +1,5 @@
+import { OrderStatus } from "../enums/orderStatus.enum";
+
 export function file2Base64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -26,3 +28,28 @@ export function getPhoneValidator(errorMessage?: string) {
     },
   };
 }
+
+export const getOrderStatusText = (status: OrderStatus) => {
+  switch (status) {
+    case OrderStatus.PENDING:
+      return "Chờ xác nhận";
+    case OrderStatus.PENDING_PAYMENT:
+      return "Chờ thanh toán";
+    case OrderStatus.PREPARING_FOR_SHIPPING:
+      return "Chuẩn bị giao hàng";
+    case OrderStatus.SHIPPING:
+      return "Đang giao hàng";
+    case OrderStatus.COMPLETED:
+      return "Đã hoàn tất";
+    case OrderStatus.CANCELLED:
+      return "Đã hủy";
+    case OrderStatus.REFUNDED:
+      return "Đã hoàn tiền";
+    case OrderStatus.REJECTED:
+      return "Bị từ chối";
+    case OrderStatus.REQUIRE_CANCEL:
+      return "Yêu cầu hủy";
+    case OrderStatus.REQUIRE_REFUND:
+      return "Yêu cầu hoàn tiền";
+  }
+};

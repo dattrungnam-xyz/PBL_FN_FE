@@ -1,6 +1,6 @@
 import axios from "../axios";
 import { OrderStatus } from "../enums";
-import { ICreateOrder, IOrder } from "../interface";
+import { ICreateOrder, IOrder, IRefundRequest } from "../interface";
 import PaginatedData from "../types/PaginatedData";
 
 export interface OrderSellerFilter {
@@ -73,5 +73,16 @@ export const rejectOrder = async (orderId: string, reason: string) => {
   const response = await axios.patch(`/orders/${orderId}/reject`, {
     reason,
   });
+  return response.data;
+};
+
+export const requestRefundOrder = async (
+  orderId: string,
+  refundRequest: IRefundRequest,
+) => {
+  const response = await axios.patch(
+    `/orders/${orderId}/request-refund`,
+    refundRequest,
+  );
   return response.data;
 };

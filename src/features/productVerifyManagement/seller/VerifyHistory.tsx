@@ -486,6 +486,16 @@ const VerifyHistory = () => {
                           size="small"
                         />
                       </Stack>
+                      {selectedHistory.rejectReason && (
+                        <TextField
+                          label="Lý do từ chối"
+                          value={selectedHistory.rejectReason}
+                          disabled
+                          fullWidth
+                          size="small"
+                          sx={{ mt: 1 }}
+                        />
+                      )}
                     </Stack>
                   </CardContent>
                 </Card>
