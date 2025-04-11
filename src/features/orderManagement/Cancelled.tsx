@@ -19,6 +19,7 @@ import {
   Checkbox,
   Tooltip,
 } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getOrdersSellerByStatus,
@@ -30,7 +31,6 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SearchIcon from "@mui/icons-material/Search";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
-import OrderDetailModal from "./component/OrderDetailModal";
 import {
   getDistricts,
   getProvinces,
@@ -43,6 +43,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import viLocale from "date-fns/locale/vi";
 import PaginatedData from "../../types/PaginatedData";
 import { useDebounce } from "../../hooks/useDebounce";
+import OrderCancelModal from "./component/OrderCancelModal";
 interface FilterState {
   province: string;
   district: string;
@@ -425,35 +426,22 @@ const Cancelled = () => {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Stack direction="row" spacing={0.5}>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            color="inherit"
-                            sx={{
-                              fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                              height: { xs: 24, sm: 28 },
-                            }}
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setOpen(true);
-                            }}
-                          >
-                            Chi tiết
-                          </Button>
-                          <Tooltip title="Chuẩn bị giao hàng">
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              color="primary"
-                              sx={{
-                                fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                                height: { xs: 24, sm: 28 },
+                        <Stack direction="row" spacing={1}>
+                          <Tooltip title="Chi tiết">
+                            <VisibilityIcon
+                              fontSize="small"
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setOpen(true);
                               }}
-                              onClick={() => updateStatus([order.id])}
-                            >
-                              <LocalShippingIcon fontSize="small" />
-                            </Button>
+                              sx={{
+                                cursor: "pointer",
+                                color: "primary.main",
+                                "&:hover": {
+                                  color: "primary.dark",
+                                },
+                              }}
+                            />
                           </Tooltip>
                         </Stack>
                       </TableCell>
@@ -474,10 +462,13 @@ const Cancelled = () => {
           </Paper>
         </Box>
       </Box>
-      <OrderDetailModal
+      <OrderCancelModal
         open={open}
         onClose={() => setOpen(false)}
         order={selectedOrder}
+        onReject={() => {}}
+        onAccept={() => {}}
+        viewOnly={true}
       />
     </LocalizationProvider>
   );

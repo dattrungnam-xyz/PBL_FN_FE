@@ -18,6 +18,7 @@ import {
   Checkbox,
   Tooltip,
   IconButton,
+  Button,
 } from "@mui/material";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -234,6 +235,17 @@ const RequireCancelled = () => {
                 alignItems="center"
               >
                 <Typography variant="h6">Tìm kiếm và lọc</Typography>
+                {selectedOrders.length > 0 && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    // startIcon={<LocalShippingIcon />}
+                    // onClick={() => setOpenConfirmDialog(true)}
+                    size="small"
+                  >
+                    Phê duyệt hủy ({selectedOrders.length})
+                  </Button>
+                )}
               </Stack>
               <Box
                 display="flex"
@@ -292,7 +304,6 @@ const RequireCancelled = () => {
               </Box>
             </Stack>
           </Card>
-
           {/* Orders Table */}
           <Paper
             elevation={0}

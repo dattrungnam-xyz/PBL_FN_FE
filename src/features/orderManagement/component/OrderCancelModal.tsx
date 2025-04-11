@@ -24,6 +24,7 @@ interface OrderCancelModalProps {
   order: IOrder | null;
   onReject: () => void;
   onAccept: () => void;
+  viewOnly?: boolean;
 }
 
 const OrderCancelModal = ({
@@ -32,6 +33,7 @@ const OrderCancelModal = ({
   order,
   onReject,
   onAccept,
+  viewOnly = false,
 }: OrderCancelModalProps) => {
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -245,21 +247,25 @@ const OrderCancelModal = ({
           <Button variant="outlined" onClick={onClose} size="small">
             Đóng
           </Button>
-          <Button
-            variant="contained"
-            onClick={() => setShowAcceptModal(true)}
-            size="small"
-          >
-            Xác nhận
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => setShowRejectModal(true)}
-            size="small"
-          >
-            Từ chối
-          </Button>
+          {!viewOnly ? (
+            <>
+              <Button
+                variant="contained"
+                onClick={() => setShowAcceptModal(true)}
+                size="small"
+              >
+                Xác nhận
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => setShowRejectModal(true)}
+                size="small"
+              >
+                Từ chối
+              </Button>
+            </>
+          ) : null}
         </DialogActions>
       </Dialog>
       <ConfirmDialog
