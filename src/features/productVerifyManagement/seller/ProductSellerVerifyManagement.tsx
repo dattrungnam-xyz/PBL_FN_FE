@@ -35,7 +35,11 @@ import { toast } from "react-toastify";
 import { RootState } from "../../../stores";
 import { AuthState } from "../../../stores/authSlice";
 import { getProductByStoreId } from "../../../services/product.service";
-import { SellingProductStatus, VerifyOCOPStatus, Category } from "../../../enums";
+import {
+  SellingProductStatus,
+  VerifyOCOPStatus,
+  Category,
+} from "../../../enums";
 import { getCategoryText } from "../../../utils/getCategoryText";
 import { IProductTableData } from "../../../interface/product.interface";
 import CustomBackdrop from "../../../components/UI/CustomBackdrop";

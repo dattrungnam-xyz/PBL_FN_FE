@@ -23,7 +23,6 @@ import { OrderStatus } from "../../enums";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SearchIcon from "@mui/icons-material/Search";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
-import OrderDetailModal from "./component/OrderDetailModal";
 import {
   getDistricts,
   getProvinces,
@@ -37,6 +36,7 @@ import viLocale from "date-fns/locale/vi";
 import { useDebounce } from "../../hooks/useDebounce";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PaginatedData from "../../types/PaginatedData";
+import RejectModal from "./component/RejectModal";
 
 interface FilterState {
   province: string;
@@ -384,7 +384,7 @@ const Rejected = () => {
           </Paper>
         </Box>
       </Box>
-      <OrderDetailModal
+      <RejectModal
         open={open}
         onClose={() => setOpen(false)}
         order={selectedOrder}

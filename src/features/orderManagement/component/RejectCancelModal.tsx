@@ -74,7 +74,7 @@ const RejectCancelModal = ({
         </Box>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 1 }}>
-        <Stack spacing={1}>
+        <Stack spacing={0.5}>
           {/* Order Status */}
           <Box>
             <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>

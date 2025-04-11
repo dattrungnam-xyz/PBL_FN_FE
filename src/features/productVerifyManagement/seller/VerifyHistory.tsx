@@ -45,6 +45,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useQueryClient } from "@tanstack/react-query";
 import { deleteVerify } from "../../../services/verify.service";
 import ConfirmDeleteVerifyDialog from "./dialog/ConfirmDeleteVerifyDialog";
+import Proof from "../../orders/component/Proof";
 
 interface TableHeader {
   id: keyof IVerifyTableData | "action" | "star";
@@ -78,6 +79,10 @@ const VerifyHistory = () => {
     useState<IVerifyTableData | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [selectedProof, setSelectedProof] = useState<{
+    file: string;
+    index: number;
+  } | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -151,6 +156,14 @@ const VerifyHistory = () => {
     setOpenModal(false);
   };
 
+  const handleOpenProof = (file: string, index: number) => {
+    setSelectedProof({ file, index });
+  };
+
+  const handleCloseProof = () => {
+    setSelectedProof(null);
+  };
+
   const getStatusColor = (status: VerifyOCOPStatus) => {
     switch (status) {
       case VerifyOCOPStatus.VERIFIED:
@@ -222,7 +235,7 @@ const VerifyHistory = () => {
             <Stack spacing={2}>
               <Stack
                 direction={{ xs: "column", sm: "row" }}
-                spacing={2}
+                spacing={1}
                 alignItems={{ xs: "stretch", sm: "center" }}
               >
                 <TextField
@@ -410,11 +423,11 @@ const VerifyHistory = () => {
           <DialogTitle>Chi tiết xác thực OCOP</DialogTitle>
           <DialogContent>
             {selectedHistory && (
-              <Stack spacing={1} sx={{ mt: 1 }}>
+              <Stack spacing={0.5} sx={{ mt: 0.5 }}>
                 {/* Thông tin xác thực */}
                 <Card variant="outlined">
-                  <CardContent>
-                    <Stack spacing={1}>
+                  <CardContent sx={{ p: 1 }}>
+                    <Stack spacing={0.5}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                         Thông tin xác thực
                       </Typography>
@@ -493,7 +506,7 @@ const VerifyHistory = () => {
                           disabled
                           fullWidth
                           size="small"
-                          sx={{ mt: 1 }}
+                          sx={{ mt: 0.5 }}
                         />
                       )}
                     </Stack>
@@ -503,35 +516,53 @@ const VerifyHistory = () => {
                 {/* Danh sách sản phẩm */}
                 <Card variant="outlined">
                   <CardContent>
-                    <Stack spacing={1}>
+                    <Stack spacing={0.5}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                         Danh sách sản phẩm
                       </Typography>
-                      <Stack spacing={1}>
+                      <Stack spacing={0.5}>
                         {selectedHistory.products.map((product) => (
-                          <Paper key={product.id} sx={{ p: 1 }}>
-                            <Stack direction="row" spacing={1}>
+                          <Paper key={product.id} sx={{ p: 0.5 }}>
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                            >
                               {product.images?.[0] && (
-                                <img
-                                  src={product.images[0]}
-                                  alt={product.name}
-                                  style={{
-                                    width: 60,
-                                    height: 60,
-                                    objectFit: "cover",
-                                    borderRadius: 4,
+                                <Box
+                                  sx={{
+                                    width: 48,
+                                    height: 48,
+                                    cursor: "pointer",
+                                    "&:hover": {
+                                      opacity: 0.8,
+                                    },
                                   }}
-                                />
+                                  onClick={() =>
+                                    handleOpenProof(product.images[0], 0)
+                                  }
+                                >
+                                  <img
+                                    src={product.images[0]}
+                                    alt={product.name}
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                      borderRadius: 4,
+                                    }}
+                                  />
+                                </Box>
                               )}
                               <Stack spacing={0.5} flex={1}>
                                 <Typography
-                                  variant="subtitle1"
+                                  variant="body2"
                                   sx={{ fontWeight: 500 }}
                                 >
                                   {product.name}
                                 </Typography>
                                 <Typography
-                                  variant="body1"
+                                  variant="body2"
                                   color="primary"
                                   sx={{ fontWeight: 500 }}
                                 >
@@ -549,7 +580,7 @@ const VerifyHistory = () => {
                 {/* Hình ảnh minh chứng */}
                 <Card variant="outlined">
                   <CardContent>
-                    <Stack spacing={1}>
+                    <Stack spacing={0.5}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                         Hình ảnh minh chứng
                       </Typography>
@@ -569,7 +600,12 @@ const VerifyHistory = () => {
                               border: "1px solid",
                               borderColor: "divider",
                               borderRadius: 1,
+                              cursor: "pointer",
+                              "&:hover": {
+                                opacity: 0.8,
+                              },
                             }}
+                            onClick={() => handleOpenProof(image, index)}
                           >
                             <img
                               src={image}
@@ -605,6 +641,14 @@ const VerifyHistory = () => {
         }
         keepMounted={false}
       />
+      {selectedProof && (
+        <Proof
+          open={true}
+          onClose={handleCloseProof}
+          file={selectedProof.file}
+          index={selectedProof.index}
+        />
+      )}
     </>
   );
 };

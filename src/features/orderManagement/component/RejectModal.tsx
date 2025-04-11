@@ -15,34 +15,23 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { IOrder } from "../../../interface";
 import { getOrderStatusText, getStatusColor } from "../../../utils";
-import Proof from "../../orders/component/Proof";
 import { useState } from "react";
-import RejectRefundModal from "./RejectRefundModal";
-import ConfirmDialog from "../dialog/ConfirmDialog";
+import Proof from "../../orders/component/Proof";
 
-interface OrderRefundModalProps {
+interface RejectModalProps {
   open: boolean;
   onClose: () => void;
   order: IOrder | null;
-  onAccept: () => void;
-  onReject: (reason: string) => void;
-  viewOnly?: boolean;
 }
 
-const OrderRefundModal = ({
-  open,
-  onClose,
-  order,
-  onAccept,
-  onReject,
-  viewOnly = false,
-}: OrderRefundModalProps) => {
+const RejectModal = ({ open, onClose, order }: RejectModalProps) => {
   const [selectedProof, setSelectedProof] = useState<{
     file: string;
     index: number;
   } | null>(null);
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [showAcceptModal, setShowAcceptModal] = useState(false);
+
+  if (!order) return null;
+
   const handleOpenProof = (file: string, index: number) => {
     setSelectedProof({ file, index });
   };
@@ -50,13 +39,6 @@ const OrderRefundModal = ({
   const handleCloseProof = () => {
     setSelectedProof(null);
   };
-
-  const handleReject = (reason: string) => {
-    onReject(reason);
-    setShowRejectModal(false);
-  };
-
-  if (!order) return null;
 
   return (
     <>
@@ -81,7 +63,7 @@ const OrderRefundModal = ({
               justifyContent: "space-between",
             }}
           >
-            <Typography variant="h6">Yêu cầu hoàn trả hàng</Typography>
+            <Typography variant="h6">Chi tiết yêu cầu bị từ chối</Typography>
             <IconButton onClick={onClose} size="small">
               <CloseIcon />
             </IconButton>
@@ -180,7 +162,17 @@ const OrderRefundModal = ({
                       <Avatar
                         variant="square"
                         src={item.product.images[0]}
-                        sx={{ width: 40, height: 40 }}
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          cursor: "pointer",
+                          "&:hover": {
+                            opacity: 0.8,
+                          },
+                        }}
+                        onClick={() =>
+                          handleOpenProof(item.product.images[0], 0)
+                        }
                       />
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography variant="body2" noWrap>
@@ -242,25 +234,79 @@ const OrderRefundModal = ({
               </Box>
             </Box>
 
-            {/* Refund Reason */}
-            <Box>
-              <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
-                Lý do yêu cầu hoàn tiền
-              </Typography>
-              <Box
-                sx={{
-                  p: 1,
-                  border: 1,
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  bgcolor: "background.paper",
-                }}
-              >
-                <Typography variant="body2">{order.refundReason}</Typography>
+            {/* Rejection Reason */}
+            {order.rejectReason && (
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={500}
+                  sx={{ mb: 0.5 }}
+                >
+                  Lý do bị từ chối
+                </Typography>
+                <Box
+                  sx={{
+                    p: 1,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <Typography variant="body2">{order.rejectReason}</Typography>
+                </Box>
               </Box>
-            </Box>
+            )}
 
-            {/* Refund Images/Videos */}
+            {/* Cancel Reason */}
+            {order.cancelReason && (
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={500}
+                  sx={{ mb: 0.5 }}
+                >
+                  Lý do yêu cầu hủy
+                </Typography>
+                <Box
+                  sx={{
+                    p: 1,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <Typography variant="body2">{order.cancelReason}</Typography>
+                </Box>
+              </Box>
+            )}
+
+            {/* Refund Reason */}
+            {order.refundReason && (
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={500}
+                  sx={{ mb: 0.5 }}
+                >
+                  Lý do yêu cầu hoàn tiền
+                </Typography>
+                <Box
+                  sx={{
+                    p: 1,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <Typography variant="body2">{order.refundReason}</Typography>
+                </Box>
+              </Box>
+            )}
+
+            {/* Refund Images */}
             {order.refundReasonImage && order.refundReasonImage.length > 0 && (
               <Box>
                 <Typography
@@ -268,123 +314,64 @@ const OrderRefundModal = ({
                   fontWeight={500}
                   sx={{ mb: 0.5 }}
                 >
-                  Hình ảnh/Video minh chứng
+                  Hình ảnh minh chứng
                 </Typography>
                 <Box
                   sx={{
                     display: "flex",
-                    gap: 1,
                     flexWrap: "wrap",
+                    gap: 1,
                   }}
                 >
-                  {order.refundReasonImage.map((file, index) => {
-                    const isImage =
-                      file.startsWith("data:image/") ||
-                      file.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-                      file.includes("cloudinary.com");
-
-                    return (
-                      <Box
-                        key={`file-${index}`}
-                        onClick={() => handleOpenProof(file, index)}
-                        sx={{
-                          width: 120,
-                          height: 120,
-                          position: "relative",
+                  {order.refundReasonImage.map((file, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        width: 120,
+                        height: 120,
+                        position: "relative",
+                        cursor: "pointer",
+                        "&:hover": {
+                          opacity: 0.8,
+                        },
+                      }}
+                      onClick={() => handleOpenProof(file, index)}
+                    >
+                      <img
+                        src={file}
+                        alt={`Proof ${index + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
                           borderRadius: 1,
-                          overflow: "hidden",
-                          border: 1,
+                          border: "1px solid",
                           borderColor: "divider",
-                          cursor: "pointer",
-                          "&:hover": {
-                            borderColor: "primary.main",
-                          },
                         }}
-                      >
-                        {isImage ? (
-                          <img
-                            src={file}
-                            alt={`Minh chứng ${index + 1}`}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        ) : (
-                          <video
-                            src={file}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        )}
-                      </Box>
-                    );
-                  })}
+                      />
+                    </Box>
+                  ))}
                 </Box>
               </Box>
             )}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 1 }}>
-          <Button variant="outlined" onClick={onClose} size="small">
+          <Button onClick={onClose} size="small">
             Đóng
           </Button>
-          {!viewOnly && (
-            <>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => setShowRejectModal(true)}
-                size="small"
-              >
-                Từ chối
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => setShowAcceptModal(true)}
-                size="small"
-              >
-                Chấp nhận
-              </Button>
-            </>
-          )}
         </DialogActions>
       </Dialog>
-
       {selectedProof && (
         <Proof
-          open={!!selectedProof}
+          open={true}
           onClose={handleCloseProof}
           file={selectedProof.file}
           index={selectedProof.index}
         />
       )}
-
-      <RejectRefundModal
-        open={showRejectModal}
-        onClose={() => setShowRejectModal(false)}
-        order={order}
-        onReject={handleReject}
-      />
-
-      <ConfirmDialog
-        open={showAcceptModal}
-        onClose={(confirm) =>
-          confirm ? onAccept() : setShowAcceptModal(false)
-        }
-        title="Xác nhận phê duyệt yêu cầu"
-        content="Bạn có chắc chắn muốn phê duyệt yêu cầu hoàn tiền đơn hàng này không?"
-        confirmText="Phê duyệt"
-        cancelText="Hủy bỏ"
-        keepMounted={false}
-      />
     </>
   );
 };
 
-export default OrderRefundModal;
+export default RejectModal;

@@ -53,6 +53,7 @@ import { ICreateVerify, IVerifyResponse } from "../../../interface";
 import ConfirmUpdateVerifyDialog from "./dialog/ConfirmUpdateVerifyDialog";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ConfirmDeleteVerifyDialog from "./dialog/ConfirmDeleteVerifyDialog";
+import Proof from "../../orders/component/Proof";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -103,6 +104,10 @@ const UpdateVerifyProduct = () => {
   const [openSearchDialog, setOpenSearchDialog] = useState(false);
   const [openConfirmUpdateDialog, setOpenConfirmUpdateDialog] = useState(false);
   const [openConfirmDeleteDialog, setOpenConfirmDeleteDialog] = useState(false);
+  const [selectedProof, setSelectedProof] = useState<{
+    file: string;
+    index: number;
+  } | null>(null);
 
   const { data: verifyData, isLoading: isLoadingVerify } =
     useQuery<IVerifyResponse>({
@@ -350,19 +355,27 @@ const UpdateVerifyProduct = () => {
     setSelectedProducts((prev) => prev.filter((p) => p.id !== productId));
   };
 
+  const handleOpenProof = (file: string, index: number) => {
+    setSelectedProof({ file, index });
+  };
+
+  const handleCloseProof = () => {
+    setSelectedProof(null);
+  };
+
   return (
     <>
       {loading && <CustomBackdrop />}
-      <Box sx={{ p: 1, maxWidth: 1200, margin: "0 auto" }}>
+      <Box sx={{ p: 0.5, maxWidth: 1200, margin: "0 auto" }}>
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            py: 1,
+            py: 0.5,
           }}
         >
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={0.5} alignItems="center">
             <Typography
               variant="h4"
               fontWeight={600}
@@ -382,7 +395,7 @@ const UpdateVerifyProduct = () => {
               </Typography>
             </Stack>
           </Stack>
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={0.5}>
             {isEditable && (
               <>
                 <Button
@@ -420,7 +433,7 @@ const UpdateVerifyProduct = () => {
         </Box>
 
         <form noValidate onSubmit={handleSubmit}>
-          <Stack spacing={2}>
+          <Stack spacing={0.5}>
             {/* Selected Products */}
             <Card>
               <CardHeader
@@ -430,19 +443,24 @@ const UpdateVerifyProduct = () => {
                 }}
               />
               <Divider />
-              <CardContent>
-                <Stack spacing={1}>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <CardContent sx={{ p: 1 }}>
+                <Stack spacing={0.5}>
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
                     {selectedProducts.map((product) => (
                       <Paper
                         key={product.id}
                         sx={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 1,
+                          gap: 0.5,
                           p: 0.5,
                           bgcolor: "success.lighter",
-                          borderRadius: 2,
+                          borderRadius: 1,
                           position: "relative",
                         }}
                       >
@@ -528,10 +546,10 @@ const UpdateVerifyProduct = () => {
                 }}
               />
               <Divider />
-              <CardContent>
-                <Stack spacing={2}>
+              <CardContent sx={{ p: 1 }}>
+                <Stack spacing={0.5}>
                   <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.25 }}>
                       Số sao OCOP
                     </Typography>
                     <Rating
@@ -604,10 +622,10 @@ const UpdateVerifyProduct = () => {
                   />
 
                   <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.25 }}>
                       Hình ảnh minh chứng
                     </Typography>
-                    <Stack spacing={2}>
+                    <Stack spacing={1}>
                       <Stack
                         direction="row"
                         spacing={1}
@@ -619,8 +637,8 @@ const UpdateVerifyProduct = () => {
                             <Paper
                               sx={{
                                 position: "relative",
-                                width: 150,
-                                height: 150,
+                                width: 120,
+                                height: 120,
                                 overflow: "hidden",
                                 border: "1px solid",
                                 borderColor: errors.images
@@ -636,15 +654,17 @@ const UpdateVerifyProduct = () => {
                                   width: "100%",
                                   height: "100%",
                                   objectFit: "cover",
+                                  cursor: "pointer",
                                 }}
+                                onClick={() => handleOpenProof(preview, index)}
                               />
                               {isEditable && (
                                 <IconButton
                                   size="small"
                                   sx={{
                                     position: "absolute",
-                                    top: 4,
-                                    right: 4,
+                                    top: 2,
+                                    right: 2,
                                     bgcolor: "background.paper",
                                   }}
                                   onClick={() => handleRemoveCertificate(index)}
@@ -658,8 +678,8 @@ const UpdateVerifyProduct = () => {
                         {isEditable && (
                           <Box
                             sx={{
-                              width: 150,
-                              height: 150,
+                              width: 120,
+                              height: 120,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -671,9 +691,9 @@ const UpdateVerifyProduct = () => {
                               bgcolor: "grey.50",
                             }}
                           >
-                            <Stack alignItems="center" spacing={1}>
+                            <Stack alignItems="center" spacing={0.5}>
                               <AddPhotoAlternateIcon
-                                sx={{ fontSize: 40, color: "text.secondary" }}
+                                sx={{ fontSize: 32, color: "text.secondary" }}
                               />
                               <Typography
                                 variant="body2"
@@ -693,6 +713,7 @@ const UpdateVerifyProduct = () => {
                           component="label"
                           variant="outlined"
                           startIcon={<CloudUploadIcon />}
+                          size="small"
                           sx={{
                             color: "success.main",
                             borderColor: errors.images
@@ -720,15 +741,15 @@ const UpdateVerifyProduct = () => {
               </CardContent>
             </Card>
 
-            <Stack direction="row" spacing={2} justifyContent="flex-end">
+            <Stack direction="row" spacing={1} justifyContent="flex-end">
               <Button
                 variant="outlined"
-                size="large"
+                size="small"
                 onClick={() => navigate("/seller/products/verify")}
                 sx={{
                   color: "success.main",
                   borderColor: "success.main",
-                  minWidth: 120,
+                  minWidth: 100,
                   "&:hover": {
                     borderColor: "success.dark",
                     bgcolor: "success.lighter",
@@ -741,11 +762,11 @@ const UpdateVerifyProduct = () => {
                 <Button
                   onClick={() => setOpenConfirmUpdateDialog(true)}
                   variant="contained"
-                  size="large"
+                  size="small"
                   disabled={selectedProducts.length === 0}
                   sx={{
                     bgcolor: "success.main",
-                    minWidth: 120,
+                    minWidth: 100,
                     "&:hover": {
                       bgcolor: "success.dark",
                     },
@@ -767,7 +788,7 @@ const UpdateVerifyProduct = () => {
         fullWidth
       >
         <DialogTitle sx={{ pb: 0 }}>
-          <Stack spacing={1}>
+          <Stack spacing={0.5}>
             <Typography variant="h6">Tìm kiếm sản phẩm</Typography>
             <Typography variant="body2" color="text.secondary">
               Tìm và chọn sản phẩm để xác thực OCOP
@@ -775,10 +796,10 @@ const UpdateVerifyProduct = () => {
           </Stack>
         </DialogTitle>
         <DialogContent>
-          <Stack spacing={1} sx={{ mt: 1 }}>
+          <Stack spacing={0.5} sx={{ mt: 0.5 }}>
             {/* Search and Filters */}
             <Card variant="outlined">
-              <CardContent>
+              <CardContent sx={{ p: 1 }}>
                 <Stack spacing={1}>
                   <TextField
                     fullWidth
@@ -797,7 +818,7 @@ const UpdateVerifyProduct = () => {
                       },
                     }}
                   />
-                  <Stack direction="row" spacing={1}>
+                  <Stack direction="row" spacing={0.5}>
                     <TextField
                       select
                       size="small"
@@ -808,7 +829,7 @@ const UpdateVerifyProduct = () => {
                           e.target.value as VerifyOCOPStatus,
                         )
                       }
-                      sx={{ minWidth: 200 }}
+                      sx={{ minWidth: 180 }}
                     >
                       <MenuItem value={VerifyOCOPStatus.ALL}>Tất cả</MenuItem>
                       <MenuItem value={VerifyOCOPStatus.PENDING}>
@@ -834,7 +855,7 @@ const UpdateVerifyProduct = () => {
                           e.target.value as SellingProductStatus,
                         )
                       }
-                      sx={{ minWidth: 200 }}
+                      sx={{ minWidth: 180 }}
                     >
                       <MenuItem value={SellingProductStatus.ALL}>
                         Tất cả
@@ -855,7 +876,7 @@ const UpdateVerifyProduct = () => {
             <Box>
               <Typography
                 variant="subtitle2"
-                sx={{ mb: 1, color: "text.secondary" }}
+                sx={{ mb: 0.5, color: "text.secondary" }}
               >
                 Kết quả tìm kiếm (
                 {searchResults?.data?.filter((product) =>
@@ -867,10 +888,10 @@ const UpdateVerifyProduct = () => {
               </Typography>
               <Box
                 sx={{
-                  maxHeight: 400,
+                  maxHeight: 300,
                   overflow: "auto",
                   "&::-webkit-scrollbar": {
-                    width: "8px",
+                    width: "6px",
                   },
                   "&::-webkit-scrollbar-track": {
                     background: "#f1f1f1",
@@ -885,7 +906,7 @@ const UpdateVerifyProduct = () => {
                   },
                 }}
               >
-                <Stack spacing={1}>
+                <Stack spacing={0.5}>
                   {searchResults?.data
                     ?.filter((product) =>
                       selectedProducts.every(
@@ -896,7 +917,7 @@ const UpdateVerifyProduct = () => {
                       <Paper
                         key={product.id}
                         sx={{
-                          p: 1,
+                          p: 0.5,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
@@ -910,12 +931,16 @@ const UpdateVerifyProduct = () => {
                         }}
                         onClick={() => handleAddProduct(product)}
                       >
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          alignItems="center"
+                        >
                           {product.images?.[0] && (
                             <Paper
                               sx={{
-                                width: 80,
-                                height: 80,
+                                width: 60,
+                                height: 60,
                                 overflow: "hidden",
                                 borderRadius: 1,
                               }}
@@ -931,7 +956,7 @@ const UpdateVerifyProduct = () => {
                               />
                             </Paper>
                           )}
-                          <Stack spacing={0.5}>
+                          <Stack spacing={0.25}>
                             <Typography
                               variant="subtitle1"
                               sx={{ fontWeight: 500 }}
@@ -940,7 +965,7 @@ const UpdateVerifyProduct = () => {
                             </Typography>
                             <Stack
                               direction="row"
-                              spacing={1}
+                              spacing={0.5}
                               alignItems="center"
                             >
                               <Typography
@@ -975,7 +1000,7 @@ const UpdateVerifyProduct = () => {
                                   fontWeight: 500,
                                   display: "flex",
                                   alignItems: "center",
-                                  gap: 0.5,
+                                  gap: 0.25,
                                 }}
                               >
                                 {product.verifyOcopStatus ===
@@ -1010,7 +1035,7 @@ const UpdateVerifyProduct = () => {
                             </Stack>
                             <Stack
                               direction="row"
-                              spacing={1}
+                              spacing={0.5}
                               alignItems="center"
                             >
                               <Typography
@@ -1062,8 +1087,10 @@ const UpdateVerifyProduct = () => {
             </Box>
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenSearchDialog(false)}>Đóng</Button>
+        <DialogActions sx={{ px: 1, py: 0.5 }}>
+          <Button size="small" onClick={() => setOpenSearchDialog(false)}>
+            Đóng
+          </Button>
         </DialogActions>
       </Dialog>
       <ConfirmUpdateVerifyDialog
@@ -1082,6 +1109,16 @@ const UpdateVerifyProduct = () => {
         }
         keepMounted={false}
       />
+
+      {selectedProof && (
+        <Proof
+          open={true}
+          onClose={handleCloseProof}
+          file={selectedProof.file}
+          index={selectedProof.index}
+          isImage={true}
+        />
+      )}
     </>
   );
 };

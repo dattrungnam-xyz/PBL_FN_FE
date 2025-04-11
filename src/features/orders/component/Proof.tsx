@@ -1,18 +1,42 @@
 import { Dialog, DialogContent, IconButton, Box } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useState, useEffect } from "react";
 
 interface ProofProps {
   open: boolean;
   onClose: () => void;
   file: string;
   index: number;
+  isImage?: boolean;
 }
 
-const Proof = ({ open, onClose, file, index }: ProofProps) => {
-  const isImage =
+const Proof = ({ open, onClose, file, index, isImage }: ProofProps) => {
+  const [isBlobImage, setIsBlobImage] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkBlobType = async () => {
+      if (file.startsWith("blob:")) {
+        try {
+          const response = await fetch(file);
+          const blob = await response.blob();
+          setIsBlobImage(blob.type.startsWith("image/"));
+        } catch (error) {
+          console.error("Error checking blob type:", error);
+          setIsBlobImage(false);
+        }
+      } else {
+        setIsBlobImage(null);
+      }
+    };
+
+    checkBlobType();
+  }, [file]);
+
+  const checkIsImage =
     file.startsWith("data:image/") ||
     file.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-    file.includes("cloudinary.com");
+    file.includes("cloudinary.com") ||
+    isBlobImage === true;
 
   return (
     <Dialog
@@ -20,11 +44,13 @@ const Proof = ({ open, onClose, file, index }: ProofProps) => {
       onClose={onClose}
       maxWidth="lg"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
-          bgcolor: "transparent",
-          boxShadow: "none",
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+            bgcolor: "transparent",
+            boxShadow: "none",
+          },
         },
       }}
     >
@@ -54,7 +80,7 @@ const Proof = ({ open, onClose, file, index }: ProofProps) => {
             bgcolor: "rgba(0, 0, 0, 0.5)",
           }}
         >
-          {isImage ? (
+          {checkIsImage || isImage ? (
             <img
               src={file}
               alt={`Minh chứng ${index + 1}`}
