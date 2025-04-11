@@ -15,9 +15,11 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { IOrder } from "../../../interface";
 import { getOrderStatusText, getStatusColor } from "../../../utils";
+import { useState } from "react";
+import Proof from "../../orders/component/Proof";
 import ConfirmDialog from "../dialog/ConfirmDialog";
 import RejectCancelModal from "./RejectCancelModal";
-import { useState } from "react";
+
 interface OrderCancelModalProps {
   open: boolean;
   onClose: () => void;
@@ -37,8 +39,20 @@ const OrderCancelModal = ({
 }: OrderCancelModalProps) => {
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedProof, setSelectedProof] = useState<{
+    file: string;
+    index: number;
+  } | null>(null);
 
   if (!order) return null;
+
+  const handleOpenProof = (file: string, index: number) => {
+    setSelectedProof({ file, index });
+  };
+
+  const handleCloseProof = () => {
+    setSelectedProof(null);
+  };
 
   return (
     <>
@@ -162,7 +176,17 @@ const OrderCancelModal = ({
                       <Avatar
                         variant="square"
                         src={item.product.images[0]}
-                        sx={{ width: 40, height: 40 }}
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          cursor: "pointer",
+                          "&:hover": {
+                            opacity: 0.8,
+                          },
+                        }}
+                        onClick={() =>
+                          handleOpenProof(item.product.images[0], 0)
+                        }
                       />
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography variant="body2" noWrap>
@@ -288,6 +312,14 @@ const OrderCancelModal = ({
         order={order}
         onReject={onReject}
       />
+      {selectedProof && (
+        <Proof
+          open={true}
+          onClose={handleCloseProof}
+          file={selectedProof.file}
+          index={selectedProof.index}
+        />
+      )}
     </>
   );
 };

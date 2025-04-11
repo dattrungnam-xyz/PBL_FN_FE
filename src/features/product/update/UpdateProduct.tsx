@@ -43,6 +43,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../stores";
 import { AuthState } from "../../../stores/authSlice";
 import { toast } from "react-toastify";
+import Proof from "../../orders/component/Proof";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -84,6 +85,10 @@ const UpdateProduct = () => {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isOcopVerified, setIsOcopVerified] = useState(false);
+  const [selectedProof, setSelectedProof] = useState<{
+    file: string;
+    index: number;
+  } | null>(null);
 
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
 
@@ -278,6 +283,14 @@ const UpdateProduct = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenProof = (file: string, index: number) => {
+    setSelectedProof({ file, index });
+  };
+
+  const handleCloseProof = () => {
+    setSelectedProof(null);
   };
 
   return (
@@ -498,7 +511,7 @@ const UpdateProduct = () => {
                         flexWrap="wrap"
                         useFlexGap
                       >
-                        {imagePreviews?.map((preview, index) => (
+                        {imagePreviews.map((preview, index) => (
                           <Box key={index}>
                             <Paper
                               sx={{
@@ -511,7 +524,12 @@ const UpdateProduct = () => {
                                   ? "error.main"
                                   : "divider",
                                 borderRadius: 1,
+                                cursor: "pointer",
+                                "&:hover": {
+                                  opacity: 0.8,
+                                },
                               }}
+                              onClick={() => handleOpenProof(preview, index)}
                             >
                               <img
                                 src={preview}
@@ -530,7 +548,10 @@ const UpdateProduct = () => {
                                   right: 4,
                                   bgcolor: "background.paper",
                                 }}
-                                onClick={() => handleRemoveImage(index)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveImage(index);
+                                }}
                               >
                                 <DeleteIcon />
                               </IconButton>
@@ -631,6 +652,14 @@ const UpdateProduct = () => {
           </Stack>
         </form>
       </Box>
+      {selectedProof && (
+        <Proof
+          open={true}
+          onClose={handleCloseProof}
+          file={selectedProof.file}
+          index={selectedProof.index}
+        />
+      )}
     </>
   );
 };

@@ -38,6 +38,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../stores";
 import { AuthState } from "../../../stores/authSlice";
+import Proof from "../../orders/component/Proof";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -75,6 +76,10 @@ const CreateProduct = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [selectedProof, setSelectedProof] = useState<{
+    file: string;
+    index: number;
+  } | null>(null);
 
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
 
@@ -219,6 +224,14 @@ const CreateProduct = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenProof = (file: string, index: number) => {
+    setSelectedProof({ file, index });
+  };
+
+  const handleCloseProof = () => {
+    setSelectedProof(null);
   };
 
   return (
@@ -453,7 +466,12 @@ const CreateProduct = () => {
                                   ? "error.main"
                                   : "divider",
                                 borderRadius: 1,
+                                cursor: "pointer",
+                                "&:hover": {
+                                  opacity: 0.8,
+                                },
                               }}
+                              onClick={() => handleOpenProof(preview, index)}
                             >
                               <img
                                 src={preview}
@@ -472,7 +490,10 @@ const CreateProduct = () => {
                                   right: 4,
                                   bgcolor: "background.paper",
                                 }}
-                                onClick={() => handleRemoveImage(index)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveImage(index);
+                                }}
                               >
                                 <DeleteIcon />
                               </IconButton>
@@ -571,6 +592,14 @@ const CreateProduct = () => {
           </Stack>
         </form>
       </Box>
+      {selectedProof && (
+        <Proof
+          open={true}
+          onClose={handleCloseProof}
+          file={selectedProof.file}
+          index={selectedProof.index}
+        />
+      )}
     </>
   );
 };
