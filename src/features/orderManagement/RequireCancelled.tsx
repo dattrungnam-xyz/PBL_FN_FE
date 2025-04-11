@@ -10,7 +10,6 @@ import {
   TableRow,
   TablePagination,
   Typography,
-  Button,
   Stack,
   Avatar,
   TextField,
@@ -18,6 +17,7 @@ import {
   Card,
   Checkbox,
   Tooltip,
+  IconButton,
 } from "@mui/material";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -28,9 +28,7 @@ import { IOrder, IWard, IDistrict, IProvince } from "../../interface";
 import { OrderStatus } from "../../enums";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SearchIcon from "@mui/icons-material/Search";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import CustomBackdrop from "../../components/UI/CustomBackdrop";
-import OrderDetailModal from "./component/OrderDetailModal";
+import ConfirmDialog from "./dialog/ConfirmDialog";
 import {
   getDistricts,
   getProvinces,
@@ -43,6 +41,12 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import viLocale from "date-fns/locale/vi";
 import PaginatedData from "../../types/PaginatedData";
 import { useDebounce } from "../../hooks/useDebounce";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CancelIcon from "@mui/icons-material/Cancel";
+import OrderCancelModal from "./component/OrderCancelModal";
+import RejectCancelModal from "./component/RejectCancelModal";
+
 interface FilterState {
   province: string;
   district: string;
@@ -68,13 +72,13 @@ const RequireCancelled = () => {
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [wards, setWards] = useState<IWard[]>([]);
   const queryClient = useQueryClient();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, _setLoading] = useState(false);
   const [orders, setOrders] = useState<PaginatedData<IOrder> | undefined>(
     undefined,
   );
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 1000);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -165,19 +169,33 @@ const RequireCancelled = () => {
   const { mutate: updateStatus } = useMutation({
     mutationFn: (orderIds: string[]) =>
       Promise.all(
-        orderIds.map((id) =>
-          updateOrderStatus(id, OrderStatus.PREPARING_FOR_SHIPPING),
-        ),
+        orderIds.map((id) => updateOrderStatus(id, OrderStatus.CANCELLED)),
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["require-cancel-orders"] });
       setSelectedOrders([]);
     },
   });
 
-  const handlePrepareForShipping = () => {
-    if (selectedOrders.length > 0) {
-      updateStatus(selectedOrders);
+  const { mutate: rejectOrder } = useMutation({
+    mutationFn: (orderId: string) =>
+      updateOrderStatus(orderId, OrderStatus.REJECTED),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["require-cancel-orders"] });
+    },
+  });
+
+  const handleAccept = () => {
+    if (selectedOrder) {
+      updateStatus([selectedOrder.id]);
+      setShowAcceptModal(false);
+    }
+  };
+
+  const handleReject = () => {
+    if (selectedOrder) {
+      rejectOrder(selectedOrder.id);
+      setShowRejectModal(false);
     }
   };
 
@@ -188,8 +206,6 @@ const RequireCancelled = () => {
     setFilters((prev) => ({ ...prev, [field]: date }));
     setPage(0);
   };
-
-  if (loading) return <CustomBackdrop />;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={viLocale}>
@@ -208,7 +224,7 @@ const RequireCancelled = () => {
             fontWeight={600}
             mb={{ xs: 0.5, sm: 1 }}
           >
-            Đơn hàng chờ xác nhận
+            Đơn hàng yêu cầu hủy
           </Typography>
           <Card sx={{ p: 1, mb: 1 }}>
             <Stack spacing={1}>
@@ -218,17 +234,6 @@ const RequireCancelled = () => {
                 alignItems="center"
               >
                 <Typography variant="h6">Tìm kiếm và lọc</Typography>
-                {selectedOrders.length > 0 && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<LocalShippingIcon />}
-                    onClick={handlePrepareForShipping}
-                    size="small"
-                  >
-                    Chuẩn bị giao hàng ({selectedOrders.length})
-                  </Button>
-                )}
               </Stack>
               <Box
                 display="flex"
@@ -426,34 +431,40 @@ const RequireCancelled = () => {
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={0.5}>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            color="inherit"
-                            sx={{
-                              fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                              height: { xs: 24, sm: 28 },
-                            }}
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setOpen(true);
-                            }}
-                          >
-                            Chi tiết
-                          </Button>
-                          <Tooltip title="Chuẩn bị giao hàng">
-                            <Button
-                              variant="outlined"
+                          <Tooltip title="Xem chi tiết">
+                            <IconButton
                               size="small"
-                              color="primary"
-                              sx={{
-                                fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                                height: { xs: 24, sm: 28 },
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setOpen(true);
                               }}
-                              onClick={() => updateStatus([order.id])}
                             >
-                              <LocalShippingIcon fontSize="small" />
-                            </Button>
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Từ chối">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setShowRejectModal(true);
+                              }}
+                            >
+                              <CancelIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Chấp nhận">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setShowAcceptModal(true);
+                              }}
+                            >
+                              <CheckCircleOutlineIcon fontSize="small" />
+                            </IconButton>
                           </Tooltip>
                         </Stack>
                       </TableCell>
@@ -474,10 +485,32 @@ const RequireCancelled = () => {
           </Paper>
         </Box>
       </Box>
-      <OrderDetailModal
+      <RejectCancelModal
+        open={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        order={selectedOrder}
+        onReject={handleReject}
+      />
+      <OrderCancelModal
         open={open}
         onClose={() => setOpen(false)}
         order={selectedOrder}
+        onReject={handleReject}
+        onAccept={handleAccept}
+      />
+      <ConfirmDialog
+        open={showAcceptModal}
+        onClose={(confirm) => {
+          if (confirm) {
+            handleAccept();
+          }
+          setShowAcceptModal(false);
+        }}
+        title="Xác nhận hủy đơn hàng"
+        content="Bạn có chắc chắn muốn hủy đơn hàng này không?"
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        keepMounted={false}
       />
     </LocalizationProvider>
   );

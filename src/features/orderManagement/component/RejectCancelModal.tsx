@@ -18,19 +18,19 @@ import { IOrder } from "../../../interface";
 import { getOrderStatusText, getStatusColor } from "../../../utils";
 import { useState } from "react";
 
-interface RejectRefundModalProps {
+interface RejectCancelModalProps {
   open: boolean;
   onClose: () => void;
   order: IOrder | null;
   onReject: (reason: string) => void;
 }
 
-const RejectRefundModal = ({
+const RejectCancelModal = ({
   open,
   onClose,
   order,
   onReject,
-}: RejectRefundModalProps) => {
+}: RejectCancelModalProps) => {
   const [rejectReason, setRejectReason] = useState("");
 
   const handleReasonChange = (value: string) => {
@@ -67,7 +67,7 @@ const RejectRefundModal = ({
             justifyContent: "space-between",
           }}
         >
-          <Typography variant="h6">Từ chối yêu cầu hoàn tiền</Typography>
+          <Typography variant="h6">Từ chối yêu cầu hủy đơn</Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
@@ -174,6 +174,24 @@ const RejectRefundModal = ({
             </Box>
           </Box>
 
+          {/* Cancel Reason */}
+          <Box>
+            <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
+              Lý do yêu cầu hủy
+            </Typography>
+            <Box
+              sx={{
+                p: 1,
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+                bgcolor: "background.paper",
+              }}
+            >
+              <Typography variant="body2">{order.cancelReason}</Typography>
+            </Box>
+          </Box>
+
           {/* Reject Reason Input */}
           <Box>
             <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
@@ -184,7 +202,7 @@ const RejectRefundModal = ({
               multiline
               rows={3}
               size="small"
-              placeholder="Vui lòng nhập lý do từ chối yêu cầu hoàn tiền..."
+              placeholder="Vui lòng nhập lý do từ chối yêu cầu hủy đơn..."
               value={rejectReason}
               onChange={(e) => handleReasonChange(e.target.value)}
             />
@@ -209,4 +227,4 @@ const RejectRefundModal = ({
   );
 };
 
-export default RejectRefundModal;
+export default RejectCancelModal;

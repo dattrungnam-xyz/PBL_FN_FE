@@ -53,3 +53,29 @@ export const getOrderStatusText = (status: OrderStatus) => {
       return "Yêu cầu hoàn tiền";
   }
 };
+export const getStatusColor = (status: OrderStatus) => {
+  switch (status) {
+    case OrderStatus.PENDING:
+      return "warning";
+    case OrderStatus.PENDING_PAYMENT:
+      return "info";
+    case OrderStatus.PREPARING_FOR_SHIPPING:
+      return "primary";
+    case OrderStatus.SHIPPING:
+      return "success";
+    case OrderStatus.COMPLETED:
+      return "success";
+    case OrderStatus.CANCELLED:
+      return "error";
+    case OrderStatus.REFUNDED:
+      return "error";
+    case OrderStatus.REJECTED:
+      return "error";
+    case OrderStatus.REQUIRE_CANCEL:
+      return "error";
+    case OrderStatus.REQUIRE_REFUND:
+      return "error";
+    default:
+      return "default";
+  }
+};
