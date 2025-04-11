@@ -53,18 +53,18 @@ interface HeadCell {
 
 const headCells: HeadCell[] = [
   { id: "images", label: "Hình ảnh", numeric: false, sortable: false },
-  { id: "name", label: "Tên sản phẩm", numeric: false, sortable: true },
-  { id: "category", label: "Danh mục", numeric: false, sortable: true },
-  { id: "price", label: "Giá", numeric: true, sortable: true },
-  { id: "quantity", label: "Số lượng", numeric: true, sortable: true },
-  { id: "status", label: "Trạng thái", numeric: false, sortable: true },
+  { id: "name", label: "Tên sản phẩm", numeric: false, sortable: false },
+  { id: "category", label: "Danh mục", numeric: false, sortable: false },
+  { id: "price", label: "Giá", numeric: true, sortable: false },
+  { id: "quantity", label: "Số lượng", numeric: true, sortable: false },
+  { id: "status", label: "Trạng thái", numeric: false, sortable: false },
   {
     id: "verifyOcopStatus",
     label: "Trạng thái xác thực",
     numeric: false,
-    sortable: true,
+    sortable: false,
   },
-  { id: "createdAt", label: "Ngày tạo", numeric: false, sortable: true },
+  { id: "createdAt", label: "Ngày tạo", numeric: false, sortable: false },
 ];
 
 const categories = [

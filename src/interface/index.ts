@@ -14,6 +14,7 @@ import {
   IOrder,
   IOrderDetail,
   IRefundRequest,
+  ICancelRequest,
 } from "./order.interface";
 import { IAddress } from "./userAddress.interface";
 
@@ -39,4 +40,5 @@ export type {
   IOrderDetail,
   IAddress,
   IRefundRequest,
+  ICancelRequest,
 };

@@ -52,3 +52,7 @@ export interface IRefundRequest {
   refundReason: string;
   refundReasonImage: string[];
 }
+
+export interface ICancelRequest {
+  cancelReason: string;
+}

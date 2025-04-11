@@ -11,33 +11,66 @@ import {
   IconButton,
   Avatar,
   Divider,
+  Chip,
 } from "@mui/material";
-import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import { IOrder, ICancelRequest } from "../../../interface";
+import { IOrder } from "../../../interface";
+import { getOrderStatusText } from "../../../utils";
+import { OrderStatus } from "../../../enums/orderStatus.enum";
+import { useState } from "react";
 
-interface CancelModalProps {
+interface RejectRefundModalProps {
   open: boolean;
   onClose: () => void;
-  order: IOrder;
-  onSubmit: (cancelRequest: ICancelRequest) => void;
+  order: IOrder | null;
+  onReject: (reason: string) => void;
 }
 
-const CancelModal = ({ open, onClose, order, onSubmit }: CancelModalProps) => {
-  const [cancelRequest, setCancelRequest] = useState<ICancelRequest>({
-    cancelReason: "",
-  });
+const RejectRefundModal = ({
+  open,
+  onClose,
+  order,
+  onReject,
+}: RejectRefundModalProps) => {
+  const [rejectReason, setRejectReason] = useState("");
 
   const handleReasonChange = (value: string) => {
-    setCancelRequest((prev) => ({
-      ...prev,
-      cancelReason: value,
-    }));
+    setRejectReason(value);
   };
 
   const handleSubmit = () => {
-    onSubmit(cancelRequest);
+    onReject(rejectReason);
+    setRejectReason("");
     onClose();
+  };
+
+  if (!order) return null;
+
+  const getStatusColor = (status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.PENDING:
+        return "warning";
+      case OrderStatus.PENDING_PAYMENT:
+        return "info";
+      case OrderStatus.PREPARING_FOR_SHIPPING:
+        return "primary";
+      case OrderStatus.SHIPPING:
+        return "success";
+      case OrderStatus.COMPLETED:
+        return "success";
+      case OrderStatus.CANCELLED:
+        return "error";
+      case OrderStatus.REFUNDED:
+        return "error";
+      case OrderStatus.REJECTED:
+        return "error";
+      case OrderStatus.REQUIRE_CANCEL:
+        return "error";
+      case OrderStatus.REQUIRE_REFUND:
+        return "error";
+      default:
+        return "default";
+    }
   };
 
   return (
@@ -62,7 +95,7 @@ const CancelModal = ({ open, onClose, order, onSubmit }: CancelModalProps) => {
             justifyContent: "space-between",
           }}
         >
-          <Typography variant="h6">Hủy đơn hàng</Typography>
+          <Typography variant="h6">Từ chối yêu cầu hoàn tiền</Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
@@ -70,6 +103,18 @@ const CancelModal = ({ open, onClose, order, onSubmit }: CancelModalProps) => {
       </DialogTitle>
       <DialogContent dividers sx={{ p: 1 }}>
         <Stack spacing={1}>
+          {/* Order Status */}
+          <Box>
+            <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
+              Trạng thái đơn hàng
+            </Typography>
+            <Chip
+              label={getOrderStatusText(order.orderStatus)}
+              color={getStatusColor(order.orderStatus)}
+              size="small"
+            />
+          </Box>
+
           {/* Order Information */}
           <Box>
             <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
@@ -157,57 +202,18 @@ const CancelModal = ({ open, onClose, order, onSubmit }: CancelModalProps) => {
             </Box>
           </Box>
 
-          {/* Shipping Address */}
+          {/* Reject Reason Input */}
           <Box>
             <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
-              Địa chỉ giao hàng
-            </Typography>
-            <Box
-              sx={{
-                p: 1,
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-                bgcolor: "background.paper",
-              }}
-            >
-              <Stack spacing={0.5}>
-                <Box>
-                  <Typography color="text.secondary" variant="body2">
-                    Người nhận:
-                  </Typography>
-                  <Typography variant="body2">{order.address.name}</Typography>
-                </Box>
-                <Box>
-                  <Typography color="text.secondary" variant="body2">
-                    Số điện thoại:
-                  </Typography>
-                  <Typography variant="body2">{order.address.phone}</Typography>
-                </Box>
-                <Box>
-                  <Typography color="text.secondary" variant="body2">
-                    Địa chỉ:
-                  </Typography>
-                  <Typography variant="body2">
-                    {order.address.textAddress}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Box>
-          </Box>
-
-          {/* Reason Input */}
-          <Box>
-            <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
-              Lý do hủy đơn hàng
+              Lý do từ chối
             </Typography>
             <TextField
               fullWidth
               multiline
               rows={3}
               size="small"
-              placeholder="Vui lòng mô tả chi tiết lý do hủy đơn hàng..."
-              value={cancelRequest.cancelReason}
+              placeholder="Vui lòng nhập lý do từ chối yêu cầu hoàn tiền..."
+              value={rejectReason}
               onChange={(e) => handleReasonChange(e.target.value)}
             />
           </Box>
@@ -219,15 +225,16 @@ const CancelModal = ({ open, onClose, order, onSubmit }: CancelModalProps) => {
         </Button>
         <Button
           variant="contained"
+          color="error"
           onClick={handleSubmit}
-          disabled={cancelRequest.cancelReason === ""}
+          disabled={rejectReason === ""}
           size="small"
         >
-          Xác nhận hủy
+          Từ chối
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default CancelModal;
+export default RejectRefundModal;

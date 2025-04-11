@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Paper,
@@ -19,7 +19,7 @@ import {
   Checkbox,
   Tooltip,
 } from "@mui/material";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getOrdersSellerByStatus,
   updateOrderStatus,
@@ -41,9 +41,9 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import viLocale from "date-fns/locale/vi";
-
+import PaginatedData from "../../types/PaginatedData";
+import { useDebounce } from "../../hooks/useDebounce";
 interface FilterState {
-  search: string;
   province: string;
   district: string;
   ward: string;
@@ -58,7 +58,6 @@ const RequireCancelled = () => {
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({
-    search: "",
     province: "all",
     district: "all",
     ward: "all",
@@ -69,6 +68,13 @@ const RequireCancelled = () => {
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [wards, setWards] = useState<IWard[]>([]);
   const queryClient = useQueryClient();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [loading, _setLoading] = useState(false);
+  const [orders, setOrders] = useState<PaginatedData<IOrder> | undefined>(
+    undefined,
+  );
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 1000);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -80,7 +86,7 @@ const RequireCancelled = () => {
 
   useEffect(() => {
     const fetchDistricts = async () => {
-      if (filters.province) {
+      if (filters.province && filters.province !== "all") {
         const districts = await getDistricts(filters.province);
         setDistricts(districts);
       } else {
@@ -92,7 +98,7 @@ const RequireCancelled = () => {
 
   useEffect(() => {
     const fetchWards = async () => {
-      if (filters.district) {
+      if (filters.district && filters.district !== "all") {
         const wards = await getWards(filters.district);
         setWards(wards);
       } else {
@@ -102,21 +108,24 @@ const RequireCancelled = () => {
     fetchWards();
   }, [filters.district]);
 
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ["pending-orders", page, rowsPerPage, filters],
-    queryFn: () =>
-      getOrdersSellerByStatus({
-        orderStatus: OrderStatus.PENDING,
-        page: page + 1,
-        limit: rowsPerPage,
-        search: filters.search,
-        province: filters.province,
-        district: filters.district,
-        ward: filters.ward,
-        startDate: filters.startDate?.toISOString(),
-        endDate: filters.endDate?.toISOString(),
-      }),
-  });
+  const getOrders = useCallback(async () => {
+    const orders = await getOrdersSellerByStatus({
+      orderStatus: OrderStatus.REQUIRE_CANCEL,
+      page: page + 1,
+      limit: rowsPerPage,
+      search: debouncedSearch,
+      province: filters.province,
+      district: filters.district,
+      ward: filters.ward,
+      startDate: filters.startDate?.toISOString(),
+      endDate: filters.endDate?.toISOString(),
+    });
+    setOrders(orders);
+  }, [filters, page, rowsPerPage, debouncedSearch]);
+
+  useEffect(() => {
+    getOrders();
+  }, [getOrders]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -180,7 +189,7 @@ const RequireCancelled = () => {
     setPage(0);
   };
 
-  if (isLoading) return <CustomBackdrop />;
+  if (loading) return <CustomBackdrop />;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={viLocale}>
@@ -231,8 +240,8 @@ const RequireCancelled = () => {
                 <TextField
                   size="small"
                   placeholder="Tìm kiếm..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   sx={{ width: 200 }}
                   slotProps={{
                     input: {

@@ -1,6 +1,11 @@
 import axios from "../axios";
 import { OrderStatus } from "../enums";
-import { ICreateOrder, IOrder, IRefundRequest } from "../interface";
+import {
+  ICancelRequest,
+  ICreateOrder,
+  IOrder,
+  IRefundRequest,
+} from "../interface";
 import PaginatedData from "../types/PaginatedData";
 
 export interface OrderSellerFilter {
@@ -28,7 +33,6 @@ export const getUserOrders = async () => {
 export const getOrdersSellerByStatus = async (
   filters: OrderSellerFilter,
 ): Promise<PaginatedData<IOrder>> => {
-  console.log(filters);
   const response = await axios.get<PaginatedData<IOrder>>("/orders/seller", {
     params: {
       page: filters.page || 1,
@@ -84,5 +88,28 @@ export const requestRefundOrder = async (
     `/orders/${orderId}/request-refund`,
     refundRequest,
   );
+  return response.data;
+};
+
+export const requestCancelOrder = async (
+  orderId: string,
+  cancelRequest: ICancelRequest,
+) => {
+  const response = await axios.patch(
+    `/orders/${orderId}/request-cancel`,
+    cancelRequest,
+  );
+  return response.data;
+};
+
+export const acceptRefundOrder = async (orderId: string) => {
+  const response = await axios.patch(`/orders/${orderId}/accept-refund`);
+  return response.data;
+};
+
+export const rejectRefundOrder = async (orderId: string, reason: string) => {
+  const response = await axios.patch(`/orders/${orderId}/reject-refund`, {
+    reason,
+  });
   return response.data;
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Paper,
@@ -17,7 +17,6 @@ import {
   Card,
   Tooltip,
 } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
 import { getOrdersSellerByStatus } from "../../services/order.service";
 import { IOrder, IWard, IDistrict, IProvince } from "../../interface";
 import { OrderStatus } from "../../enums";
@@ -37,9 +36,9 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import viLocale from "date-fns/locale/vi";
 import { useDebounce } from "../../hooks/useDebounce";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import PaginatedData from "../../types/PaginatedData";
 
 interface FilterState {
-  search: string;
   province: string;
   district: string;
   ward: string;
@@ -53,7 +52,6 @@ const UnPaid = () => {
   const [open, setOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [filters, setFilters] = useState<FilterState>({
-    search: "",
     province: "all",
     district: "all",
     ward: "all",
@@ -63,7 +61,13 @@ const UnPaid = () => {
   const [provinces, setProvinces] = useState<IProvince[]>([]);
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [wards, setWards] = useState<IWard[]>([]);
-  const debouncedSearch = useDebounce(filters.search, 500);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 1000);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [loading, _setLoading] = useState(false);
+  const [orders, setOrders] = useState<PaginatedData<IOrder> | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -97,26 +101,24 @@ const UnPaid = () => {
     fetchWards();
   }, [filters.district]);
 
-  const { data: orders, isLoading } = useQuery({
-    queryKey: [
-      "pending-orders",
-      page,
-      rowsPerPage,
-      { ...filters, search: debouncedSearch },
-    ],
-    queryFn: () =>
-      getOrdersSellerByStatus({
-        orderStatus: OrderStatus.PENDING_PAYMENT,
-        page: page + 1,
-        limit: rowsPerPage,
-        search: debouncedSearch,
-        province: filters.province,
-        district: filters.district,
-        ward: filters.ward,
-        startDate: filters.startDate?.toISOString(),
-        endDate: filters.endDate?.toISOString(),
-      }),
-  });
+  const getOrders = useCallback(async () => {
+    const orders = await getOrdersSellerByStatus({
+      orderStatus: OrderStatus.SHIPPING,
+      page: page + 1,
+      limit: rowsPerPage,
+      search: debouncedSearch,
+      province: filters.province,
+      district: filters.district,
+      ward: filters.ward,
+      startDate: filters.startDate?.toISOString(),
+      endDate: filters.endDate?.toISOString(),
+    });
+    setOrders(orders);
+  }, [filters, page, rowsPerPage, debouncedSearch]);
+
+  useEffect(() => {
+    getOrders();
+  }, [getOrders]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -142,7 +144,7 @@ const UnPaid = () => {
     setPage(0);
   };
 
-  if (isLoading) return <CustomBackdrop />;
+  if (loading) return <CustomBackdrop />;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={viLocale}>
@@ -182,8 +184,8 @@ const UnPaid = () => {
                 <TextField
                   size="small"
                   placeholder="Tìm kiếm..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   sx={{ width: 200 }}
                   slotProps={{
                     input: {

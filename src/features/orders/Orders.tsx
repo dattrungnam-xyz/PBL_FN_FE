@@ -22,10 +22,16 @@ import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import {
   getUserOrders,
+  requestCancelOrder,
   requestRefundOrder,
   updateOrderStatus,
 } from "../../services/order.service";
-import { IOrder, IOrderDetail, IRefundRequest } from "../../interface";
+import {
+  ICancelRequest,
+  IOrder,
+  IOrderDetail,
+  IRefundRequest,
+} from "../../interface";
 import { OrderStatus } from "../../enums";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
@@ -91,7 +97,7 @@ const orderStatuses = {
     icon: <AssignmentReturnOutlinedIcon sx={{ fontSize: "1rem" }} />,
   },
   rejected: {
-    label: "Đã từ chối",
+    label: "Bị từ chối",
     color: "error",
     icon: <DoNotDisturbIcon sx={{ fontSize: "1rem" }} />,
   },
@@ -199,6 +205,19 @@ const Orders = () => {
   const handleCloseCancelModal = () => {
     setSelectedOrder(null);
     setIsCancelModalOpen(false);
+  };
+
+  const handleCancelRequest = async (cancelRequest: ICancelRequest) => {
+    if (!selectedOrder) return;
+    try {
+      setLoading(true);
+      await requestCancelOrder(selectedOrder.id!, cancelRequest);
+      await getOrders();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenOrderDetailModal = (order: IOrder) => {
@@ -985,6 +1004,7 @@ const Orders = () => {
             open={isCancelModalOpen}
             onClose={handleCloseCancelModal}
             order={selectedOrder}
+            onSubmit={handleCancelRequest}
           />
         )}
         {selectedOrder && (

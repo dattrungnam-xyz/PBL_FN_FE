@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Paper,
@@ -10,27 +10,21 @@ import {
   TableRow,
   TablePagination,
   Typography,
-  Button,
   Stack,
   Avatar,
   TextField,
   InputAdornment,
   Card,
-  Checkbox,
   Tooltip,
+  IconButton,
 } from "@mui/material";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getOrdersSellerByStatus,
-  updateOrderStatus,
-} from "../../services/order.service";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { getOrdersSellerByStatus } from "../../services/order.service";
 import { IOrder, IWard, IDistrict, IProvince } from "../../interface";
 import { OrderStatus } from "../../enums";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SearchIcon from "@mui/icons-material/Search";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
-import OrderDetailModal from "./component/OrderDetailModal";
 import {
   getDistricts,
   getProvinces,
@@ -41,9 +35,10 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import viLocale from "date-fns/locale/vi";
-
+import PaginatedData from "../../types/PaginatedData";
+import { useDebounce } from "../../hooks/useDebounce";
+import OrderRefundModal from "./component/OrderRefundModal";
 interface FilterState {
-  search: string;
   province: string;
   district: string;
   ward: string;
@@ -56,9 +51,7 @@ const Refunded = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
-  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({
-    search: "",
     province: "all",
     district: "all",
     ward: "all",
@@ -68,7 +61,13 @@ const Refunded = () => {
   const [provinces, setProvinces] = useState<IProvince[]>([]);
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [wards, setWards] = useState<IWard[]>([]);
-  const queryClient = useQueryClient();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [loading, _setLoading] = useState(false);
+  const [orders, setOrders] = useState<PaginatedData<IOrder> | undefined>(
+    undefined,
+  );
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 1000);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -80,7 +79,7 @@ const Refunded = () => {
 
   useEffect(() => {
     const fetchDistricts = async () => {
-      if (filters.province) {
+      if (filters.province && filters.province !== "all") {
         const districts = await getDistricts(filters.province);
         setDistricts(districts);
       } else {
@@ -92,7 +91,7 @@ const Refunded = () => {
 
   useEffect(() => {
     const fetchWards = async () => {
-      if (filters.district) {
+      if (filters.district && filters.district !== "all") {
         const wards = await getWards(filters.district);
         setWards(wards);
       } else {
@@ -102,21 +101,24 @@ const Refunded = () => {
     fetchWards();
   }, [filters.district]);
 
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ["pending-orders", page, rowsPerPage, filters],
-    queryFn: () =>
-      getOrdersSellerByStatus({
-        orderStatus: OrderStatus.PENDING,
-        page: page + 1,
-        limit: rowsPerPage,
-        search: filters.search,
-        province: filters.province,
-        district: filters.district,
-        ward: filters.ward,
-        startDate: filters.startDate?.toISOString(),
-        endDate: filters.endDate?.toISOString(),
-      }),
-  });
+  const getOrders = useCallback(async () => {
+    const orders = await getOrdersSellerByStatus({
+      orderStatus: OrderStatus.REFUNDED,
+      page: page + 1,
+      limit: rowsPerPage,
+      search: debouncedSearch,
+      province: filters.province,
+      district: filters.district,
+      ward: filters.ward,
+      startDate: filters.startDate?.toISOString(),
+      endDate: filters.endDate?.toISOString(),
+    });
+    setOrders(orders);
+  }, [filters, page, rowsPerPage, debouncedSearch]);
+
+  useEffect(() => {
+    getOrders();
+  }, [getOrders]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -134,44 +136,6 @@ const Refunded = () => {
     setPage(0);
   };
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = orders?.data?.map((order) => order.id) || [];
-      setSelectedOrders(newSelected);
-    } else {
-      setSelectedOrders([]);
-    }
-  };
-
-  const handleSelectOrder = (orderId: string) => {
-    setSelectedOrders((prev) => {
-      if (prev.includes(orderId)) {
-        return prev.filter((id) => id !== orderId);
-      } else {
-        return [...prev, orderId];
-      }
-    });
-  };
-
-  const { mutate: updateStatus } = useMutation({
-    mutationFn: (orderIds: string[]) =>
-      Promise.all(
-        orderIds.map((id) =>
-          updateOrderStatus(id, OrderStatus.PREPARING_FOR_SHIPPING),
-        ),
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
-      setSelectedOrders([]);
-    },
-  });
-
-  const handlePrepareForShipping = () => {
-    if (selectedOrders.length > 0) {
-      updateStatus(selectedOrders);
-    }
-  };
-
   const handleDateChange = (
     field: "startDate" | "endDate",
     date: Date | null,
@@ -180,7 +144,7 @@ const Refunded = () => {
     setPage(0);
   };
 
-  if (isLoading) return <CustomBackdrop />;
+  if (loading) return <CustomBackdrop />;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={viLocale}>
@@ -199,7 +163,7 @@ const Refunded = () => {
             fontWeight={600}
             mb={{ xs: 0.5, sm: 1 }}
           >
-            Đơn hàng chờ xác nhận
+            Đơn hàng đã hoàn hàng
           </Typography>
           <Card sx={{ p: 1, mb: 1 }}>
             <Stack spacing={1}>
@@ -209,17 +173,6 @@ const Refunded = () => {
                 alignItems="center"
               >
                 <Typography variant="h6">Tìm kiếm và lọc</Typography>
-                {selectedOrders.length > 0 && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<LocalShippingIcon />}
-                    onClick={handlePrepareForShipping}
-                    size="small"
-                  >
-                    Chuẩn bị giao hàng ({selectedOrders.length})
-                  </Button>
-                )}
               </Stack>
               <Box
                 display="flex"
@@ -231,8 +184,8 @@ const Refunded = () => {
                 <TextField
                   size="small"
                   placeholder="Tìm kiếm..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   sx={{ width: 200 }}
                   slotProps={{
                     input: {
@@ -293,21 +246,6 @@ const Refunded = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        indeterminate={
-                          selectedOrders.length > 0 &&
-                          orders?.data &&
-                          selectedOrders.length < orders.data.length
-                        }
-                        checked={
-                          orders?.data &&
-                          orders.data.length > 0 &&
-                          selectedOrders.length === orders.data.length
-                        }
-                        onChange={handleSelectAllClick}
-                      />
-                    </TableCell>
                     <TableCell sx={{ width: "5%" }}>STT</TableCell>
                     <TableCell sx={{ width: "20%" }}>Người mua</TableCell>
                     <TableCell sx={{ width: "20%" }}>Địa chỉ</TableCell>
@@ -319,12 +257,6 @@ const Refunded = () => {
                 <TableBody>
                   {orders?.data?.map((order: IOrder, index: number) => (
                     <TableRow key={order.id}>
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={selectedOrders.includes(order.id)}
-                          onChange={() => handleSelectOrder(order.id)}
-                        />
-                      </TableCell>
                       <TableCell>
                         <Typography
                           color="text.secondary"
@@ -417,34 +349,22 @@ const Refunded = () => {
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={0.5}>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            color="inherit"
-                            sx={{
-                              fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                              height: { xs: 24, sm: 28 },
-                            }}
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setOpen(true);
-                            }}
-                          >
-                            Chi tiết
-                          </Button>
-                          <Tooltip title="Chuẩn bị giao hàng">
-                            <Button
-                              variant="outlined"
+                          <Tooltip title="Xem chi tiết yêu cầu">
+                            <IconButton
                               size="small"
-                              color="primary"
+                              color="inherit"
                               sx={{
                                 fontSize: { xs: "0.75rem", sm: "0.813rem" },
                                 height: { xs: 24, sm: 28 },
+                                width: { xs: 24, sm: 28 },
                               }}
-                              onClick={() => updateStatus([order.id])}
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setOpen(true);
+                              }}
                             >
-                              <LocalShippingIcon fontSize="small" />
-                            </Button>
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
                           </Tooltip>
                         </Stack>
                       </TableCell>
@@ -465,10 +385,13 @@ const Refunded = () => {
           </Paper>
         </Box>
       </Box>
-      <OrderDetailModal
+      <OrderRefundModal
         open={open}
         onClose={() => setOpen(false)}
-        order={selectedOrder}
+        order={selectedOrder!}
+        viewOnly={true}
+        onAccept={() => {}}
+        onReject={() => {}}
       />
     </LocalizationProvider>
   );

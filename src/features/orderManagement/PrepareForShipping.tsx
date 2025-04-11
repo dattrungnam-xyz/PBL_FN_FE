@@ -44,9 +44,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import viLocale from "date-fns/locale/vi";
 import ConfirmDialog from "./dialog/ConfirmDialog";
 import PaginatedData from "../../types/PaginatedData";
-
+import { useDebounce } from "../../hooks/useDebounce";
 interface FilterState {
-  search: string;
   province: string;
   district: string;
   ward: string;
@@ -61,7 +60,6 @@ const PrepareForShipping = () => {
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({
-    search: "",
     province: "all",
     district: "all",
     ward: "all",
@@ -79,15 +77,17 @@ const PrepareForShipping = () => {
   const [selectedOrderUpdateId, setSelectedOrderUpdateId] = useState<
     string | null
   >(null);
-  const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [loading, _setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 1000);
 
   const getOrders = useCallback(async () => {
-    setLoading(true);
     const orders = await getOrdersSellerByStatus({
       orderStatus: OrderStatus.PREPARING_FOR_SHIPPING,
       page: page + 1,
       limit: rowsPerPage,
-      search: filters.search,
+      search: debouncedSearch,
       province: filters.province,
       district: filters.district,
       ward: filters.ward,
@@ -95,8 +95,7 @@ const PrepareForShipping = () => {
       endDate: filters.endDate?.toISOString(),
     });
     setOrders(orders);
-    setLoading(false);
-  }, [filters, page, rowsPerPage]);
+  }, [filters, page, rowsPerPage, debouncedSearch]);
 
   useEffect(() => {
     getOrders();
@@ -254,8 +253,8 @@ const PrepareForShipping = () => {
                 <TextField
                   size="small"
                   placeholder="Tìm kiếm..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   sx={{ width: 200 }}
                   slotProps={{
                     input: {
