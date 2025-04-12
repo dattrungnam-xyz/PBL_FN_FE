@@ -1,6 +1,7 @@
 import { PaymentMethod, OrderStatus } from "../enums";
 import { IPayment } from "./payment.interface";
 import { IProduct } from "./product.interface";
+import { IReview } from "./review.interface";
 import { IStore } from "./store.interface";
 import { IUser } from "./user.interface";
 import { IAddress } from "./userAddress.interface";
@@ -46,6 +47,7 @@ export interface IOrderDetail {
   quantity: number;
   price: number;
   product: IProduct;
+  review: IReview | null;
 }
 
 export interface IRefundRequest {

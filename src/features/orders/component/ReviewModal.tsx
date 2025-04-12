@@ -15,27 +15,37 @@ import {
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import { IOrder, IOrderDetail } from "../../../interface";
+import { IOrderDetail, ICreateReview } from "../../../interface";
+import ImageDetail from "../../../components/ImageDetail";
 
 interface ReviewModalProps {
   open: boolean;
   onClose: () => void;
-  order: IOrder;
   orderDetail: IOrderDetail;
+  onSubmit: (review: ICreateReview) => void;
 }
 
 interface ProductReview {
   rating: number;
   description: string;
-  images: string[];
+  media: {
+    type: "image" | "audio";
+    url: string;
+  }[];
 }
 
-const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
+const ReviewModal = ({
+  open,
+  onClose,
+  orderDetail,
+  onSubmit,
+}: ReviewModalProps) => {
   const [review, setReview] = useState<ProductReview>({
     rating: 0,
     description: "",
-    images: [],
+    media: [],
   });
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
 
   const handleRatingChange = (value: number) => {
     setReview((prev) => ({
@@ -51,11 +61,11 @@ const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
     }));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
 
-    const newImages: string[] = [];
+    const newMedia: ProductReview["media"] = [];
     const fileReaders: FileReader[] = [];
 
     Array.from(files).forEach((file) => {
@@ -64,11 +74,15 @@ const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
 
       reader.onload = (e) => {
         if (e.target?.result) {
-          newImages.push(e.target.result as string);
-          if (newImages.length === files.length) {
+          const type = file.type.startsWith("image/") ? "image" : "audio";
+          newMedia.push({
+            type,
+            url: e.target.result as string,
+          });
+          if (newMedia.length === files.length) {
             setReview((prev) => ({
               ...prev,
-              images: [...prev.images, ...newImages],
+              media: [...prev.media, ...newMedia],
             }));
           }
         }
@@ -78,16 +92,20 @@ const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
     });
   };
 
-  const handleRemoveImage = (index: number) => {
+  const handleRemoveMedia = (index: number) => {
     setReview((prev) => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index),
+      media: prev.media.filter((_, i) => i !== index),
     }));
   };
 
   const handleSubmit = () => {
-    // TODO: Implement submit logic
-    console.log("Review:", review);
+    onSubmit({
+      rating: review.rating,
+      description: review.description,
+      media: review.media.map((m) => m.url),
+      orderDetailId: orderDetail.id,
+    });
     onClose();
   };
 
@@ -97,9 +115,11 @@ const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+          },
         },
       }}
     >
@@ -175,23 +195,37 @@ const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
                 color="text.secondary"
                 sx={{ mb: 0.5 }}
               >
-                Hình ảnh đánh giá
+                Hình ảnh & Âm thanh
               </Typography>
               <Box sx={{ display: "flex", gap: 0.75, flexWrap: "wrap" }}>
-                {review.images.map((image, imgIndex) => (
+                {review.media.map((media, mediaIndex) => (
                   <Box
-                    key={imgIndex}
+                    key={mediaIndex}
                     sx={{
                       position: "relative",
                       width: 80,
                       height: 80,
+                      cursor: "pointer",
                     }}
+                    onClick={() => setSelectedMedia(media.url)}
                   >
-                    <Avatar
-                      variant="square"
-                      src={image}
-                      sx={{ width: "100%", height: "100%" }}
-                    />
+                    {media.type === "image" ? (
+                      <Avatar
+                        variant="square"
+                        src={media.url}
+                        sx={{ width: "100%", height: "100%" }}
+                      />
+                    ) : (
+                      <video
+                        src={media.url}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    )}
+
                     <IconButton
                       size="small"
                       sx={{
@@ -201,7 +235,10 @@ const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
                         bgcolor: "background.paper",
                         "&:hover": { bgcolor: "background.paper" },
                       }}
-                      onClick={() => handleRemoveImage(imgIndex)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveMedia(mediaIndex);
+                      }}
                     >
                       <CloseIcon fontSize="small" />
                     </IconButton>
@@ -220,13 +257,13 @@ const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
                   }}
                 >
                   <AddPhotoAlternateIcon fontSize="small" />
-                  <Typography variant="caption">Thêm ảnh</Typography>
+                  <Typography variant="caption">Thêm file</Typography>
                   <input
                     type="file"
                     hidden
                     multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
+                    accept="image/*,audio/*"
+                    onChange={handleMediaUpload}
                   />
                 </Button>
               </Box>
@@ -244,6 +281,29 @@ const ReviewModal = ({ open, onClose, orderDetail }: ReviewModalProps) => {
           Gửi đánh giá
         </Button>
       </DialogActions>
+      {selectedMedia && (
+        <ImageDetail
+          open={!!selectedMedia}
+          onClose={() => setSelectedMedia(null)}
+          currentMedia={selectedMedia}
+          mediaList={review.media.map((m) => m.url)}
+          onNext={() => {
+            const currentIndex = review.media.findIndex(
+              (m) => m.url === selectedMedia,
+            );
+            const nextIndex = (currentIndex + 1) % review.media.length;
+            setSelectedMedia(review.media[nextIndex].url);
+          }}
+          onPrev={() => {
+            const currentIndex = review.media.findIndex(
+              (m) => m.url === selectedMedia,
+            );
+            const prevIndex =
+              (currentIndex - 1 + review.media.length) % review.media.length;
+            setSelectedMedia(review.media[prevIndex].url);
+          }}
+        />
+      )}
     </Dialog>
   );
 };

@@ -18,6 +18,7 @@ import {
 } from "./order.interface";
 import { IAddress } from "./userAddress.interface";
 import { IAnalystic } from "./common.interface";
+import { ICreateReview, IReview } from "./review.interface";
 export type {
   IProvince,
   IDistrict,
@@ -42,4 +43,6 @@ export type {
   IRefundRequest,
   ICancelRequest,
   IAnalystic,
+  ICreateReview,
+  IReview,
 };

@@ -28,6 +28,7 @@ import {
 } from "../../services/order.service";
 import {
   ICancelRequest,
+  ICreateReview,
   IOrder,
   IOrderDetail,
   IRefundRequest,
@@ -44,6 +45,9 @@ import RefundModal from "./component/RefundModal";
 import CancelModal from "./component/CancelModal";
 import OrderDetailModal from "./component/OrderDetailModal";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
+import { createReview, deleteReview } from "../../services/review.service";
+import ViewReviewModal from "./component/ViewReviewModal";
+import { toast } from "react-toastify";
 
 const orderStatuses = {
   pending_payment: {
@@ -135,6 +139,7 @@ const Orders = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isOrderDetailModalOpen, setIsOrderDetailModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isViewReviewModalOpen, setIsViewReviewModalOpen] = useState(false);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -174,6 +179,20 @@ const Orders = () => {
     setIsReviewModalOpen(false);
   };
 
+  const handleReviewSubmit = async (review: ICreateReview) => {
+    if (!selectedOrderDetail) return;
+    try {
+      setLoading(true);
+      await createReview(review);
+      await getOrders();
+      toast.success("Đã đánh giá sản phẩm thành công");
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleOpenRefundModal = (order: IOrder) => {
     setSelectedOrder(order);
     setIsRefundModalOpen(true);
@@ -190,8 +209,10 @@ const Orders = () => {
       setLoading(true);
       await requestRefundOrder(selectedOrder.id!, refundRequest);
       await getOrders();
+      toast.success("Đã gửi yêu cầu trả hàng");
     } catch (error) {
       console.error(error);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
       setLoading(false);
     }
@@ -213,8 +234,10 @@ const Orders = () => {
       setLoading(true);
       await requestCancelOrder(selectedOrder.id!, cancelRequest);
       await getOrders();
+      toast.success("Đã yêu cầu hủy đơn hàng thành công");
     } catch (error) {
       console.error(error);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
       setLoading(false);
     }
@@ -228,6 +251,36 @@ const Orders = () => {
   const handleCloseOrderDetailModal = () => {
     setSelectedOrder(null);
     setIsOrderDetailModalOpen(false);
+  };
+
+  const handleOpenViewReviewModal = (
+    order: IOrder,
+    orderDetail: IOrderDetail,
+  ) => {
+    setSelectedOrder(order);
+    setSelectedOrderDetail(orderDetail);
+    setIsViewReviewModalOpen(true);
+  };
+
+  const handleCloseViewReviewModal = () => {
+    setSelectedOrder(null);
+    setSelectedOrderDetail(null);
+    setIsViewReviewModalOpen(false);
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    try {
+      setLoading(true);
+      await deleteReview(reviewId);
+      await getOrders();
+      setIsViewReviewModalOpen(false);
+      toast.success("Đã xóa đánh giá thành công");
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const OrderItem = ({ order }: { order: IOrder }) => {
@@ -562,7 +615,8 @@ const Orders = () => {
                     <span>×</span>
                     <span>{item.quantity}</span>
                   </Typography>
-                  {order.orderStatus === OrderStatus.COMPLETED && (
+                  {order.orderStatus === OrderStatus.COMPLETED &&
+                  !item.review ? (
                     <Button
                       variant="outlined"
                       size="small"
@@ -578,7 +632,25 @@ const Orders = () => {
                     >
                       Đánh giá
                     </Button>
-                  )}
+                  ) : null}
+                  {order.orderStatus === OrderStatus.COMPLETED &&
+                  item.review ? (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="info"
+                      sx={{
+                        fontSize: "0.813rem",
+                        minWidth: "unset",
+                        width: "fit-content",
+                        height: 24,
+                        px: 1,
+                      }}
+                      onClick={() => handleOpenViewReviewModal(order, item)}
+                    >
+                      Xem đánh giá
+                    </Button>
+                  ) : null}
                 </Box>
               </Box>
               <Typography
@@ -983,37 +1055,46 @@ const Orders = () => {
             </Box>
           </Box>
         </Box>
-        {selectedOrder && selectedOrderDetail && (
+        {selectedOrder && selectedOrderDetail && isReviewModalOpen ? (
           <ReviewModal
             open={isReviewModalOpen}
             onClose={handleCloseReviewModal}
-            order={selectedOrder}
             orderDetail={selectedOrderDetail}
+            onSubmit={handleReviewSubmit}
           />
-        )}
-        {selectedOrder && (
+        ) : null}
+        {selectedOrder && isRefundModalOpen ? (
           <RefundModal
             open={isRefundModalOpen}
             onClose={handleCloseRefundModal}
             order={selectedOrder}
             onSubmit={handleRefundRequest}
           />
-        )}
-        {selectedOrder && (
+        ) : null}
+        {selectedOrder && isCancelModalOpen ? (
           <CancelModal
             open={isCancelModalOpen}
             onClose={handleCloseCancelModal}
             order={selectedOrder}
             onSubmit={handleCancelRequest}
           />
-        )}
-        {selectedOrder && (
+        ) : null}
+        {selectedOrder && isOrderDetailModalOpen ? (
           <OrderDetailModal
             open={isOrderDetailModalOpen}
             onClose={handleCloseOrderDetailModal}
             order={selectedOrder}
           />
-        )}
+        ) : null}
+        {selectedOrder && selectedOrderDetail && isViewReviewModalOpen ? (
+          <ViewReviewModal
+            open={isViewReviewModalOpen}
+            onClose={handleCloseViewReviewModal}
+            orderDetail={selectedOrderDetail}
+            review={selectedOrderDetail.review!}
+            onDelete={handleDeleteReview}
+          />
+        ) : null}
       </Content>
     </>
   );
