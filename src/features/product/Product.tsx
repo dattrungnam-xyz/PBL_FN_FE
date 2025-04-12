@@ -34,16 +34,11 @@ import ProductCard from "../../components/ProductCard";
 import { getCategoryText } from "../../utils";
 import { addToCart } from "../../services/cart.service";
 import { toast } from "react-toastify";
-interface Review {
-  id: number;
-  user: {
-    name: string;
-    avatar: string;
-  };
-  rating: number;
-  comment: string;
-  date: string;
-}
+import ImageDetail from "../../components/ImageDetail";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useSelector } from "react-redux";
+import { RootState } from "../../stores";
+import { deleteReview } from "../../services/review.service";
 
 interface RelatedProduct {
   id: number;
@@ -61,6 +56,7 @@ const Product = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [showStoreDetails, setShowStoreDetails] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
 
   const {
     data: productData,
@@ -71,6 +67,8 @@ const Product = () => {
     queryFn: () => getProductById(id!),
     enabled: !!id,
   });
+
+  const currentUser = useSelector((state: RootState) => state.auth.user);
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => {
@@ -93,6 +91,15 @@ const Product = () => {
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    try {
+      await deleteReview(reviewId);
+      toast.success("Đã xóa đánh giá thành công");
+    } catch (error) {
+      console.error("Error deleting review:", error);
+    }
   };
 
   if (isLoading) {
@@ -119,31 +126,31 @@ const Product = () => {
 
   return (
     <Content>
-      <Box sx={{ py: { xs: 1, sm: 1.5, md: 2 } }}>
+      <Box sx={{ py: { xs: 0.5, sm: 1 } }}>
         <Box
           sx={{
             maxWidth: 1200,
             mx: "auto",
-            px: { xs: 0.5, sm: 1 },
+            px: { xs: 0.5, sm: 0.75 },
           }}
         >
           {/* Main Product Section */}
           <Paper
             elevation={0}
             sx={{
-              p: { xs: 0.5, sm: 1.5 },
+              p: { xs: 0.5, sm: 1 },
               bgcolor: "background.paper",
-              borderRadius: { xs: 1, sm: 2 },
+              borderRadius: { xs: 1, sm: 1.5 },
               border: 1,
               borderColor: "divider",
-              mb: { xs: 2, sm: 3 },
+              mb: { xs: 1.5, sm: 2 },
             }}
           >
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-                gap: { xs: 2, sm: 3 },
+                gap: { xs: 1.5, sm: 2 },
               }}
             >
               {/* Left Column - Image Gallery */}
@@ -152,12 +159,16 @@ const Product = () => {
                 <Box
                   sx={{
                     width: "100%",
-                    height: { xs: 250, sm: 300, md: 400 },
-                    mb: { xs: 1, sm: 1.5 },
+                    height: { xs: 200, sm: 250, md: 350 },
+                    mb: { xs: 0.75, sm: 1 },
                     borderRadius: 1,
                     overflow: "hidden",
                     boxShadow: 1,
+                    cursor: "pointer",
                   }}
+                  onClick={() =>
+                    setSelectedMedia(productData.images[selectedImage])
+                  }
                 >
                   <img
                     src={productData.images[selectedImage]}
@@ -174,18 +185,18 @@ const Product = () => {
                 <Box
                   sx={{
                     display: "flex",
-                    gap: { xs: 0.5, sm: 1 },
+                    gap: { xs: 0.5, sm: 0.75 },
                     overflowX: "auto",
-                    pb: 1,
+                    pb: 0.75,
                     "&::-webkit-scrollbar": {
-                      height: 6,
+                      height: 4,
                     },
                     "&::-webkit-scrollbar-track": {
                       bgcolor: "background.default",
                     },
                     "&::-webkit-scrollbar-thumb": {
                       bgcolor: "divider",
-                      borderRadius: 3,
+                      borderRadius: 2,
                     },
                   }}
                 >
@@ -194,8 +205,8 @@ const Product = () => {
                       key={index}
                       onClick={() => setSelectedImage(index)}
                       sx={{
-                        width: { xs: 60, sm: 80 },
-                        height: { xs: 60, sm: 80 },
+                        width: { xs: 50, sm: 60 },
+                        height: { xs: 50, sm: 60 },
                         borderRadius: 1,
                         overflow: "hidden",
                         cursor: "pointer",
@@ -229,8 +240,8 @@ const Product = () => {
                 <Typography
                   variant="h5"
                   sx={{
-                    fontSize: { xs: "1rem", sm: "1.5rem", md: "2rem" },
-                    mb: { xs: 1, sm: 1.5 },
+                    fontSize: { xs: "0.875rem", sm: "1.25rem", md: "1.5rem" },
+                    mb: { xs: 0.75, sm: 1 },
                     fontWeight: 600,
                   }}
                 >
@@ -239,64 +250,32 @@ const Product = () => {
 
                 <Stack
                   direction="row"
-                  spacing={1}
+                  spacing={0.75}
                   alignItems="center"
-                  sx={{ mb: { xs: 1, sm: 1.5 } }}
+                  sx={{ mb: { xs: 0.75, sm: 1 } }}
                 >
                   <Typography
                     variant="h5"
                     color="primary"
                     sx={{
-                      fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" },
+                      fontSize: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
                       fontWeight: 600,
                     }}
                   >
                     {productData?.price?.toLocaleString()}đ
                   </Typography>
-                  {/* <Typography
-                    variant="body1"
-                    color="text.secondary"
-                    sx={{
-                      textDecoration: "line-through",
-                      fontSize: { xs: "0.875rem", sm: "1rem" },
-                    }}
-                  >
-                    {productData.price?.toLocaleString()}đ
-                  </Typography> */}
                 </Stack>
-
-                {/* Rating and Reviews */}
-                {/* <Stack
-                  direction="row"
-                  spacing={1}
-                  alignItems="center"
-                  sx={{ mb: { xs: 1, sm: 1.5 } }}
-                >
-                  <Rating
-                    value={productData.star}
-                    precision={0.5}
-                    readOnly
-                    size="small"
-                  />
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
-                  >
-                    ({productData.reviewCount || 0} đánh giá)
-                  </Typography>
-                </Stack> */}
 
                 {/* Location */}
                 <Stack
                   direction="row"
-                  spacing={1}
+                  spacing={0.75}
                   alignItems="center"
-                  sx={{ mb: { xs: 1, sm: 1.5 } }}
+                  sx={{ mb: { xs: 0.75, sm: 1 } }}
                 >
                   <LocationOnIcon
                     color="action"
-                    sx={{ fontSize: { xs: 18, sm: 20 } }}
+                    sx={{ fontSize: { xs: 16, sm: 18 } }}
                   />
                   <Typography
                     variant="body2"
@@ -307,7 +286,7 @@ const Product = () => {
                   </Typography>
                 </Stack>
 
-                <Divider sx={{ my: { xs: 1, sm: 1.5 } }} />
+                <Divider sx={{ my: { xs: 0.75, sm: 1 } }} />
 
                 {/* Category */}
                 <Chip
@@ -316,31 +295,31 @@ const Product = () => {
                   variant="outlined"
                   size="small"
                   sx={{
-                    mb: { xs: 1, sm: 1.5 },
+                    mb: { xs: 0.75, sm: 1 },
                     fontSize: { xs: "0.75rem", sm: "0.875rem" },
                   }}
                 />
 
                 {/* Quantity Selector */}
-                <Box sx={{ mb: { xs: 1, sm: 1.5 } }}>
+                <Box sx={{ mb: { xs: 0.75, sm: 1 } }}>
                   <Typography
                     variant="subtitle1"
                     sx={{
-                      fontSize: { xs: "0.875rem", sm: "1rem" },
-                      mb: { xs: 0.5, sm: 1 },
+                      fontSize: { xs: "0.875rem", sm: "0.875rem" },
+                      mb: { xs: 0.5, sm: 0.75 },
                       fontWeight: 500,
                     }}
                   >
                     Số lượng
                   </Typography>
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack direction="row" spacing={0.75} alignItems="center">
                     <IconButton
                       size="small"
                       onClick={() => handleQuantityChange(-1)}
                       disabled={quantity <= 1}
-                      sx={{ p: { xs: 0.5, sm: 1 } }}
+                      sx={{ p: { xs: 0.5, sm: 0.75 } }}
                     >
-                      <RemoveIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                      <RemoveIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
                     </IconButton>
                     <TextField
                       value={quantity}
@@ -348,9 +327,9 @@ const Product = () => {
                       size="small"
                       slotProps={{ input: { readOnly: false } }}
                       sx={{
-                        width: { xs: 50, sm: 60 },
+                        width: { xs: 40, sm: 50 },
                         "& .MuiInputBase-input": {
-                          fontSize: { xs: "0.875rem", sm: "1rem" },
+                          fontSize: { xs: "0.875rem", sm: "0.875rem" },
                         },
                       }}
                     />
@@ -358,9 +337,9 @@ const Product = () => {
                       size="small"
                       onClick={() => handleQuantityChange(1)}
                       disabled={quantity >= productData.quantity}
-                      sx={{ p: { xs: 0.5, sm: 1 } }}
+                      sx={{ p: { xs: 0.5, sm: 0.75 } }}
                     >
-                      <AddIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                      <AddIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
                     </IconButton>
                     <Typography
                       variant="body2"
@@ -375,33 +354,33 @@ const Product = () => {
                 {/* Action Buttons */}
                 <Stack
                   direction="row"
-                  spacing={{ xs: 0.5, sm: 1.5 }}
-                  sx={{ mb: { xs: 0.5, sm: 1 } }}
+                  spacing={{ xs: 0.5, sm: 1 }}
+                  sx={{ mb: { xs: 0.5, sm: 0.75 } }}
                 >
                   <Button
                     variant="contained"
-                    size="large"
+                    size="small"
                     startIcon={<ShoppingCartIcon />}
                     onClick={handleAddToCart}
                     sx={{
                       flex: 1,
-                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                      fontSize: { xs: "0.875rem", sm: "0.875rem" },
                       fontWeight: 500,
                     }}
                   >
                     Thêm vào giỏ hàng
                   </Button>
                   <IconButton
-                    size="large"
+                    size="small"
                     onClick={() => setIsFavorite(!isFavorite)}
                     color={isFavorite ? "error" : "default"}
-                    sx={{ p: { xs: 0.5, sm: 1 } }}
+                    sx={{ p: { xs: 0.5, sm: 0.75 } }}
                   >
                     {isFavorite ? (
-                      <FavoriteIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                      <FavoriteIcon sx={{ fontSize: { xs: 16, sm: 20 } }} />
                     ) : (
                       <FavoriteBorderIcon
-                        sx={{ fontSize: { xs: 18, sm: 24 } }}
+                        sx={{ fontSize: { xs: 16, sm: 20 } }}
                       />
                     )}
                   </IconButton>
@@ -414,12 +393,12 @@ const Product = () => {
           <Paper
             elevation={0}
             sx={{
-              p: { xs: 0.5, sm: 1 },
+              p: { xs: 0.5, sm: 0.75 },
               bgcolor: "background.paper",
-              borderRadius: { xs: 1, sm: 2 },
+              borderRadius: { xs: 1, sm: 1.5 },
               border: 1,
               borderColor: "divider",
-              mb: { xs: 0.5, sm: 1 },
+              mb: { xs: 0.5, sm: 0.75 },
             }}
           >
             <Box
@@ -429,47 +408,32 @@ const Product = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                mb: showStoreDetails ? { xs: 0.5, sm: 1 } : 0,
+                mb: showStoreDetails ? { xs: 0.5, sm: 0.75 } : 0,
               }}
             >
-              <Stack direction="row" spacing={2} alignItems="center">
+              <Stack direction="row" spacing={0.5} alignItems="center">
                 <Avatar
                   src={productData.seller?.avatar}
                   alt={productData.seller?.name}
                   sx={{
-                    width: { xs: 40, sm: 50 },
-                    height: { xs: 40, sm: 50 },
+                    width: { xs: 32, sm: 40 },
+                    height: { xs: 32, sm: 40 },
                     border: 1,
                     borderColor: "primary.main",
                   }}
                 />
                 <Box>
-                  <Stack direction="row" alignItems="center" spacing={1}>
+                  <Stack direction="row" alignItems="center" spacing={0.75}>
                     <Typography
                       variant="subtitle2"
                       sx={{
-                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                        fontSize: { xs: "0.875rem", sm: "0.875rem" },
                         fontWeight: 600,
                       }}
                     >
                       {productData.seller?.name}
                     </Typography>
                   </Stack>
-                  {/* <Stack direction="row" spacing={1} alignItems="center">
-                    <Rating
-                      value={productData.store.rating}
-                      precision={0.5}
-                      readOnly
-                      size="small"
-                    />
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
-                    >
-                      ({productData.store.reviewCount} đánh giá)
-                    </Typography>
-                  </Stack> */}
                 </Box>
               </Stack>
               {showStoreDetails ? (
@@ -481,12 +445,12 @@ const Product = () => {
 
             {showStoreDetails && (
               <>
-                <Divider sx={{ my: { xs: 0.5, sm: 1 } }} />
-                <Stack spacing={1.5}>
-                  <Stack direction="row" spacing={1} alignItems="center">
+                <Divider sx={{ my: { xs: 0.5, sm: 0.75 } }} />
+                <Stack spacing={1}>
+                  <Stack direction="row" spacing={0.75} alignItems="center">
                     <PhoneIcon
                       sx={{
-                        fontSize: { xs: 16, sm: 18 },
+                        fontSize: { xs: 16, sm: 16 },
                         color: "text.secondary",
                       }}
                     />
@@ -497,10 +461,10 @@ const Product = () => {
                       {productData.seller?.phone}
                     </Typography>
                   </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack direction="row" spacing={0.75} alignItems="center">
                     <LocationOnIcon
                       sx={{
-                        fontSize: { xs: 16, sm: 18 },
+                        fontSize: { xs: 16, sm: 16 },
                         color: "text.secondary",
                       }}
                     />
@@ -522,7 +486,7 @@ const Product = () => {
                   variant="outlined"
                   size="small"
                   sx={{
-                    mt: { xs: 1.5, sm: 2 },
+                    mt: { xs: 1, sm: 1.5 },
                     fontSize: { xs: "0.75rem", sm: "0.875rem" },
                   }}
                 >
@@ -536,12 +500,12 @@ const Product = () => {
           <Paper
             elevation={0}
             sx={{
-              p: { xs: 0.5, sm: 1 },
+              p: { xs: 0.5, sm: 0.75 },
               bgcolor: "background.paper",
-              borderRadius: { xs: 1, sm: 2 },
+              borderRadius: { xs: 1, sm: 1.5 },
               border: 1,
               borderColor: "divider",
-              mb: { xs: 0.5, sm: 1 },
+              mb: { xs: 0.5, sm: 0.75 },
             }}
           >
             <Tabs
@@ -550,9 +514,9 @@ const Product = () => {
               sx={{
                 borderBottom: 1,
                 borderColor: "divider",
-                mb: { xs: 0.5, sm: 1 },
+                mb: { xs: 0.5, sm: 0.75 },
                 "& .MuiTab-root": {
-                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                  fontSize: { xs: "0.875rem", sm: "0.875rem" },
                   textTransform: "none",
                   fontWeight: 500,
                 },
@@ -566,7 +530,7 @@ const Product = () => {
               <Typography
                 variant="body1"
                 sx={{
-                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                  fontSize: { xs: "0.875rem", sm: "0.875rem" },
                   whiteSpace: "pre-line",
                   lineHeight: 1.6,
                 }}
@@ -576,63 +540,255 @@ const Product = () => {
             )}
 
             {activeTab === 1 && (
-              <Stack spacing={3}>
-                {productData.reviews?.map((review) => (
-                  <Box key={review.id}>
-                    {/* <Stack
-                      direction="row"
-                      spacing={2}
-                      alignItems="center"
-                      sx={{ mb: 1 }}
+              <Box
+                sx={{
+                  maxHeight: "500px",
+                  overflowY: "auto",
+                  "&::-webkit-scrollbar": {
+                    width: "4px",
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    background: "transparent",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: "divider",
+                    borderRadius: "2px",
+                  },
+                }}
+              >
+                <Stack spacing={0.5}>
+                  {productData.reviews?.map((review) => (
+                    <Box
+                      key={review.id}
+                      sx={{
+                        p: 0.75,
+                        borderRadius: 1,
+                        bgcolor: "background.paper",
+                        border: 1,
+                        borderColor: "divider",
+                        position: "relative",
+                      }}
                     >
-                      <Avatar
-                        src={review.user.avatar}
-                        alt={review.user.name}
-                        sx={{ width: 40, height: 40 }}
-                      />
-                      <Box>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ fontWeight: 600 }}
+                      <Stack spacing={0.5}>
+                        {/* Header */}
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          alignItems="flex-start"
                         >
-                          {review.user.name}
-                        </Typography>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Rating
-                            value={review.rating}
-                            precision={0.5}
-                            readOnly
-                            size="small"
+                          <Avatar
+                            src={review.user.avatar}
+                            alt={review.user.name}
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              border: 1,
+                              borderColor: "divider",
+                            }}
                           />
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ fontSize: "0.75rem" }}
-                          >
-                            {new Date(review.date).toLocaleDateString("vi-VN")}
-                          </Typography>
+                          <Box sx={{ flex: 1 }}>
+                            <Stack
+                              direction="row"
+                              spacing={0.75}
+                              alignItems="center"
+                            >
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600, fontSize: "0.875rem" }}
+                              >
+                                {review.user.name}
+                              </Typography>
+                              {review.user.id === currentUser?.id && (
+                                <Chip
+                                  label="Bạn"
+                                  size="small"
+                                  color="primary"
+                                  variant="outlined"
+                                />
+                              )}
+                            </Stack>
+                            {review.orderDetail && (
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ fontSize: "0.75rem" }}
+                              >
+                                {review.orderDetail.product.name} - số lượng{" "}
+                                {review.orderDetail.quantity}
+                              </Typography>
+                            )}
+                            <Stack
+                              direction="row"
+                              spacing={0.75}
+                              alignItems="center"
+                            >
+                              <Rating
+                                value={review.rating}
+                                precision={0.5}
+                                readOnly
+                                size="small"
+                              />
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ fontSize: "0.75rem" }}
+                              >
+                                {new Date(review.createdAt).toLocaleDateString(
+                                  "vi-VN",
+                                )}
+                              </Typography>
+                            </Stack>
+                          </Box>
+                          {review.user.id === currentUser?.id && (
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteReview(review.id)}
+                              sx={{ mt: -0.5 }}
+                            >
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          )}
                         </Stack>
-                      </Box>
-                    </Stack> */}
-                    <Typography
-                      variant="body2"
-                      sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
-                    >
-                      {review.comment}
-                    </Typography>
-                  </Box>
-                ))}
-              </Stack>
+
+                        {/* Content */}
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            whiteSpace: "pre-line",
+                            lineHeight: 1.6,
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          {review.description}
+                        </Typography>
+
+                        {/* Media */}
+                        {review.media && review.media.length > 0 && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 0.75,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {review.media.map((mediaUrl, index) => {
+                              const isImage = mediaUrl.match(
+                                /\.(jpg|jpeg|png|gif|webp)$/i,
+                              );
+                              return (
+                                <Box
+                                  key={index}
+                                  sx={{
+                                    width: 80,
+                                    height: 80,
+                                    cursor: "pointer",
+                                    borderRadius: 1,
+                                    overflow: "hidden",
+                                    border: 1,
+                                    borderColor: "divider",
+                                    "&:hover": {
+                                      borderColor: "primary.main",
+                                    },
+                                  }}
+                                  onClick={() => setSelectedMedia(mediaUrl)}
+                                >
+                                  {isImage ? (
+                                    <img
+                                      src={mediaUrl}
+                                      alt={`Review media ${index + 1}`}
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                      }}
+                                    />
+                                  ) : (
+                                    <video
+                                      src={mediaUrl}
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              );
+                            })}
+                          </Box>
+                        )}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
             )}
           </Paper>
+
+          {selectedMedia && (
+            <ImageDetail
+              open={!!selectedMedia}
+              onClose={() => setSelectedMedia(null)}
+              currentMedia={selectedMedia}
+              mediaList={
+                productData.reviews?.flatMap((review) => review.media || []) ||
+                []
+              }
+              onNext={() => {
+                const currentIndex = (
+                  productData.reviews?.flatMap(
+                    (review) => review.media || [],
+                  ) || []
+                ).findIndex((m) => m === selectedMedia);
+                const nextIndex =
+                  (currentIndex + 1) %
+                  (
+                    productData.reviews?.flatMap(
+                      (review) => review.media || [],
+                    ) || []
+                  ).length;
+                setSelectedMedia(
+                  (productData.reviews?.flatMap(
+                    (review) => review.media || [],
+                  ) || [])[nextIndex],
+                );
+              }}
+              onPrev={() => {
+                const currentIndex = (
+                  productData.reviews?.flatMap(
+                    (review) => review.media || [],
+                  ) || []
+                ).findIndex((m) => m === selectedMedia);
+                const prevIndex =
+                  (currentIndex -
+                    1 +
+                    (
+                      productData.reviews?.flatMap(
+                        (review) => review.media || [],
+                      ) || []
+                    ).length) %
+                  (
+                    productData.reviews?.flatMap(
+                      (review) => review.media || [],
+                    ) || []
+                  ).length;
+                setSelectedMedia(
+                  (productData.reviews?.flatMap(
+                    (review) => review.media || [],
+                  ) || [])[prevIndex],
+                );
+              }}
+            />
+          )}
 
           {/* Related Products Section */}
           <Paper
             elevation={0}
             sx={{
-              p: { xs: 0.5, sm: 1 },
+              p: { xs: 0.5, sm: 0.75 },
               bgcolor: "background.paper",
-              borderRadius: { xs: 1, sm: 2 },
+              borderRadius: { xs: 1, sm: 1.5 },
               border: 1,
               borderColor: "divider",
             }}
@@ -640,34 +796,13 @@ const Product = () => {
             <Typography
               variant="h6"
               sx={{
-                fontSize: { xs: "1rem", sm: "1.25rem" },
-                mb: { xs: 1, sm: 2 },
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+                mb: { xs: 0.75, sm: 1.5 },
                 fontWeight: 600,
               }}
             >
               Sản phẩm liên quan
             </Typography>
-            {/* <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "repeat(auto-fill, minmax(200px, 1fr))",
-                  sm: "repeat(auto-fill, minmax(250px, 1fr))",
-                },
-                gap: { xs: 0.5, sm: 1 },
-              }}
-            >
-              {productData.relatedProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  image={product.image}
-                  name={product.name}
-                  price={product.price}
-                  rating={product.rating}
-                  location={productData.location}
-                />
-              ))}
-            </Box> */}
           </Paper>
         </Box>
       </Box>

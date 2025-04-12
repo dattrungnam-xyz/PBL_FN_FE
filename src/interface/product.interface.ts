@@ -1,4 +1,5 @@
 import { Category, SellingProductStatus, VerifyOCOPStatus } from "../enums";
+import { IReview } from "./review.interface";
 import { IVerify } from "./verify.interface";
 interface ISellerRelation {
   id: string;
@@ -9,13 +10,6 @@ interface ISellerRelation {
   provinceName: string;
   phone: string;
   address: string;
-}
-
-interface IReviewRelation {
-  id: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
 }
 
 export interface ICreateProduct {
@@ -60,7 +54,7 @@ export interface IProduct {
   images: string[];
   verifyOcopStatus: VerifyOCOPStatus;
   seller: ISellerRelation;
-  reviews: IReviewRelation[];
+  reviews: IReview[];
   verify: IVerify[];
   // relatedProducts: IProduct[];
 }

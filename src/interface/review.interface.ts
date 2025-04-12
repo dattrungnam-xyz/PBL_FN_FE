@@ -1,3 +1,6 @@
+import { IOrderDetail } from "./order.interface";
+import { IUser } from "./user.interface";
+
 export interface ICreateReview {
   rating: number;
   description: string;
@@ -13,4 +16,6 @@ export interface IReview {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  user: IUser;
+  orderDetail?: IOrderDetail;
 }

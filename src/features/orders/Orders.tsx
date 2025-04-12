@@ -48,6 +48,7 @@ import CustomBackdrop from "../../components/UI/CustomBackdrop";
 import { createReview, deleteReview } from "../../services/review.service";
 import ViewReviewModal from "./component/ViewReviewModal";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const orderStatuses = {
   pending_payment: {
@@ -140,7 +141,7 @@ const Orders = () => {
   const [isOrderDetailModalOpen, setIsOrderDetailModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isViewReviewModalOpen, setIsViewReviewModalOpen] = useState(false);
-
+  const navigate = useNavigate();
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   };
@@ -582,7 +583,13 @@ const Orders = () => {
                   border: 1,
                   borderColor: "divider",
                   borderRadius: 1,
+                  cursor: "pointer",
                 }}
+                onClick={() =>
+                  navigate(`/product/${item.product.id}`, {
+                    state: { product: item.product },
+                  })
+                }
               >
                 S
               </Avatar>
