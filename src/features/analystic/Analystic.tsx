@@ -6,10 +6,9 @@ import {
   Stack,
   Paper,
   Button,
+  Avatar,
 } from "@mui/material";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -29,7 +28,7 @@ import {
 } from "../../services/order.service";
 import { getCustomerCount } from "../../services/customer.service";
 import { getReviewCount } from "../../services/review.service";
-import { getTopProduct } from "../../services/product.service"; 
+import { getTopProduct } from "../../services/product.service";
 import { IProductTableData } from "../../interface/product.interface";
 interface RevenueByTime {
   time: string;
@@ -180,13 +179,48 @@ const mockAnalytics: AnalyticsData = {
     { time: "Chủ nhật", revenue: 4000000, orders: 50, customers: 32 },
   ],
   conversionMetrics: [
-    { time: "Thứ 2", conversionRate: 2.5, averageOrderValue: 75000, bounceRate: 45 },
-    { time: "Thứ 3", conversionRate: 3.2, averageOrderValue: 82000, bounceRate: 42 },
-    { time: "Thứ 4", conversionRate: 3.8, averageOrderValue: 88000, bounceRate: 38 },
-    { time: "Thứ 5", conversionRate: 4.1, averageOrderValue: 92000, bounceRate: 35 },
-    { time: "Thứ 6", conversionRate: 4.5, averageOrderValue: 95000, bounceRate: 32 },
-    { time: "Thứ 7", conversionRate: 5.2, averageOrderValue: 105000, bounceRate: 28 },
-    { time: "Chủ nhật", conversionRate: 5.8, averageOrderValue: 115000, bounceRate: 25 },
+    {
+      time: "Thứ 2",
+      conversionRate: 2.5,
+      averageOrderValue: 75000,
+      bounceRate: 45,
+    },
+    {
+      time: "Thứ 3",
+      conversionRate: 3.2,
+      averageOrderValue: 82000,
+      bounceRate: 42,
+    },
+    {
+      time: "Thứ 4",
+      conversionRate: 3.8,
+      averageOrderValue: 88000,
+      bounceRate: 38,
+    },
+    {
+      time: "Thứ 5",
+      conversionRate: 4.1,
+      averageOrderValue: 92000,
+      bounceRate: 35,
+    },
+    {
+      time: "Thứ 6",
+      conversionRate: 4.5,
+      averageOrderValue: 95000,
+      bounceRate: 32,
+    },
+    {
+      time: "Thứ 7",
+      conversionRate: 5.2,
+      averageOrderValue: 105000,
+      bounceRate: 28,
+    },
+    {
+      time: "Chủ nhật",
+      conversionRate: 5.8,
+      averageOrderValue: 115000,
+      bounceRate: 25,
+    },
   ],
 };
 
@@ -240,10 +274,10 @@ const Analystic = () => {
   }, [timeRange]);
 
   useEffect(() => {
-    getTopProduct().then((res) => {
+    getTopProduct(timeRange).then((res) => {
       setTopProduct(res);
     });
-  }, []);
+  }, [timeRange]);
 
   return (
     <Box sx={{ p: 0.5, maxWidth: 1200, margin: "0 auto" }}>
@@ -421,9 +455,10 @@ const Analystic = () => {
         </Box>
 
         {/* Charts */}
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={0.5}
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", sm: "row" }}
+          gap={0.5}
           sx={{ flexWrap: "wrap" }}
         >
           <Card
@@ -550,7 +585,7 @@ const Analystic = () => {
               </Box>
             </CardContent>
           </Card>
-        </Stack>
+        </Box>
 
         {/* Top Products */}
         <Card>
@@ -559,7 +594,7 @@ const Analystic = () => {
               Sản phẩm được đánh giá cao
             </Typography>
             <Stack spacing={0.5}>
-              {analytics.productPerformance.map((product, index) => (
+              {topProduct.map((product, index) => (
                 <Paper
                   key={product.id}
                   variant="outlined"
@@ -596,15 +631,27 @@ const Analystic = () => {
                       flexShrink: 0,
                     }}
                   >
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
+                    {product.images?.[0] ? (
+                      <img
+                        src={product.images?.[0]}
+                        alt={product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <Avatar
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 0,
+                        }}
+                      >
+                        {product.name.charAt(0)}
+                      </Avatar>
+                    )}
                   </Box>
                   <Stack sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="body2" fontWeight={500} noWrap>
@@ -612,18 +659,13 @@ const Analystic = () => {
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography variant="caption" color="text.secondary">
-                        Đánh giá: {product.rating.toFixed(1)}
+                        Đánh giá: {product.avgRating?.toFixed(1)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        | Đánh giá: {product.reviews}
+                        | Đánh giá: {product.reviewCount}
                       </Typography>
-                      <Typography
-                        variant="caption"
-                        color={
-                          product.growth >= 0 ? "success.main" : "error.main"
-                        }
-                      >
-                        | Tăng: {product.growth}%
+                      <Typography variant="caption" color="text.secondary">
+                        | Đơn hàng: {product.orderDetailCount}
                       </Typography>
                     </Stack>
                   </Stack>

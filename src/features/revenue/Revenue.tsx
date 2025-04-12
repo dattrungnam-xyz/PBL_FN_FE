@@ -13,6 +13,7 @@ import {
   TableHead,
   TableRow,
   LinearProgress,
+  Avatar,
 } from "@mui/material";
 import {
   XAxis,
@@ -24,7 +25,20 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  IAnalystic,
+  IAnalysticByCategory,
+  IOrdersAnalystic,
+} from "../../interface";
+import {
+  getOrdersAnalystic,
+  getRevenueAnalystic,
+  getRevenueAnalysticByCategory,
+} from "../../services/order.service";
+import { getCategoryText } from "../../utils";
+import { IProductTableData } from "../../interface/product.interface";
+import { getTrendProduct } from "../../services/product.service";
 
 interface RevenueMetrics {
   time: string;
@@ -112,7 +126,37 @@ const formatCurrency = (value: number): string => {
 const Revenue = () => {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("week");
   const [revenueData] = useState<RevenueData>(mockRevenueData);
+  const [revenue, setRevenue] = useState<IAnalystic>({
+    currentCycle: 0,
+    previousCycle: 0,
+    percentage: 0,
+  });
+  const [orders, setOrders] = useState<IOrdersAnalystic>({
+    currentCycle: 0,
+    previousCycle: 0,
+    percentage: 0,
+    currentCycleTotalPrice: 0,
+    previousCycleTotalPrice: 0,
+  });
+  const [revenueByCategory, setRevenueByCategory] = useState<
+    IAnalysticByCategory[]
+  >([]);
+  const [trendProduct, setTrendProduct] = useState<IProductTableData[]>([]);
 
+  useEffect(() => {
+    getRevenueAnalystic(timeRange).then((res) => {
+      setRevenue(res);
+    });
+    getOrdersAnalystic(timeRange).then((res) => {
+      setOrders(res);
+    });
+    getRevenueAnalysticByCategory(timeRange).then((res) => {
+      setRevenueByCategory(res);
+    });
+    getTrendProduct(timeRange).then((res) => {
+      setTrendProduct(res);
+    });
+  }, [timeRange]);
   return (
     <Box sx={{ p: 0.5, maxWidth: 1200, margin: "0 auto" }}>
       <Stack spacing={0.5}>
@@ -154,15 +198,29 @@ const Revenue = () => {
                   Tổng doanh thu
                 </Typography>
                 <Typography variant="h6" fontWeight={600}>
-                  {formatCurrency(revenueData.totalRevenue)}
+                  {formatCurrency(revenue.currentCycle)}
                 </Typography>
                 <Stack spacing={0.5}>
                   <Typography variant="caption" color="text.secondary">
-                    Tăng trưởng: {revenueData.revenueGrowth}%
+                    Tăng trưởng:{" "}
+                    {revenue.previousCycle
+                      ? (
+                          (revenue.currentCycle / revenue.previousCycle) *
+                          100
+                        ).toFixed(2)
+                      : 100}
+                    %
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={revenueData.revenueGrowth}
+                    value={
+                      revenue.previousCycle
+                        ? +(
+                            (revenue.currentCycle / revenue.previousCycle) *
+                            100
+                          ).toFixed(2)
+                        : 100
+                    }
                     sx={{ height: 4, borderRadius: 2 }}
                   />
                 </Stack>
@@ -176,16 +234,49 @@ const Revenue = () => {
                   Số đơn hàng
                 </Typography>
                 <Typography variant="h6" fontWeight={600}>
-                  {revenueData.totalOrders}
+                  {orders.currentCycle}
                 </Typography>
                 <Stack spacing={0.5}>
-                  <Typography variant="caption" color="text.secondary">
-                    Giá trị trung bình:{" "}
-                    {formatCurrency(revenueData.averageOrderValue)}
-                  </Typography>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    spacing={0.5}
+                  >
+                    <Typography variant="caption" color="text.secondary">
+                      Giá trị trung bình:{" "}
+                      {orders.currentCycle
+                        ? formatCurrency(
+                            orders.currentCycleTotalPrice / orders.currentCycle,
+                          )
+                        : 0}{" "}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Tăng trưởng:{" "}
+                      {orders.previousCycleTotalPrice
+                        ? (
+                            (orders.currentCycleTotalPrice /
+                              orders.previousCycleTotalPrice) *
+                            100
+                          ).toFixed(2)
+                        : 100}
+                      %
+                    </Typography>
+                  </Stack>
+
                   <LinearProgress
                     variant="determinate"
-                    value={(revenueData.averageOrderValue / 150000) * 100}
+                    value={
+                      orders.previousCycleTotalPrice &&
+                      orders.currentCycleTotalPrice <
+                        orders.previousCycleTotalPrice
+                        ? +(
+                            (orders.currentCycleTotalPrice /
+                              orders.previousCycleTotalPrice) *
+                            100
+                          ).toFixed(2)
+                        : 100
+                    }
                     sx={{ height: 4, borderRadius: 2 }}
                   />
                 </Stack>
@@ -234,7 +325,7 @@ const Revenue = () => {
                 Doanh thu theo danh mục
               </Typography>
               <Stack spacing={1}>
-                {revenueData.revenueByCategory.map((category) => (
+                {revenueByCategory.map((category) => (
                   <Stack key={category.category} spacing={0.5}>
                     <Stack
                       direction="row"
@@ -242,10 +333,10 @@ const Revenue = () => {
                       alignItems="center"
                     >
                       <Typography variant="body2">
-                        {category.category}
+                        {getCategoryText(category.category)}
                       </Typography>
                       <Typography variant="body2" fontWeight={500}>
-                        {formatCurrency(category.revenue)}
+                        {formatCurrency(category.revenueCurrentCycle)}
                       </Typography>
                     </Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -263,7 +354,7 @@ const Revenue = () => {
                         }}
                       />
                       <Typography variant="caption" color="success.main">
-                        +{category.growth}%
+                        {category.percentage}%
                       </Typography>
                     </Stack>
                   </Stack>
@@ -290,7 +381,7 @@ const Revenue = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {revenueData.topProducts.map((product, index) => (
+                  {trendProduct.map((product, index) => (
                     <TableRow key={product.id}>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>
@@ -307,24 +398,37 @@ const Revenue = () => {
                               overflow: "hidden",
                             }}
                           >
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
+                            {product.images?.length > 0 ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            ) : (
+                              <Avatar
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: 0,
+                                  backgroundColor: "primary.lighter",
+                                }}
+                              >
+                                {product.name.charAt(0)}
+                              </Avatar>
+                            )}
                           </Box>
                           <Typography variant="body2">
                             {product.name}
                           </Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell align="right">{product.sold}</TableCell>
+                      <TableCell align="right">{product.orderDetailCount}</TableCell>
                       <TableCell align="right">
-                        {formatCurrency(product.revenue)}
+                        {formatCurrency(product.totalRevenue || 0)}
                       </TableCell>
                     </TableRow>
                   ))}

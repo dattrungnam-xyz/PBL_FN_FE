@@ -56,8 +56,16 @@ export const getProductByStoreId = async (
   return response.data;
 };
 
-export const getTopProduct = async (): Promise<IProductTableData[]> => {
-  const response = await axios.get("/products/seller/top-rating");
-  console.log(response.data);
+export const getTopProduct = async (
+  type: "week" | "month" | "year",
+): Promise<IProductTableData[]> => {
+  const response = await axios.get(`/products/seller/top-rating?type=${type}`);
+  return response.data;
+};
+
+export const getTrendProduct = async (
+  type: "week" | "month" | "year",
+): Promise<IProductTableData[]> => {
+  const response = await axios.get(`/products/seller/top-trending?type=${type}`);
   return response.data;
 };

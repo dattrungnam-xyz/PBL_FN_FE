@@ -2,9 +2,11 @@ import axios from "../axios";
 import { OrderStatus } from "../enums";
 import {
   IAnalystic,
+  IAnalysticByCategory,
   ICancelRequest,
   ICreateOrder,
   IOrder,
+  IOrdersAnalystic,
   IRefundRequest,
 } from "../interface";
 import PaginatedData from "../types/PaginatedData";
@@ -128,9 +130,20 @@ export const getRevenueAnalystic = async (
 
 export const getOrdersAnalystic = async (
   type: "week" | "month" | "year",
-): Promise<IAnalystic> => {
+): Promise<IOrdersAnalystic> => {
   const response = await axios.get("/orders/analysis/order", {
     params: { type },
+  });
+  return response.data;
+};
+
+export const getRevenueAnalysticByCategory = async (
+  type: "week" | "month" | "year",
+): Promise<IAnalysticByCategory[]> => {
+  const response = await axios.get("/orders/analysis/revenue-by-category", {
+    params: {
+      type,
+    },
   });
   return response.data;
 };

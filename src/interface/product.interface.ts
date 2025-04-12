@@ -38,6 +38,10 @@ export interface IProductTableData {
   verifyOcopStatus: VerifyOCOPStatus;
   createdAt: string;
   deletedAt: string | null;
+  avgRating?: number;
+  reviewCount?: number;
+  orderDetailCount?: number;
+  totalRevenue?: number;
 }
 
 export interface IProduct {
