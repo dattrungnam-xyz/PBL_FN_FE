@@ -17,7 +17,7 @@ import {
   ICancelRequest,
 } from "./order.interface";
 import { IAddress } from "./userAddress.interface";
-
+import { IAnalystic } from "./common.interface";
 export type {
   IProvince,
   IDistrict,
@@ -41,4 +41,5 @@ export type {
   IAddress,
   IRefundRequest,
   ICancelRequest,
+  IAnalystic,
 };

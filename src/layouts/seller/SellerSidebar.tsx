@@ -24,14 +24,11 @@ import {
 } from "@mui/icons-material";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-// import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import BarChartIcon from "@mui/icons-material/BarChart";
-import TimelineIcon from "@mui/icons-material/Timeline";
 import PeopleIcon from "@mui/icons-material/People";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import SettingsIcon from "@mui/icons-material/Settings";
 import { useState } from "react";
 
 const drawerWidth = 220;
@@ -139,11 +136,6 @@ const menuGroups: MenuGroup[] = [
         icon: <BarChartIcon />,
         path: "/seller/revenue",
       },
-      {
-        label: "Xu hướng",
-        icon: <TimelineIcon />,
-        path: "/seller/trends",
-      },
     ],
   },
   {
@@ -163,11 +155,6 @@ const menuGroups: MenuGroup[] = [
         label: "Đánh giá",
         icon: <StarBorderIcon />,
         path: "/seller/reviews",
-      },
-      {
-        label: "Cài đặt",
-        icon: <SettingsIcon />,
-        path: "/seller/settings",
       },
     ],
   },

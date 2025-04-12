@@ -1,6 +1,7 @@
 import axios from "../axios";
 import { OrderStatus } from "../enums";
 import {
+  IAnalystic,
   ICancelRequest,
   ICreateOrder,
   IOrder,
@@ -110,6 +111,26 @@ export const acceptRefundOrder = async (orderId: string) => {
 export const rejectRefundOrder = async (orderId: string, reason: string) => {
   const response = await axios.patch(`/orders/${orderId}/reject-refund`, {
     reason,
+  });
+  return response.data;
+};
+
+export const getRevenueAnalystic = async (
+  type: "week" | "month" | "year",
+): Promise<IAnalystic> => {
+  const response = await axios.get("/orders/analysis/revenue", {
+    params: {
+      type,
+    },
+  });
+  return response.data;
+};
+
+export const getOrdersAnalystic = async (
+  type: "week" | "month" | "year",
+): Promise<IAnalystic> => {
+  const response = await axios.get("/orders/analysis/order", {
+    params: { type },
   });
   return response.data;
 };

@@ -51,6 +51,10 @@ import RequireRefund from "./features/orderManagement/RequireRefund.tsx";
 import Cancelled from "./features/orderManagement/Cancelled.tsx";
 import RequireCancelled from "./features/orderManagement/RequireCancelled.tsx";
 import Rejected from "./features/orderManagement/Rejected.tsx";
+import Analystic from "./features/analystic/Analystic.tsx";
+import Revenue from "./features/revenue/Revenue.tsx";
+import Review from "./features/review/Review.tsx";
+import Customer from "./features/customer/Customer.tsx";
 
 const router = createBrowserRouter([
   {
@@ -111,6 +115,22 @@ const router = createBrowserRouter([
       {
         path: "",
         element: <UpdateStore />,
+      },
+      {
+        path: "analytics",
+        element: <Analystic />,
+      },
+      {
+        path: "reviews",
+        element: <Review />,
+      },
+      {
+        path: "customers",
+        element: <Customer />,
+      },
+      {
+        path: "revenue",
+        element: <Revenue />,
       },
       {
         path: "create",

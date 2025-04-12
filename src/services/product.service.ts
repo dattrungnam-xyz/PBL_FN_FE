@@ -55,3 +55,9 @@ export const getProductByStoreId = async (
   );
   return response.data;
 };
+
+export const getTopProduct = async (): Promise<IProductTableData[]> => {
+  const response = await axios.get("/products/seller/top-rating");
+  console.log(response.data);
+  return response.data;
+};
