@@ -6,10 +6,8 @@ import {
   Stack,
   Avatar,
   Rating,
-  Chip,
   Tabs,
   Tab,
-  Divider,
   TextField,
   InputAdornment,
   Select,
@@ -19,184 +17,145 @@ import {
   Button,
   ButtonGroup,
   Pagination,
+  LinearProgress,
 } from "@mui/material";
-import { useState } from "react";
+import { format } from "date-fns";
+import { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import Proof from "./Proof";
-
-interface Review {
-  id: string;
-  customerName: string;
-  customerAvatar: string;
-  productName: string;
-  productImage: string;
-  rating: number;
-  comment: string;
-  date: string;
-  images?: string[];
-  verified: boolean;
-}
-
-interface ReviewStats {
-  totalReviews: number;
-  averageRating: number;
-  ratingDistribution: {
-    rating: number;
-    count: number;
-    percentage: number;
-  }[];
-  recentReviews: Review[];
-  productReviews: {
-    [key: string]: {
-      name: string;
-      image: string;
-      averageRating: number;
-      totalReviews: number;
-      reviews: Review[];
-    };
-  };
-}
-
-const mockReviewStats: ReviewStats = {
-  totalReviews: 150,
-  averageRating: 4.5,
-  ratingDistribution: [
-    { rating: 5, count: 80, percentage: 53.3 },
-    { rating: 4, count: 45, percentage: 30 },
-    { rating: 3, count: 15, percentage: 10 },
-    { rating: 2, count: 5, percentage: 3.3 },
-    { rating: 1, count: 5, percentage: 3.3 },
-  ],
-  recentReviews: [
-    {
-      id: "1",
-      customerName: "Nguyễn Văn A",
-      customerAvatar: "https://example.com/avatar1.jpg",
-      productName: "Gạo ST25",
-      productImage: "https://example.com/rice.jpg",
-      rating: 5,
-      comment:
-        "Gạo rất ngon, chất lượng tốt, đóng gói cẩn thận. Sẽ tiếp tục ủng hộ cửa hàng.",
-      date: "2024-03-15",
-      images: [
-        "https://example.com/review1-1.jpg",
-        "https://example.com/review1-2.jpg",
-      ],
-      verified: true,
-    },
-    {
-      id: "2",
-      customerName: "Trần Thị B",
-      customerAvatar: "https://example.com/avatar2.jpg",
-      productName: "Mật ong rừng",
-      productImage: "https://example.com/honey.jpg",
-      rating: 4,
-      comment: "Mật ong thơm ngon, giá cả hợp lý. Chỉ hơi đặc một chút.",
-      date: "2024-03-14",
-      verified: true,
-    },
-    {
-      id: "3",
-      customerName: "Lê Văn C",
-      customerAvatar: "https://example.com/avatar3.jpg",
-      productName: "Cá basa",
-      productImage: "https://example.com/fish.jpg",
-      rating: 5,
-      comment: "Cá tươi ngon, đóng gói đẹp, giao hàng nhanh. Rất hài lòng!",
-      date: "2024-03-13",
-      images: ["https://example.com/review3-1.jpg"],
-      verified: true,
-    },
-  ],
-  productReviews: {
-    "gao-st25": {
-      name: "Gạo ST25",
-      image: "https://example.com/rice.jpg",
-      averageRating: 4.8,
-      totalReviews: 50,
-      reviews: [
-        {
-          id: "1",
-          customerName: "Nguyễn Văn A",
-          customerAvatar: "https://example.com/avatar1.jpg",
-          productName: "Gạo ST25",
-          productImage: "https://example.com/rice.jpg",
-          rating: 5,
-          comment:
-            "Gạo rất ngon, chất lượng tốt, đóng gói cẩn thận. Sẽ tiếp tục ủng hộ cửa hàng.",
-          date: "2024-03-15",
-          images: [
-            "https://example.com/review1-1.jpg",
-            "https://example.com/review1-2.jpg",
-          ],
-          verified: true,
-        },
-        // Thêm các đánh giá khác cho sản phẩm này
-      ],
-    },
-    "mat-ong": {
-      name: "Mật ong rừng",
-      image: "https://example.com/honey.jpg",
-      averageRating: 4.5,
-      totalReviews: 30,
-      reviews: [
-        {
-          id: "2",
-          customerName: "Trần Thị B",
-          customerAvatar: "https://example.com/avatar2.jpg",
-          productName: "Mật ong rừng",
-          productImage: "https://example.com/honey.jpg",
-          rating: 4,
-          comment: "Mật ong thơm ngon, giá cả hợp lý. Chỉ hơi đặc một chút.",
-          date: "2024-03-14",
-          verified: true,
-        },
-        // Thêm các đánh giá khác cho sản phẩm này
-      ],
-    },
-    // Thêm các sản phẩm khác
-  },
-};
+import { IReview, IReviewStatistic } from "../../interface";
+import {
+  getRecentReviews,
+  getReviews,
+  getReviewStatistic,
+} from "../../services/review.service";
+import ImageDetail from "../../components/ImageDetail";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import RateReviewIcon from "@mui/icons-material/RateReview";
+import { getProductByStoreId } from "../../services/product.service";
+import { useSelector } from "react-redux";
+import { RootState } from "../../stores";
+import { AuthState } from "../../stores/authSlice";
+import { Navigate } from "react-router-dom";
+import { IProductTableData } from "../../interface/product.interface";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const Review = () => {
-  const [viewType, setViewType] = useState<"general" | "products" | "all">(
-    "general",
-  );
+  const [viewType, setViewType] = useState<"general" | "all">("general");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<string>("");
+  const [selectedProduct, setSelectedProduct] = useState("");
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [proofOpen, setProofOpen] = useState(false);
   const [selectedProof, setSelectedProof] = useState<{
     media: { type: "image" | "video"; url: string }[];
     initialIndex: number;
   } | null>(null);
-  const [reviewStats] = useState<ReviewStats>(mockReviewStats);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [selectedMediaList, setSelectedMediaList] = useState<string[]>([]);
 
-  const ITEMS_PER_PAGE = 5;
+  const [reviewStatistic, setReviewStatistic] = useState<IReviewStatistic>({
+    totalReviews: 0,
+    averageRating: 0,
+    ratingDistribution: [],
+  });
+  const [recentReviews, setRecentReviews] = useState<IReview[]>([]);
 
-  const handleProofClick = (images: string[], initialIndex: number) => {
-    setSelectedProof({
-      media: images.map((url) => ({ type: "image", url })),
-      initialIndex,
-    });
-    setProofOpen(true);
-  };
+  const [products, setProducts] = useState<IProductTableData[]>([]);
+  const [allReviews, setAllReviews] = useState<IReview[]>([]);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const { user } = useSelector<RootState, AuthState>((state) => state.auth);
+  const limit = 5;
+
+  const searchDebounce = useDebounce(searchQuery, 1000);
+
+  useEffect(() => {
+    if (!user?.storeId) return;
+    const fetchReviewStatistic = async () => {
+      try {
+        const response = await getReviewStatistic();
+        setReviewStatistic(response);
+      } catch (error) {
+        console.error("Error fetching review statistic:", error);
+      }
+    };
+
+    const fetchRecentReviews = async () => {
+      try {
+        const response = await getRecentReviews();
+        setRecentReviews(response);
+      } catch (error) {
+        console.error("Error fetching recent reviews:", error);
+      }
+    };
+
+    const fetchProducts = async () => {
+      try {
+        const response = await getProductByStoreId(user?.storeId, {
+          page: 1,
+          limit: 1000,
+        });
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchReviewStatistic();
+    fetchRecentReviews();
+    fetchProducts();
+  }, [user?.storeId]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const response = await getReviews({
+        page: currentPage,
+        limit: limit,
+        productId: selectedProduct,
+        rating: selectedRating ?? undefined,
+        search: searchDebounce,
+      });
+      setAllReviews(response.data);
+      setTotalReviews(response.total);
+    };
+    fetchReviews();
+  }, [currentPage, selectedProduct, selectedRating, searchDebounce]);
 
   const handleCloseProof = () => {
     setProofOpen(false);
     setSelectedProof(null);
   };
 
-  const getPaginatedReviews = (reviews: Review[]) => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return reviews.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const handleMediaClick = (images: string[], index: number) => {
+    setSelectedMediaList(images);
+    setSelectedMedia(images[index]);
   };
+
+  const handleNextMedia = () => {
+    if (selectedMedia && selectedMediaList.length > 0) {
+      const currentIndex = selectedMediaList.indexOf(selectedMedia);
+      const nextIndex = (currentIndex + 1) % selectedMediaList.length;
+      setSelectedMedia(selectedMediaList[nextIndex]);
+    }
+  };
+
+  const handlePrevMedia = () => {
+    if (selectedMedia && selectedMediaList.length > 0) {
+      const currentIndex = selectedMediaList.indexOf(selectedMedia);
+      const prevIndex =
+        (currentIndex - 1 + selectedMediaList.length) %
+        selectedMediaList.length;
+      setSelectedMedia(selectedMediaList[prevIndex]);
+    }
+  };
+
+  if (!user?.storeId) {
+    return <Navigate to="/seller/create" />;
+  }
 
   const renderPagination = (totalItems: number) => (
     <Stack alignItems="center" sx={{ mt: 1 }}>
       <Pagination
-        count={Math.ceil(totalItems / ITEMS_PER_PAGE)}
+        count={Math.ceil(totalItems / limit)}
         page={currentPage}
         onChange={(_, value) => setCurrentPage(value)}
         size="small"
@@ -213,16 +172,16 @@ const Review = () => {
           <CardContent sx={{ p: 1 }}>
             <Stack spacing={0.25} alignItems="center">
               <Typography variant="h4" fontWeight={600}>
-                {reviewStats.averageRating.toFixed(1)}
+                {(+reviewStatistic.averageRating).toFixed(1)}
               </Typography>
               <Rating
-                value={reviewStats.averageRating}
+                value={reviewStatistic.averageRating}
                 precision={0.5}
                 readOnly
                 size="small"
               />
               <Typography variant="caption" color="text.secondary">
-                {reviewStats.totalReviews} đánh giá
+                {reviewStatistic.totalReviews} đánh giá
               </Typography>
             </Stack>
           </CardContent>
@@ -230,122 +189,283 @@ const Review = () => {
         <Card sx={{ flex: 2, minWidth: 300 }}>
           <CardContent sx={{ p: 1 }}>
             <Stack spacing={0.5}>
-              {reviewStats.ratingDistribution.map((dist) => (
-                <Stack key={dist.rating} spacing={0.5}>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <Typography variant="body2" sx={{ minWidth: 20 }}>
-                      {dist.rating}
-                    </Typography>
-                    <Rating value={dist.rating} max={1} readOnly size="small" />
-                    <Box sx={{ flex: 1 }}>
-                      <Box
-                        sx={{
-                          height: 4,
-                          borderRadius: 2,
-                          backgroundColor: "primary.lighter",
-                          width: `${dist.percentage}%`,
-                        }}
+              {reviewStatistic.ratingDistribution.map((dist) => {
+                return (
+                  <Stack key={dist.rating} spacing={0.5}>
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <Typography variant="body2" sx={{ minWidth: 20 }}>
+                        {dist.rating}
+                      </Typography>
+                      <Rating
+                        value={dist.rating}
+                        max={1}
+                        readOnly
+                        size="small"
                       />
-                    </Box>
-                    <Typography variant="caption" sx={{ minWidth: 40 }}>
-                      {dist.count}
-                    </Typography>
+                      <Box sx={{ flex: 1 }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={dist.percentage}
+                          sx={{
+                            height: 8,
+                            borderRadius: 1,
+                            backgroundColor: "grey.100",
+                            "& .MuiLinearProgress-bar": {
+                              backgroundColor: "warning.main",
+                            },
+                          }}
+                        />
+                      </Box>
+                      <Typography variant="caption" sx={{ minWidth: 40 }}>
+                        {dist.count}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ minWidth: 40 }}
+                      >
+                        ({dist.percentage.toFixed(1)}%)
+                      </Typography>
+                    </Stack>
                   </Stack>
-                </Stack>
-              ))}
+                );
+              })}
             </Stack>
           </CardContent>
         </Card>
       </Stack>
 
       {/* Recent Reviews */}
-      <Card>
+      <Card
+        sx={{
+          borderRadius: 0.5,
+          boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+          "&:hover": {
+            boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+          },
+        }}
+      >
         <CardContent sx={{ p: 1 }}>
-          <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 0.5,
+              fontWeight: 600,
+              color: "text.primary",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.25,
+            }}
+          >
+            <RateReviewIcon fontSize="small" />
             Đánh giá gần đây
           </Typography>
           <Stack spacing={0.5}>
-            {reviewStats.recentReviews.map((review) => (
-              <Box key={review.id}>
+            {recentReviews.map((review) => (
+              <Box
+                key={review.id}
+                sx={{
+                  p: 1,
+                  borderRadius: 0.5,
+                  bgcolor: "background.paper",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  "&:hover": {
+                    bgcolor: "action.hover",
+                  },
+                }}
+              >
                 <Stack spacing={0.5}>
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <Avatar
-                      src={review.customerAvatar}
-                      sx={{ width: 32, height: 32 }}
-                    />
-                    <Stack sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={500}>
-                        {review.customerName}
-                      </Typography>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Rating value={review.rating} readOnly size="small" />
-                        <Typography variant="caption" color="text.secondary">
-                          {review.date}
-                        </Typography>
-                        {review.verified && (
-                          <Chip
-                            label="Đã xác thực"
-                            size="small"
-                            color="success"
-                          />
-                        )}
-                      </Stack>
-                    </Stack>
-                  </Stack>
-                  <Stack direction="row" spacing={0.5} alignItems="flex-start">
+                  {/* Product Info */}
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    alignItems="flex-start"
+                    sx={{
+                      p: 0.5,
+                      borderRadius: 0.5,
+                      bgcolor: "grey.50",
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
                     <Box
                       sx={{
                         width: 40,
                         height: 40,
-                        borderRadius: 1,
+                        borderRadius: 0.5,
                         overflow: "hidden",
+                        border: "1px solid",
+                        borderColor: "divider",
+                        flexShrink: 0,
                       }}
                     >
-                      <img
-                        src={review.productImage}
-                        alt={review.productName}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
+                      {review.product.images?.[0] ? (
+                        <img
+                          src={review.product.images?.[0]}
+                          alt={review.product.name}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <Avatar
+                          src={review.product.images?.[0]}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 0.5,
+                            bgcolor: "primary.light",
+                          }}
+                        >
+                          {review.product.name}
+                        </Avatar>
+                      )}
                     </Box>
                     <Stack sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={500}>
-                        {review.productName}
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        color="primary"
+                      >
+                        {review.product.name} x {review.orderDetail?.quantity}
                       </Typography>
-                      <Typography variant="body2">{review.comment}</Typography>
-                      {review.images && (
-                        <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
-                          {review.images.map((image, index) => (
+                    </Stack>
+                  </Stack>
+
+                  {/* Review Content */}
+                  <Stack spacing={0.5}>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Avatar
+                        src={review.user.avatar}
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          border: "1px solid",
+                          borderColor: "primary.main",
+                        }}
+                      />
+                      <Stack sx={{ flex: 1 }}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {review.user.name}
+                        </Typography>
+                        <Stack
+                          direction="row"
+                          spacing={0.25}
+                          alignItems="center"
+                        >
+                          <Rating
+                            value={review.rating}
+                            readOnly
+                            size="small"
+                            sx={{
+                              "& .MuiRating-iconFilled": {
+                                color: "warning.main",
+                              },
+                            }}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            {format(new Date(review.createdAt), "dd/MM/yyyy")}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    </Stack>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "text.secondary",
+                        lineHeight: 1.3,
+                        fontSize: "0.8125rem",
+                      }}
+                    >
+                      {review.description}
+                    </Typography>
+                    {review.media && (
+                      <Stack
+                        direction="row"
+                        spacing={0.25}
+                        sx={{
+                          mt: 0.5,
+                          flexWrap: "wrap",
+                          gap: 0.25,
+                        }}
+                      >
+                        {review.media.map((media, index) => {
+                          const isVideo =
+                            media.toLowerCase().endsWith(".mp4") ||
+                            media.toLowerCase().endsWith(".mov") ||
+                            media.toLowerCase().endsWith(".webm");
+
+                          return (
                             <Box
                               key={index}
                               sx={{
-                                width: 60,
-                                height: 60,
-                                borderRadius: 1,
+                                width: 56,
+                                height: 56,
+                                borderRadius: 0.5,
                                 overflow: "hidden",
                                 cursor: "pointer",
+                                position: "relative",
+                                border: "1px solid",
+                                borderColor: "divider",
+                                "&:hover": {
+                                  borderColor: "primary.main",
+                                  transform: "scale(1.02)",
+                                  transition: "all 0.2s ease",
+                                },
                               }}
+                              onClick={() =>
+                                handleMediaClick(review.media || [], index)
+                              }
                             >
-                              <img
-                                src={image}
-                                alt={`Review ${index + 1}`}
-                                style={{
-                                  width: "100%",
-                                  height: "100%",
-                                  objectFit: "cover",
-                                }}
-                              />
+                              {isVideo ? (
+                                <>
+                                  <video
+                                    src={media}
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                  <Box
+                                    sx={{
+                                      position: "absolute",
+                                      top: "50%",
+                                      left: "50%",
+                                      transform: "translate(-50%, -50%)",
+                                      color: "white",
+                                      bgcolor: "rgba(0,0,0,0.5)",
+                                      borderRadius: "50%",
+                                      p: 0.25,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    }}
+                                  >
+                                    <PlayArrowIcon fontSize="small" />
+                                  </Box>
+                                </>
+                              ) : (
+                                <img
+                                  src={media}
+                                  alt={`Review ${index + 1}`}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              )}
                             </Box>
-                          ))}
-                        </Stack>
-                      )}
-                    </Stack>
+                          );
+                        })}
+                      </Stack>
+                    )}
                   </Stack>
                 </Stack>
-                <Divider sx={{ my: 0.5 }} />
               </Box>
             ))}
           </Stack>
@@ -354,237 +474,45 @@ const Review = () => {
     </>
   );
 
-  const renderProductReviews = () => {
-    const filteredProducts = Object.entries(reviewStats.productReviews)
-      .filter(
-        ([productId]) => !selectedProduct || productId === selectedProduct,
-      )
-      .map(([productId, product]) => ({
-        ...product,
-        reviews: product.reviews.filter(
-          (review) => !selectedRating || review.rating === selectedRating,
-        ),
-      }));
-
+  const renderAllReviews = () => {
     return (
       <Stack spacing={0.5}>
         <Card>
           <CardContent sx={{ p: 1 }}>
             <Stack spacing={0.5}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Chọn sản phẩm</InputLabel>
-                <Select
-                  value={selectedProduct}
-                  onChange={(e) => setSelectedProduct(e.target.value)}
-                  label="Chọn sản phẩm"
-                >
-                  <MenuItem value="">Tất cả sản phẩm</MenuItem>
-                  {Object.entries(reviewStats.productReviews).map(
-                    ([productId, product]) => (
-                      <MenuItem key={productId} value={productId}>
+              <Stack direction="row" spacing={0.5}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Tìm kiếm đánh giá..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                  <InputLabel>Chọn sản phẩm</InputLabel>
+                  <Select
+                    value={selectedProduct}
+                    onChange={(e) => setSelectedProduct(e.target.value)}
+                    label="Chọn sản phẩm"
+                  >
+                    <MenuItem value="All">Tất cả sản phẩm</MenuItem>
+                    {products.map((product) => (
+                      <MenuItem key={product.id} value={product.id}>
                         {product.name}
                       </MenuItem>
-                    ),
-                  )}
-                </Select>
-              </FormControl>
-              {selectedProduct && (
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <Typography variant="body2" sx={{ minWidth: 60 }}>
-                    Lọc theo sao:
-                  </Typography>
-                  <ButtonGroup size="small">
-                    <Button
-                      variant={
-                        selectedRating === null ? "contained" : "outlined"
-                      }
-                      onClick={() => setSelectedRating(null)}
-                    >
-                      Tất cả
-                    </Button>
-                    {[5, 4, 3, 2, 1].map((rating) => (
-                      <Button
-                        key={rating}
-                        variant={
-                          selectedRating === rating ? "contained" : "outlined"
-                        }
-                        onClick={() => setSelectedRating(rating)}
-                      >
-                        {rating} sao
-                      </Button>
                     ))}
-                  </ButtonGroup>
-                </Stack>
-              )}
-            </Stack>
-          </CardContent>
-        </Card>
-
-        {selectedProduct &&
-          filteredProducts.map((product) => (
-            <Card key={product.name}>
-              <CardContent sx={{ p: 1 }}>
-                <Stack spacing={0.5}>
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 1,
-                        overflow: "hidden",
-                      }}
-                    >
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </Box>
-                    <Stack sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={500}>
-                        {product.name}
-                      </Typography>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Rating
-                          value={product.averageRating}
-                          readOnly
-                          size="small"
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {product.totalReviews} đánh giá
-                        </Typography>
-                      </Stack>
-                    </Stack>
-                  </Stack>
-                  <Stack spacing={0.5}>
-                    {getPaginatedReviews(product.reviews).map((review) => (
-                      <Box key={review.id}>
-                        <Stack spacing={0.5}>
-                          <Stack
-                            direction="row"
-                            spacing={0.5}
-                            alignItems="center"
-                          >
-                            <Avatar
-                              src={review.customerAvatar}
-                              sx={{ width: 32, height: 32 }}
-                            />
-                            <Stack sx={{ flex: 1 }}>
-                              <Typography variant="body2" fontWeight={500}>
-                                {review.customerName}
-                              </Typography>
-                              <Stack
-                                direction="row"
-                                spacing={0.5}
-                                alignItems="center"
-                              >
-                                <Rating
-                                  value={review.rating}
-                                  readOnly
-                                  size="small"
-                                />
-                                <Typography
-                                  variant="caption"
-                                  color="text.secondary"
-                                >
-                                  {review.date}
-                                </Typography>
-                                {review.verified && (
-                                  <Chip
-                                    label="Đã xác thực"
-                                    size="small"
-                                    color="success"
-                                  />
-                                )}
-                              </Stack>
-                            </Stack>
-                          </Stack>
-                          <Typography variant="body2">
-                            {review.comment}
-                          </Typography>
-                          {review.images && (
-                            <Stack
-                              direction="row"
-                              spacing={0.5}
-                              sx={{ mt: 0.5 }}
-                            >
-                              {review.images.map((image, index) => (
-                                <Box
-                                  key={index}
-                                  sx={{
-                                    width: 60,
-                                    height: 60,
-                                    borderRadius: 1,
-                                    overflow: "hidden",
-                                    cursor: "pointer",
-                                  }}
-                                  onClick={() =>
-                                    handleProofClick(review.images || [], index)
-                                  }
-                                >
-                                  <img
-                                    src={image}
-                                    alt={`Review ${index + 1}`}
-                                    style={{
-                                      width: "100%",
-                                      height: "100%",
-                                      objectFit: "cover",
-                                    }}
-                                  />
-                                </Box>
-                              ))}
-                            </Stack>
-                          )}
-                        </Stack>
-                        <Divider sx={{ my: 0.5 }} />
-                      </Box>
-                    ))}
-                  </Stack>
-                  {renderPagination(product.reviews.length)}
-                </Stack>
-              </CardContent>
-            </Card>
-          ))}
-      </Stack>
-    );
-  };
-
-  const renderAllReviews = () => {
-    const allReviews = Object.values(reviewStats.productReviews)
-      .flatMap((product) =>
-        product.reviews.filter(
-          (review) => !selectedRating || review.rating === selectedRating,
-        ),
-      )
-      .filter(
-        (review) =>
-          review.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          review.productName.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-
-    return (
-      <Stack spacing={0.5}>
-        <Card>
-          <CardContent sx={{ p: 1 }}>
-            <Stack spacing={0.5}>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Tìm kiếm đánh giá..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+                  </Select>
+                </FormControl>
+              </Stack>
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <Typography variant="body2" sx={{ minWidth: 60 }}>
                   Lọc theo sao:
@@ -613,94 +541,200 @@ const Review = () => {
           </CardContent>
         </Card>
 
-        {getPaginatedReviews(allReviews).map((review) => (
+        {allReviews.map((review) => (
           <Card key={review.id}>
             <CardContent sx={{ p: 1 }}>
               <Stack spacing={0.5}>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <Avatar
-                    src={review.customerAvatar}
-                    sx={{ width: 32, height: 32 }}
-                  />
-                  <Stack sx={{ flex: 1 }}>
-                    <Typography variant="body2" fontWeight={500}>
-                      {review.customerName}
-                    </Typography>
-                    <Stack direction="row" spacing={0.5} alignItems="center">
-                      <Rating value={review.rating} readOnly size="small" />
-                      <Typography variant="caption" color="text.secondary">
-                        {review.date}
-                      </Typography>
-                      {review.verified && (
-                        <Chip
-                          label="Đã xác thực"
-                          size="small"
-                          color="success"
-                        />
-                      )}
-                    </Stack>
-                  </Stack>
-                </Stack>
-                <Stack direction="row" spacing={0.5} alignItems="flex-start">
+                {/* Product Info */}
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  alignItems="flex-start"
+                  sx={{
+                    p: 0.5,
+                    borderRadius: 0.5,
+                    bgcolor: "grey.50",
+                    border: "1px solid",
+                    borderColor: "divider",
+                  }}
+                >
                   <Box
                     sx={{
                       width: 40,
                       height: 40,
-                      borderRadius: 1,
+                      borderRadius: 0.5,
                       overflow: "hidden",
+                      border: "1px solid",
+                      borderColor: "divider",
+                      flexShrink: 0,
                     }}
                   >
-                    <img
-                      src={review.productImage}
-                      alt={review.productName}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
+                    {review.product.images?.[0] ? (
+                      <img
+                        src={review.product.images?.[0]}
+                        alt={review.product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <Avatar
+                        src={review.product.images?.[0]}
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 0.5,
+                          bgcolor: "primary.light",
+                        }}
+                      >
+                        {review.product.name}
+                      </Avatar>
+                    )}
                   </Box>
                   <Stack sx={{ flex: 1 }}>
-                    <Typography variant="body2" fontWeight={500}>
-                      {review.productName}
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      color="primary"
+                    >
+                      {review.product.name} x {review.orderDetail?.quantity}
                     </Typography>
-                    <Typography variant="body2">{review.comment}</Typography>
-                    {review.images && (
-                      <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
-                        {review.images.map((image, index) => (
+                  </Stack>
+                </Stack>
+
+                {/* Review Content */}
+                <Stack spacing={0.5}>
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <Avatar
+                      src={review.user.avatar}
+                      sx={{
+                        width: 28,
+                        height: 28,
+                        border: "1px solid",
+                        borderColor: "primary.main",
+                      }}
+                    />
+                    <Stack sx={{ flex: 1 }}>
+                      <Typography variant="body2" fontWeight={600}>
+                        {review.user.name}
+                      </Typography>
+                      <Stack direction="row" spacing={0.25} alignItems="center">
+                        <Rating
+                          value={review.rating}
+                          readOnly
+                          size="small"
+                          sx={{
+                            "& .MuiRating-iconFilled": {
+                              color: "warning.main",
+                            },
+                          }}
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {format(new Date(review.createdAt), "dd/MM/yyyy")}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Stack>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "text.secondary",
+                      lineHeight: 1.3,
+                      fontSize: "0.8125rem",
+                    }}
+                  >
+                    {review.description}
+                  </Typography>
+                  {review.media && (
+                    <Stack
+                      direction="row"
+                      spacing={0.25}
+                      sx={{
+                        mt: 0.5,
+                        flexWrap: "wrap",
+                        gap: 0.25,
+                      }}
+                    >
+                      {review.media.map((media, index) => {
+                        const isVideo =
+                          media.toLowerCase().endsWith(".mp4") ||
+                          media.toLowerCase().endsWith(".mov") ||
+                          media.toLowerCase().endsWith(".webm");
+
+                        return (
                           <Box
                             key={index}
                             sx={{
-                              width: 60,
-                              height: 60,
-                              borderRadius: 1,
+                              width: 56,
+                              height: 56,
+                              borderRadius: 0.5,
                               overflow: "hidden",
                               cursor: "pointer",
+                              position: "relative",
+                              border: "1px solid",
+                              borderColor: "divider",
+                              "&:hover": {
+                                borderColor: "primary.main",
+                                transform: "scale(1.02)",
+                                transition: "all 0.2s ease",
+                              },
                             }}
                             onClick={() =>
-                              handleProofClick(review.images || [], index)
+                              handleMediaClick(review.media || [], index)
                             }
                           >
-                            <img
-                              src={image}
-                              alt={`Review ${index + 1}`}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
+                            {isVideo ? (
+                              <>
+                                <video
+                                  src={media}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                                <Box
+                                  sx={{
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -50%)",
+                                    color: "white",
+                                    bgcolor: "rgba(0,0,0,0.5)",
+                                    borderRadius: "50%",
+                                    p: 0.25,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <PlayArrowIcon fontSize="small" />
+                                </Box>
+                              </>
+                            ) : (
+                              <img
+                                src={media}
+                                alt={`Review ${index + 1}`}
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            )}
                           </Box>
-                        ))}
-                      </Stack>
-                    )}
-                  </Stack>
+                        );
+                      })}
+                    </Stack>
+                  )}
                 </Stack>
               </Stack>
             </CardContent>
           </Card>
         ))}
-        {renderPagination(allReviews.length)}
+        {renderPagination(totalReviews)}
       </Stack>
     );
   };
@@ -733,11 +767,6 @@ const Review = () => {
                   sx={{ minHeight: 36, p: 0.5 }}
                 />
                 <Tab
-                  value="products"
-                  label="Đánh giá sản phẩm"
-                  sx={{ minHeight: 36, p: 0.5 }}
-                />
-                <Tab
                   value="all"
                   label="Tất cả đánh giá"
                   sx={{ minHeight: 36, p: 0.5 }}
@@ -749,7 +778,6 @@ const Review = () => {
 
         {/* Content */}
         {viewType === "general" && renderGeneralReviews()}
-        {viewType === "products" && renderProductReviews()}
         {viewType === "all" && renderAllReviews()}
       </Stack>
 
@@ -760,6 +788,18 @@ const Review = () => {
           onClose={handleCloseProof}
           media={selectedProof.media}
           initialIndex={selectedProof.initialIndex}
+        />
+      )}
+
+      {/* Image Detail Dialog */}
+      {selectedMedia && (
+        <ImageDetail
+          open={!!selectedMedia}
+          onClose={() => setSelectedMedia(null)}
+          currentMedia={selectedMedia}
+          mediaList={selectedMediaList}
+          onNext={handleNextMedia}
+          onPrev={handlePrevMedia}
         />
       )}
     </Box>

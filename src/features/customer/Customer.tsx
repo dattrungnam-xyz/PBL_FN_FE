@@ -20,12 +20,13 @@ import {
   ButtonGroup,
   Pagination,
 } from "@mui/material";
-import { useState } from "react";
+import { format } from "date-fns";
+import { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonIcon from "@mui/icons-material/Person";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import StarIcon from "@mui/icons-material/Star";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import RepeatIcon from "@mui/icons-material/Repeat";
 import {
   BarChart,
   Bar,
@@ -36,11 +37,12 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
 } from "recharts";
+import { ICustomerStatistic, ITopCustomer } from "../../interface";
+import {
+  getCustomerStatistic,
+  getTopCustomers,
+} from "../../services/customer.service";
 
 interface Customer {
   id: string;
@@ -52,17 +54,15 @@ interface Customer {
   totalOrders: number;
   totalSpent: number;
   lastOrderDate: string;
-  status: "active" | "inactive" | "new";
-  tags: string[];
-  loyaltyPoints: number;
   averageRating: number;
+  tags: string[];
   favoriteCategories: string[];
 }
 
 interface CustomerStats {
   totalCustomers: number;
-  activeCustomers: number;
-  newCustomers: number;
+  returningCustomers: number;
+  highlyRatedCustomers: number;
   averageOrderValue: number;
   topCustomers: Customer[];
   customerSegments: {
@@ -97,8 +97,8 @@ interface CustomerDemographics {
 
 const mockCustomerStats: CustomerStats = {
   totalCustomers: 1500,
-  activeCustomers: 1200,
-  newCustomers: 50,
+  returningCustomers: 800,
+  highlyRatedCustomers: 450,
   averageOrderValue: 250000,
   topCustomers: [
     {
@@ -111,10 +111,8 @@ const mockCustomerStats: CustomerStats = {
       totalOrders: 25,
       totalSpent: 7500000,
       lastOrderDate: "2024-03-15",
-      status: "active",
-      tags: ["VIP", "Thường xuyên"],
-      loyaltyPoints: 1500,
       averageRating: 4.8,
+      tags: ["VIP", "Thường xuyên"],
       favoriteCategories: ["Gạo", "Thực phẩm khô"],
     },
     {
@@ -127,10 +125,8 @@ const mockCustomerStats: CustomerStats = {
       totalOrders: 18,
       totalSpent: 4500000,
       lastOrderDate: "2024-03-10",
-      status: "active",
-      tags: ["Thường xuyên"],
-      loyaltyPoints: 900,
       averageRating: 4.5,
+      tags: ["Thường xuyên"],
       favoriteCategories: ["Rau củ", "Trái cây"],
     },
     {
@@ -143,10 +139,8 @@ const mockCustomerStats: CustomerStats = {
       totalOrders: 3,
       totalSpent: 750000,
       lastOrderDate: "2024-03-05",
-      status: "new",
-      tags: ["Mới"],
-      loyaltyPoints: 150,
       averageRating: 4.2,
+      tags: ["Mới"],
       favoriteCategories: ["Thực phẩm tươi"],
     },
   ],
@@ -197,20 +191,30 @@ const Customer = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [customerStats] = useState<CustomerStats>(mockCustomerStats);
 
-  const ITEMS_PER_PAGE = 10;
+  const [customerStatistic, setCustomerStatistic] =
+    useState<ICustomerStatistic>({
+      totalCustomers: 0,
+      returningCustomers: 0,
+      highlyRatedCustomers: 0,
+      avrgRevenue: 0,
+    });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "success";
-      case "inactive":
-        return "error";
-      case "new":
-        return "info";
-      default:
-        return "default";
-    }
-  };
+  const [topCustomers, setTopCustomers] = useState<ITopCustomer[]>([]);
+
+  const ITEMS_PER_PAGE = 10;
+  useEffect(() => {
+    const fetchCustomerStatistic = async () => {
+      const response = await getCustomerStatistic();
+      setCustomerStatistic(response);
+    };
+    fetchCustomerStatistic();
+
+    const fetchTopCustomers = async () => {
+      const response = await getTopCustomers();
+      setTopCustomers(response);
+    };
+    fetchTopCustomers();
+  }, []);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -222,13 +226,18 @@ const Customer = () => {
   const renderOverview = () => (
     <Stack spacing={0.5}>
       {/* Summary Cards */}
-      <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
+      <Box
+        display="flex"
+        flexDirection="row"
+        gap={0.5}
+        sx={{ flexWrap: "wrap" }}
+      >
         <Card sx={{ flex: 1, minWidth: 200 }}>
           <CardContent sx={{ p: 1 }}>
             <Stack spacing={0.25} alignItems="center">
               <PersonIcon color="primary" />
               <Typography variant="h4" fontWeight={600}>
-                {customerStats.totalCustomers}
+                {customerStatistic.totalCustomers}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Tổng số khách hàng
@@ -241,7 +250,7 @@ const Customer = () => {
             <Stack spacing={0.25} alignItems="center">
               <ShoppingCartIcon color="success" />
               <Typography variant="h4" fontWeight={600}>
-                {formatCurrency(customerStats.averageOrderValue)}
+                {formatCurrency(customerStatistic.avrgRevenue)}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Giá trị đơn hàng trung bình
@@ -252,12 +261,12 @@ const Customer = () => {
         <Card sx={{ flex: 1, minWidth: 200 }}>
           <CardContent sx={{ p: 1 }}>
             <Stack spacing={0.25} alignItems="center">
-              <StarIcon color="warning" />
+              <RepeatIcon color="warning" />
               <Typography variant="h4" fontWeight={600}>
-                {customerStats.activeCustomers}
+                {customerStatistic.returningCustomers}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Khách hàng tích cực
+                Khách hàng quay lại
               </Typography>
             </Stack>
           </CardContent>
@@ -265,17 +274,17 @@ const Customer = () => {
         <Card sx={{ flex: 1, minWidth: 200 }}>
           <CardContent sx={{ p: 1 }}>
             <Stack spacing={0.25} alignItems="center">
-              <AccessTimeIcon color="info" />
+              <StarIcon color="info" />
               <Typography variant="h4" fontWeight={600}>
-                {customerStats.newCustomers}
+                {customerStatistic.highlyRatedCustomers}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Khách hàng mới
+                Khách hàng đánh giá cao
               </Typography>
             </Stack>
           </CardContent>
         </Card>
-      </Stack>
+      </Box>
 
       {/* Customer Activity */}
       <Card>
@@ -352,12 +361,12 @@ const Customer = () => {
                   <TableCell>Khách hàng</TableCell>
                   <TableCell align="right">Đơn hàng</TableCell>
                   <TableCell align="right">Tổng chi tiêu</TableCell>
-                  <TableCell align="right">Điểm tích lũy</TableCell>
-                  <TableCell>Trạng thái</TableCell>
+                  <TableCell align="right">Đánh giá trung bình</TableCell>
+                  <TableCell>Lần mua gần nhất</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {customerStats.topCustomers.map((customer) => (
+                {topCustomers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell>
                       <Stack direction="row" spacing={0.5} alignItems="center">
@@ -375,25 +384,29 @@ const Customer = () => {
                         </Stack>
                       </Stack>
                     </TableCell>
-                    <TableCell align="right">{customer.totalOrders}</TableCell>
+                    <TableCell align="right">{customer.orderCount}</TableCell>
                     <TableCell align="right">
                       {formatCurrency(customer.totalSpent)}
                     </TableCell>
                     <TableCell align="right">
-                      {customer.loyaltyPoints}
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        alignItems="center"
+                        justifyContent="flex-end"
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          {(+customer.averageRating).toFixed(1)}
+                        </Typography>
+                        <StarIcon
+                          sx={{ fontSize: 16, color: "warning.main" }}
+                        />
+                      </Stack>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={
-                          customer.status === "active"
-                            ? "Đang hoạt động"
-                            : customer.status === "inactive"
-                              ? "Không hoạt động"
-                              : "Mới"
-                        }
-                        size="small"
-                        color={getStatusColor(customer.status)}
-                      />
+                      <Typography variant="body2">
+                        {format(new Date(customer.lastOrder), "dd/MM/yyyy")}
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -485,8 +498,8 @@ const Customer = () => {
                   <TableCell>Thông tin liên hệ</TableCell>
                   <TableCell align="right">Đơn hàng</TableCell>
                   <TableCell align="right">Tổng chi tiêu</TableCell>
-                  <TableCell align="right">Điểm tích lũy</TableCell>
-                  <TableCell>Trạng thái</TableCell>
+                  <TableCell align="right">Đánh giá trung bình</TableCell>
+                  <TableCell>Lần mua gần nhất</TableCell>
                   <TableCell>Thẻ</TableCell>
                 </TableRow>
               </TableHead>
@@ -524,20 +537,26 @@ const Customer = () => {
                       {formatCurrency(customer.totalSpent)}
                     </TableCell>
                     <TableCell align="right">
-                      {customer.loyaltyPoints}
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        alignItems="center"
+                        justifyContent="flex-end"
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          {customer.averageRating}
+                        </Typography>
+                        <StarIcon
+                          sx={{ fontSize: 16, color: "warning.main" }}
+                        />
+                      </Stack>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={
-                          customer.status === "active"
-                            ? "Đang hoạt động"
-                            : customer.status === "inactive"
-                              ? "Không hoạt động"
-                              : "Mới"
-                        }
-                        size="small"
-                        color={getStatusColor(customer.status)}
-                      />
+                      <Typography variant="body2">
+                        {new Date(customer.lastOrderDate).toLocaleDateString(
+                          "vi-VN",
+                        )}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={0.5}>
