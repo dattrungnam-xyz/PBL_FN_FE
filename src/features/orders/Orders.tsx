@@ -142,7 +142,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(false);
   const [isViewReviewModalOpen, setIsViewReviewModalOpen] = useState(false);
   const navigate = useNavigate();
-  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   };
 

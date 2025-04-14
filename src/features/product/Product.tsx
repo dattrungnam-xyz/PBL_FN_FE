@@ -24,13 +24,11 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import PhoneIcon from "@mui/icons-material/Phone";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import Avatar from "@mui/material/Avatar";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import ProductCard from "../../components/ProductCard";
 import { getCategoryText } from "../../utils";
 import { addToCart } from "../../services/cart.service";
 import { toast } from "react-toastify";
@@ -39,15 +37,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useSelector } from "react-redux";
 import { RootState } from "../../stores";
 import { deleteReview } from "../../services/review.service";
-
-interface RelatedProduct {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  rating: number;
-  reviewCount: number;
-}
 
 const Product = () => {
   const { id } = useParams<{ id: string }>();
@@ -89,7 +78,7 @@ const Product = () => {
     }
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
