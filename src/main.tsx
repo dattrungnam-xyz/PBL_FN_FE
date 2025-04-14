@@ -55,6 +55,9 @@ import Analystic from "./features/analystic/Analystic.tsx";
 import Revenue from "./features/revenue/Revenue.tsx";
 import Review from "./features/review/Review.tsx";
 import Customer from "./features/customer/Customer.tsx";
+import AdminLayout from "./layouts/admin/AdminLayout.tsx";
+import AdminStore from "./features/adminStore/AdminStore.tsx";
+import AdminProduct from "./features/adminProduct/AdminProduct.tsx";
 
 const router = createBrowserRouter([
   {
@@ -210,47 +213,20 @@ const router = createBrowserRouter([
     path: "provide-store-inform",
     element: <ProvideStoreInform />,
   },
-  // {
-  //   path: "profile",
-  //   element: <ProtectedRoute />,
-  //   children: [
-  //     {
-  //       index: true,
-  //       element: <UserProfilePage />,
-  //     },
-  //   ],
-  // },
-
-  // {
-  //   path: "admin",
-  //   element: (
-  //     <ProtectedRouteComponent
-  //       authorizedRoles={[RoleEnum.Admin, RoleEnum.Doctor]}
-  //     >
-  //       <Admin />
-  //     </ProtectedRouteComponent>
-  //   ),
-  //   children: [
-  //     {
-  //       index: true,
-  //       element: <Dashboard />,
-  //     },
-  //   ],
-  // },
-  // {
-  //   path: "admin/account",
-  //   element: (
-  //     <ProtectedRouteComponent authorizedRoles={[RoleEnum.Admin]}>
-  //       <Admin />
-  //     </ProtectedRouteComponent>
-  //   ),
-  //   children: [
-  //     {
-  //       index: true,
-  //       element: <AccountIndexPage />,
-  //     },
-  //   ],
-  // },
+  {
+    path: "admin",
+    element: <AdminLayout />,
+    children: [
+      {
+        path: "stores",
+        element: <AdminStore />,
+      },
+      {
+        path: "products",
+        element: <AdminProduct />,
+      },
+    ],
+  },
 ]);
 
 setupAxiosInterceptors(store);

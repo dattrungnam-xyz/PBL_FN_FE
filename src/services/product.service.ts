@@ -34,7 +34,7 @@ export const getProductByStoreId = async (
   filters: GetProductByStoreIdParams,
 ) => {
   const response = await axios.get<PaginatedData<IProductTableData>>(
-    `/products/seller/${storeId}`,
+    `/products/seller/${storeId ?? ""}`,
     {
       params: {
         page: filters.page || 1,

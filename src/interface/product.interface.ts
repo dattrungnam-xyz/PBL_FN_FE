@@ -42,6 +42,7 @@ export interface IProductTableData {
   reviewCount?: number;
   orderDetailCount?: number;
   totalRevenue?: number;
+  seller: ISellerRelation;
 }
 
 export interface IProduct {

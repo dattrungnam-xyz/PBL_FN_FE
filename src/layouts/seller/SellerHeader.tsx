@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { AppDispatch, RootState } from "../../stores";
 import { AuthState, authActions } from "../../stores/authSlice";
 import {
@@ -21,7 +20,6 @@ import {
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
-// import StorefrontIcon from "@mui/icons-material/Storefront";
 
 const SellerHeader = () => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
@@ -31,10 +29,8 @@ const SellerHeader = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { isAuthenticated, user } = useSelector<RootState, AuthState>(
-    (state) => state.auth,
-  );
-
+  const { user } = useSelector<RootState, AuthState>((state) => state.auth);
+  if (!user) return null;
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };
@@ -178,6 +174,7 @@ const SellerHeader = () => {
                   height: 24,
                   bgcolor: theme.palette.primary.main,
                 }}
+                src={user?.avatar}
               >
                 <AccountCircleIcon sx={{ fontSize: "1rem" }} />
               </Avatar>
@@ -187,7 +184,7 @@ const SellerHeader = () => {
             sx={{
               mt: 1,
               "& .MuiPaper-root": {
-                width: 180,
+                width: 200,
                 maxWidth: "100%",
                 boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
               },

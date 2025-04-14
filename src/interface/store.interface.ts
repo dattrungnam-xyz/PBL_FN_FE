@@ -1,3 +1,7 @@
+import { IOrder } from "./order.interface";
+import { IProduct } from "./product.interface";
+import { IUser } from "./user.interface";
+
 export interface ICreateStore {
   name: string;
   description: string;
@@ -31,4 +35,8 @@ export interface IStore {
   wardName: string;
   avatar: string;
   banner: string;
+  user: IUser;
+  products: IProduct[];
+  orders: IOrder[];
+  createdAt: string;
 }
