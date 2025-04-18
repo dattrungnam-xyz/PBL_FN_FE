@@ -15,7 +15,7 @@ import { useState } from "react";
 import { IProduct } from "../../../interface";
 import { useQueryClient } from "@tanstack/react-query";
 import { updateProductQuantity } from "../../../services/product.service";
-
+import { toast } from "react-toastify"; 
 interface UpdateQuantityModalProps {
   open: boolean;
   onClose: () => void;
@@ -39,9 +39,11 @@ const UpdateQuantityModal = ({
       await updateProductQuantity(product.id, quantity);
       await queryClient.invalidateQueries({ queryKey: ["products"] });
       setQuantity(0);
+      toast.success("Thêm số lượng thành công");
       onClose();
     } catch (error) {
       console.error("Error updating quantity:", error);
+      toast.error("Thêm số lượng thất bại");
     } finally {
       setIsLoading(false);
     }
