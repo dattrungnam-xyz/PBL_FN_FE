@@ -2,12 +2,10 @@ import {
   Box,
   Button,
   Card,
-  IconButton,
   InputAdornment,
   Stack,
   TextField,
   Typography,
-  Tooltip,
   Table,
   TableBody,
   TableCell,
@@ -17,43 +15,34 @@ import {
   TablePagination,
   TableSortLabel,
   Paper,
-  Chip,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Avatar,
   SelectChangeEvent,
+  Chip,
 } from "@mui/material";
 import { format } from "date-fns";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useState, useEffect } from "react";
 import { Category } from "../../enums";
 import { RootState } from "../../stores";
 import { useSelector } from "react-redux";
 import { AuthState } from "../../stores/authSlice";
 import { useQuery } from "@tanstack/react-query";
-import {
-  deleteProduct,
-  getProductByStoreId,
-} from "../../services/product.service";
-import { Navigate, useNavigate } from "react-router-dom";
+import { getProductByStoreId } from "../../services/product.service";
+import { Navigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { SellingProductStatus, VerifyOCOPStatus } from "../../enums";
+import { SellingProductStatus } from "../../enums";
 import { getCategoryText } from "../../utils/getCategoryText";
-import { IProduct, IProductTableData } from "../../interface/product.interface";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import DynamicDialog from "../../components/DynamicDialog";
-import ProductDetailModal from "./component/ProductDetailModal";
-import UpdateQuantityModal from "./component/UpdateQuantityModal";
+
+import { getStockingProducts } from "../../services/restocking.service";
+import { IRestocking } from "../../interface";
 interface HeadCell {
-  id: keyof IProductTableData;
+  id: string;
   label: string;
   numeric: boolean;
   sortable: boolean;
@@ -64,14 +53,14 @@ const headCells: HeadCell[] = [
   { id: "name", label: "Tên sản phẩm", numeric: false, sortable: false },
   { id: "category", label: "Danh mục", numeric: false, sortable: false },
   { id: "price", label: "Giá", numeric: true, sortable: false },
-  { id: "quantity", label: "Số lượng", numeric: true, sortable: false },
-  { id: "status", label: "Trạng thái", numeric: false, sortable: false },
   {
-    id: "verifyOcopStatus",
-    label: "Trạng thái xác thực",
-    numeric: false,
+    id: "restocking_quantity",
+    label: "Số lượng nhập",
+    numeric: true,
     sortable: false,
   },
+  { id: "product_quantity", label: "Số lượng", numeric: true, sortable: false },
+  { id: "status", label: "Trạng thái", numeric: false, sortable: false },
   { id: "createdAt", label: "Ngày tạo", numeric: false, sortable: false },
 ];
 
@@ -83,8 +72,7 @@ const categories = [
   Category.HANDICRAFTS_DECORATION,
 ];
 
-const StoreProductManagement = () => {
-  const navigate = useNavigate();
+const Restocking = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [page, setPage] = useState(1);
@@ -95,16 +83,9 @@ const StoreProductManagement = () => {
   const [selectedStatus, setSelectedStatus] = useState<SellingProductStatus>(
     SellingProductStatus.ALL,
   );
-  const [selectedVerifyOcopStatus, setSelectedVerifyOcopStatus] =
-    useState<VerifyOCOPStatus>(VerifyOCOPStatus.ALL);
-  const [open, setOpen] = useState(false);
-  const [productId, setProductId] = useState<string>("");
+  const [selectedProduct, setSelectedProduct] = useState<string | "all">("all");
 
-  const [openProductDetail, setOpenProductDetail] = useState(false);
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
-
-  const [openUpdateQuantity, setOpenUpdateQuantity] = useState(false);
-  const [product, setProduct] = useState<IProduct | null>(null);
 
   // Debounce search term
   useEffect(() => {
@@ -117,25 +98,30 @@ const StoreProductManagement = () => {
     };
   }, [searchTerm]);
 
-  const { data: products, isLoading } = useQuery({
+  const { data: products } = useQuery({
+    queryKey: ["products", user?.storeId],
+    queryFn: () =>
+      getProductByStoreId(user?.storeId || "", {
+        page: 1,
+        limit: 10000,
+      }),
+  });
+
+  const { data: restockingProducts, isLoading } = useQuery({
     queryKey: [
-      "products",
+      "restockingProducts",
       user?.storeId,
-      page,
-      rowsPerPage,
+      selectedProduct,
       selectedCategory,
-      selectedStatus,
-      selectedVerifyOcopStatus,
       debouncedSearchTerm,
     ],
     queryFn: () =>
-      getProductByStoreId(user?.storeId || "", {
-        page,
-        limit: rowsPerPage,
+      getStockingProducts({
+        page: 1,
+        limit: 10000,
+        productId: selectedProduct,
         category: selectedCategory,
-        status: selectedStatus,
         search: debouncedSearchTerm,
-        verifyStatus: selectedVerifyOcopStatus,
       }),
   });
 
@@ -156,13 +142,6 @@ const StoreProductManagement = () => {
     setSelectedCategory(value);
     window.history.pushState({}, "", `${window.location.pathname}?page=${1}`);
     setPage(1);
-  };
-
-  const handleVerifyOcopStatusChange = (
-    event: SelectChangeEvent<VerifyOCOPStatus>,
-  ) => {
-    const value = event.target.value as VerifyOCOPStatus;
-    setSelectedVerifyOcopStatus(value);
   };
 
   const handleStatusChange = (
@@ -198,18 +177,6 @@ const StoreProductManagement = () => {
     }).format(price);
   };
 
-  const handleDelete = async (productId: string) => {
-    try {
-      await deleteProduct(productId);
-      toast.success("Xóa sản phẩm thành công");
-    } catch (error) {
-      console.log(error);
-      toast.error("Xóa sản phẩm thất bại");
-    } finally {
-      setOpen(false);
-    }
-  };
-
   return (
     <>
       {isLoading && <CustomBackdrop />}
@@ -222,7 +189,7 @@ const StoreProductManagement = () => {
             justifyContent="space-between"
           >
             <Typography variant="h4" color="text.primary" fontWeight={600}>
-              Quản lý sản phẩm
+              Quản lí nhập sản phẩm
             </Typography>
             <Button
               variant="contained"
@@ -234,7 +201,7 @@ const StoreProductManagement = () => {
                 },
               }}
             >
-              Thêm sản phẩm
+              Nhập sản phẩm
             </Button>
           </Stack>
 
@@ -274,23 +241,20 @@ const StoreProductManagement = () => {
                   </Select>
                 </FormControl>
                 <FormControl size="small" sx={{ minWidth: 200 }}>
-                  <InputLabel>Trạng thái xác thực</InputLabel>
+                  <InputLabel>Sản phẩm</InputLabel>
                   <Select
-                    value={selectedVerifyOcopStatus}
-                    label="Trạng thái xác thực"
-                    onChange={handleVerifyOcopStatusChange}
+                    value={selectedProduct}
+                    label="Sản phẩm"
+                    onChange={(event) =>
+                      setSelectedProduct(event.target.value as string | "all")
+                    }
                   >
-                    {Object.values(VerifyOCOPStatus).map((status) => (
-                      <MenuItem key={status} value={status}>
-                        {status === VerifyOCOPStatus.VERIFIED
-                          ? "Đã xác thực"
-                          : status === VerifyOCOPStatus.REJECTED
-                            ? "Từ chối"
-                            : status === VerifyOCOPStatus.PENDING
-                              ? "Chờ xác thực"
-                              : status === VerifyOCOPStatus.NOT_SUBMITTED
-                                ? "Chưa gửi"
-                                : "Tất cả"}
+                    <MenuItem key="all" value="all">
+                      Tất cả
+                    </MenuItem>
+                    {products?.data.map((product) => (
+                      <MenuItem key={product.id} value={product.id}>
+                        {product.name}
                       </MenuItem>
                     ))}
                   </Select>
@@ -335,38 +299,44 @@ const StoreProductManagement = () => {
                         )}
                       </TableCell>
                     ))}
-                    <TableCell align="center">Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {products?.data.map((product) => (
+                  {restockingProducts?.data.map((restocking: IRestocking) => (
                     <TableRow
-                      key={product.id}
+                      key={restocking.id}
                       hover
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell>
                         <Avatar
-                          src={product.images?.[0]}
+                          src={restocking.product.images?.[0]}
                           variant="rounded"
                           sx={{ width: 40, height: 40 }}
                         />
                       </TableCell>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{getCategoryText(product.category)}</TableCell>
-                      <TableCell align="right">
-                        {formatPrice(product.price)}
+                      <TableCell>{restocking.product.name}</TableCell>
+                      <TableCell>
+                        {getCategoryText(restocking.product.category)}
                       </TableCell>
-                      <TableCell align="right">{product.quantity}</TableCell>
+                      <TableCell align="right">
+                        {formatPrice(restocking.product.price)}
+                      </TableCell>
+                      <TableCell align="right">{restocking.quantity}</TableCell>
+                      <TableCell align="right">
+                        {restocking.product.quantity}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={
-                            product.status === SellingProductStatus.SELLING
+                            restocking.product.status ===
+                            SellingProductStatus.SELLING
                               ? "Đang bán"
                               : "Ngừng bán"
                           }
                           color={
-                            product.status === SellingProductStatus.SELLING
+                            restocking.product.status ===
+                            SellingProductStatus.SELLING
                               ? "success"
                               : "default"
                           }
@@ -374,109 +344,7 @@ const StoreProductManagement = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          label={
-                            product.verifyOcopStatus ===
-                            VerifyOCOPStatus.VERIFIED
-                              ? "Đã xác thực"
-                              : product.verifyOcopStatus ===
-                                  VerifyOCOPStatus.REJECTED
-                                ? "Từ chối"
-                                : product.verifyOcopStatus ===
-                                    VerifyOCOPStatus.PENDING
-                                  ? "Chờ xác thực"
-                                  : "Chưa xác thực"
-                          }
-                          color={
-                            product.verifyOcopStatus ===
-                            VerifyOCOPStatus.VERIFIED
-                              ? "success"
-                              : product.verifyOcopStatus ===
-                                  VerifyOCOPStatus.REJECTED
-                                ? "error"
-                                : product.verifyOcopStatus ===
-                                    VerifyOCOPStatus.PENDING
-                                  ? "warning"
-                                  : "default"
-                          }
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(product.createdAt), "dd/MM/yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          justifyContent="center"
-                        >
-                          <Tooltip title="Xem">
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                setProductId(product.id);
-                                setOpenProductDetail(true);
-                              }}
-                            >
-                              <VisibilityIcon
-                                color="success"
-                                fontSize="small"
-                              />
-                            </IconButton>
-                          </Tooltip>
-                          {product.verifyOcopStatus ===
-                            VerifyOCOPStatus.NOT_SUBMITTED ||
-                          VerifyOCOPStatus.REJECTED ? (
-                            <Tooltip title="Xác thực">
-                              <IconButton
-                                size="small"
-                                onClick={() =>
-                                  navigate(
-                                    `/seller/product/${product.id}/verify`,
-                                  )
-                                }
-                                sx={{ color: "info.main" }}
-                              >
-                                <CheckCircleIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          ) : null}
-                          <Tooltip color="warning" title="Cập nhật số lượng">
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                setProduct(product as IProduct);
-                                setOpenUpdateQuantity(true);
-                              }}
-                            >
-                              <AddCircleOutlineRoundedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Chỉnh sửa">
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                navigate(`/seller/product/${product.id}`)
-                              }
-                              sx={{ color: "warning.main" }}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Xóa">
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                setOpen(true);
-                                setProductId(product.id);
-                              }}
-                              sx={{ color: "error.main" }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
+                        {format(new Date(restocking.createdAt), "dd/MM/yyyy")}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -486,7 +354,7 @@ const StoreProductManagement = () => {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={products?.total || 0}
+              count={restockingProducts?.total || 0}
               rowsPerPage={rowsPerPage}
               page={page - 1}
               onPageChange={handleChangePage}
@@ -498,34 +366,9 @@ const StoreProductManagement = () => {
             />
           </Card>
         </Stack>
-        <DynamicDialog
-          title="Xác nhận xóa sản phẩm"
-          content="Bạn có chắc chắn muốn xóa sản phẩm?"
-          confirmText="Xóa"
-          cancelText="Hủy bỏ"
-          open={open}
-          type="alert"
-          onClose={(confirm) =>
-            confirm ? handleDelete(productId) : setOpen(false)
-          }
-          keepMounted={false}
-        />
-
-        <ProductDetailModal
-          open={openProductDetail}
-          onClose={() => setOpenProductDetail(false)}
-          productId={productId}
-        />
-        {product ? (
-          <UpdateQuantityModal
-            open={openUpdateQuantity}
-            onClose={() => setOpenUpdateQuantity(false)}
-            product={product}
-          />
-        ) : null}
       </Box>
     </>
   );
 };
 
-export default StoreProductManagement;
+export default Restocking;

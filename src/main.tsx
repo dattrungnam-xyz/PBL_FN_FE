@@ -58,6 +58,7 @@ import Customer from "./features/customer/Customer.tsx";
 import AdminLayout from "./layouts/admin/AdminLayout.tsx";
 import AdminStore from "./features/adminStore/AdminStore.tsx";
 import AdminProduct from "./features/adminProduct/AdminProduct.tsx";
+import Restocking from "./features/restocking/Restocking.tsx";
 
 const router = createBrowserRouter([
   {
@@ -118,6 +119,10 @@ const router = createBrowserRouter([
       {
         path: "",
         element: <UpdateStore />,
+      },
+      {
+        path: "restocking",
+        element: <Restocking />,
       },
       {
         path: "analytics",

@@ -68,11 +68,11 @@ const headCells: HeadCell[] = [
 ];
 
 const categories = [
+  Category.ALL,
   Category.FOOD,
   Category.BEVERAGE,
   Category.HERB,
   Category.HANDICRAFTS_DECORATION,
-  Category.ALL,
 ];
 
 const ProductSellerVerifyManagement = () => {

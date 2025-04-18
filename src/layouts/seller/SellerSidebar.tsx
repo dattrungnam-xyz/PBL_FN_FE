@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Box,
   Drawer,
@@ -59,7 +58,7 @@ const menuGroups: MenuGroup[] = [
       {
         label: "Nhập hàng",
         icon: <AddShoppingCartIcon />,
-        path: "/seller/products/importProduct",
+        path: "/seller/restocking",
       },
       {
         label: "Xác thực OCOP",

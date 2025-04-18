@@ -22,6 +22,7 @@ import { ICreateReview, IReview } from "./review.interface";
 import { IAnalysticByCategory } from "./revenue.interface";
 import { ICustomerStatistic, ITopCustomer } from "./customer.interfact";
 import { IReviewStatistic } from "./review.interface";
+import { IRestocking } from "./restocking.interface";
 export type {
   IProvince,
   IDistrict,
@@ -53,4 +54,5 @@ export type {
   ICustomerStatistic,
   ITopCustomer,
   IReviewStatistic,
+  IRestocking,
 };
