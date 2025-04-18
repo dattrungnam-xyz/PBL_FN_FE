@@ -41,6 +41,7 @@ import CustomBackdrop from "../../components/UI/CustomBackdrop";
 
 import { getStockingProducts } from "../../services/restocking.service";
 import { IRestocking } from "../../interface";
+import RestockModal from "./component/RestockModal";
 interface HeadCell {
   id: string;
   label: string;
@@ -86,6 +87,8 @@ const Restocking = () => {
   const [selectedProduct, setSelectedProduct] = useState<string | "all">("all");
 
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
+
+  const [open, setOpen] = useState(false);
 
   // Debounce search term
   useEffect(() => {
@@ -194,6 +197,7 @@ const Restocking = () => {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
+              onClick={() => setOpen(true)}
               sx={{
                 bgcolor: "success.main",
                 "&:hover": {
@@ -366,6 +370,7 @@ const Restocking = () => {
             />
           </Card>
         </Stack>
+        <RestockModal open={open} onClose={() => setOpen(false)} />
       </Box>
     </>
   );
