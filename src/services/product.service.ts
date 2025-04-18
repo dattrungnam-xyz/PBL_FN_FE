@@ -66,6 +66,18 @@ export const getTopProduct = async (
 export const getTrendProduct = async (
   type: "week" | "month" | "year",
 ): Promise<IProductTableData[]> => {
-  const response = await axios.get(`/products/seller/top-trending?type=${type}`);
+  const response = await axios.get(
+    `/products/seller/top-trending?type=${type}`,
+  );
+  return response.data;
+};
+
+export const deleteProduct = async (id: string) => {
+  const response = await axios.delete(`/products/${id}`);
+  return response.data;
+};
+
+export const updateProductQuantity = async (id: string, quantity: number) => {
+  const response = await axios.patch(`/products/${id}/quantity`, { quantity });
   return response.data;
 };

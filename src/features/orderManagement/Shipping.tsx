@@ -247,9 +247,9 @@ const Shipping = () => {
                   <TableRow>
                     <TableCell sx={{ width: "5%" }}>STT</TableCell>
                     <TableCell sx={{ width: "20%" }}>Người mua</TableCell>
-                    <TableCell sx={{ width: "20%" }}>Địa chỉ</TableCell>
+                    <TableCell sx={{ width: "30%" }}>Địa chỉ</TableCell>
                     <TableCell sx={{ width: "20%" }}>Thời gian</TableCell>
-                    <TableCell sx={{ width: "20%" }}>Tổng tiền</TableCell>
+                    <TableCell sx={{ width: "10%" }}>Tổng tiền</TableCell>
                     <TableCell sx={{ width: "20%" }}>Thao tác</TableCell>
                   </TableRow>
                 </TableHead>

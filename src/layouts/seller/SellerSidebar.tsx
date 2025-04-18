@@ -21,7 +21,9 @@ import {
   AssignmentReturn as AssignmentReturnIcon,
   Payment as PaymentIcon,
   CheckCircle as CheckCircleIcon,
+  AddShoppingCart as AddShoppingCartIcon,
 } from "@mui/icons-material";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -55,8 +57,13 @@ const menuGroups: MenuGroup[] = [
         path: "/seller/products",
       },
       {
+        label: "Nhập hàng",
+        icon: <AddShoppingCartIcon />,
+        path: "/seller/products/importProduct",
+      },
+      {
         label: "Xác thực OCOP",
-        icon: <InventoryIcon />,
+        icon: <VerifiedUserIcon />,
         path: "/seller/products/verify/history",
       },
     ],

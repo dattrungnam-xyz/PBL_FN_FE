@@ -30,20 +30,28 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useState, useEffect } from "react";
 import { Category } from "../../enums";
 import { RootState } from "../../stores";
 import { useSelector } from "react-redux";
 import { AuthState } from "../../stores/authSlice";
 import { useQuery } from "@tanstack/react-query";
-import { getProductByStoreId } from "../../services/product.service";
+import {
+  deleteProduct,
+  getProductByStoreId,
+} from "../../services/product.service";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { SellingProductStatus, VerifyOCOPStatus } from "../../enums";
 import { getCategoryText } from "../../utils/getCategoryText";
-import { IProductTableData } from "../../interface/product.interface";
+import { IProduct, IProductTableData } from "../../interface/product.interface";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import DynamicDialog from "../../components/DynamicDialog";
+import ProductDetailModal from "./component/ProductDetailModal";
+import UpdateQuantityModal from "./component/UpdateQuantityModal";
 interface HeadCell {
   id: keyof IProductTableData;
   label: string;
@@ -89,7 +97,14 @@ const StoreProductManagement = () => {
   );
   const [selectedVerifyOcopStatus, setSelectedVerifyOcopStatus] =
     useState<VerifyOCOPStatus>(VerifyOCOPStatus.ALL);
+  const [open, setOpen] = useState(false);
+  const [productId, setProductId] = useState<string>("");
+
+  const [openProductDetail, setOpenProductDetail] = useState(false);
   const { user } = useSelector<RootState, AuthState>((state) => state.auth);
+
+  const [openUpdateQuantity, setOpenUpdateQuantity] = useState(false);
+  const [product, setProduct] = useState<IProduct | null>(null);
 
   // Debounce search term
   useEffect(() => {
@@ -181,6 +196,18 @@ const StoreProductManagement = () => {
       style: "currency",
       currency: "VND",
     }).format(price);
+  };
+
+  const handleDelete = async (productId: string) => {
+    try {
+      await deleteProduct(productId);
+      toast.success("Xóa sản phẩm thành công");
+    } catch (error) {
+      console.log(error);
+      toast.error("Xóa sản phẩm thất bại");
+    } finally {
+      setOpen(false);
+    }
   };
 
   return (
@@ -300,16 +327,9 @@ const StoreProductManagement = () => {
                       <TableCell
                         key={headCell.id}
                         align={headCell.numeric ? "right" : "left"}
-                        // sortDirection={orderBy === headCell.id ? order : false}
                       >
                         {headCell.sortable ? (
-                          <TableSortLabel
-                          // active={orderBy === headCell.id}
-                          // direction={orderBy === headCell.id ? order : "asc"}
-                          // onClick={() => handleRequestSort(headCell.id)}
-                          >
-                            {headCell.label}
-                          </TableSortLabel>
+                          <TableSortLabel>{headCell.label}</TableSortLabel>
                         ) : (
                           headCell.label
                         )}
@@ -391,6 +411,20 @@ const StoreProductManagement = () => {
                           spacing={1}
                           justifyContent="center"
                         >
+                          <Tooltip title="Xem">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setProductId(product.id);
+                                setOpenProductDetail(true);
+                              }}
+                            >
+                              <VisibilityIcon
+                                color="success"
+                                fontSize="small"
+                              />
+                            </IconButton>
+                          </Tooltip>
                           {product.verifyOcopStatus ===
                             VerifyOCOPStatus.NOT_SUBMITTED ||
                           VerifyOCOPStatus.REJECTED ? (
@@ -408,6 +442,17 @@ const StoreProductManagement = () => {
                               </IconButton>
                             </Tooltip>
                           ) : null}
+                          <Tooltip color="warning" title="Cập nhật số lượng">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setProduct(product as IProduct);
+                                setOpenUpdateQuantity(true);
+                              }}
+                            >
+                              <AddCircleOutlineRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                           <Tooltip title="Chỉnh sửa">
                             <IconButton
                               size="small"
@@ -422,7 +467,10 @@ const StoreProductManagement = () => {
                           <Tooltip title="Xóa">
                             <IconButton
                               size="small"
-                              // onClick={() => handleDelete(product.id)}
+                              onClick={() => {
+                                setOpen(true);
+                                setProductId(product.id);
+                              }}
                               sx={{ color: "error.main" }}
                             >
                               <DeleteIcon fontSize="small" />
@@ -450,6 +498,31 @@ const StoreProductManagement = () => {
             />
           </Card>
         </Stack>
+        <DynamicDialog
+          title="Xác nhận xóa sản phẩm"
+          content="Bạn có chắc chắn muốn xóa sản phẩm?"
+          confirmText="Xóa"
+          cancelText="Hủy bỏ"
+          open={open}
+          type="alert"
+          onClose={(confirm) =>
+            confirm ? handleDelete(productId) : setOpen(false)
+          }
+          keepMounted={false}
+        />
+
+        <ProductDetailModal
+          open={openProductDetail}
+          onClose={() => setOpenProductDetail(false)}
+          productId={productId}
+        />
+        {product ? (
+          <UpdateQuantityModal
+            open={openUpdateQuantity}
+            onClose={() => setOpenUpdateQuantity(false)}
+            product={product}
+          />
+        ) : null}
       </Box>
     </>
   );

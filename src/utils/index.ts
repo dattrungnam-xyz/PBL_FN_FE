@@ -3,6 +3,7 @@ import { getSellingStatusText } from "./getSellingStatusText";
 import { convertToBase64 } from "./convertToBase64";
 import { getAddressTypeText } from "./getAddressTypeText";
 import { getOrderStatusText, getStatusColor } from "./helper";
+import { getVerifyOCOPStatusText } from "./getVerifyOCOPStatusText";
 export {
   getCategoryText,
   getSellingStatusText,
@@ -10,4 +11,5 @@ export {
   getAddressTypeText,
   getOrderStatusText,
   getStatusColor,
+  getVerifyOCOPStatusText,
 };
