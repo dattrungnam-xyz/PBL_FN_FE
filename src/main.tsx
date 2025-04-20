@@ -59,6 +59,7 @@ import AdminLayout from "./layouts/admin/AdminLayout.tsx";
 import AdminStore from "./features/adminStore/AdminStore.tsx";
 import AdminProduct from "./features/adminProduct/AdminProduct.tsx";
 import Restocking from "./features/restocking/Restocking.tsx";
+import AdminUsers from "./features/adminUser/AdminUser.tsx";
 
 const router = createBrowserRouter([
   {
@@ -229,6 +230,10 @@ const router = createBrowserRouter([
       {
         path: "products",
         element: <AdminProduct />,
+      },
+      {
+        path: "users",
+        element: <AdminUsers />,
       },
     ],
   },

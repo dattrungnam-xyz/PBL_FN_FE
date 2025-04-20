@@ -79,3 +79,19 @@ export const getStatusColor = (status: OrderStatus) => {
       return "default";
   }
 };
+
+export const formatPrice = (price: number) => {
+  return price.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
+};
+
+export const isVideoUrl = (url: string) => {
+  return (
+    url.endsWith(".mp4") ||
+    url.endsWith(".webm") ||
+    url.endsWith(".ogg") ||
+    url.endsWith(".mov")
+  );
+};

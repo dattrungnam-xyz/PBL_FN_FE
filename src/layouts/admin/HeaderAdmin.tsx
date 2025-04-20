@@ -49,7 +49,7 @@ const HeaderAdmin = () => {
 
   const handleLogout = () => {
     dispatch(authActions.logout());
-    navigate("/seller");
+    navigate("/admin");
   };
 
   return (
@@ -74,13 +74,13 @@ const HeaderAdmin = () => {
           src="/logo.png"
           alt="OCOP Mart"
           style={{ width: 48, height: 32, cursor: "pointer" }}
-          onClick={() => navigate("/seller")}
+          onClick={() => navigate("/admin")}
         />
         <Typography
           variant="body2"
           noWrap
           component={Link}
-          to="/seller"
+          to="/admin"
           sx={{
             fontWeight: 600,
             color: "text.primary",

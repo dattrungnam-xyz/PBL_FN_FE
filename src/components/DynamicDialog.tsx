@@ -15,7 +15,7 @@ interface DynamicDialogProps {
   content: string;
   confirmText: string;
   cancelText: string;
-  type: "confirm" | "alert";
+  type: "confirm" | "alert" | "error";
 }
 
 const DynamicDialog = ({

@@ -6,9 +6,9 @@ import {
   IconButton,
   Stack,
   Typography,
-  Card,
   CardMedia,
-  CardContent,
+  SxProps,
+  Theme,
 } from "@mui/material";
 import { VerifiedUser } from "@mui/icons-material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -29,10 +29,18 @@ import { IStore } from "../../interface";
 import { OrderStatus } from "../../enums";
 import { getStoreById } from "../../services/store.service";
 import BarChartIcon from "@mui/icons-material/BarChart";
+
 interface AdminStoreModalProps {
   open: boolean;
   onClose: () => void;
   storeId: string;
+}
+
+interface StatItemProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  sx?: SxProps<Theme>;
 }
 
 const AdminStoreModal = ({ open, onClose, storeId }: AdminStoreModalProps) => {
@@ -82,33 +90,44 @@ const AdminStoreModal = ({ open, onClose, storeId }: AdminStoreModalProps) => {
     </Stack>
   );
 
-  const StatItem = ({
-    icon,
-    label,
-    value,
-    color = "primary",
-  }: {
-    icon: JSX.Element;
-    label: string;
-    value: number | string;
-    color?: string;
-  }) => (
-    <Card sx={{ width: "auto", height: "120px", minWidth: 120 }}>
-      <CardContent sx={{ p: 0.5 }}>
-        <Stack spacing={0.5} flexDirection="column" alignItems="center">
-          <Stack direction="column" spacing={0.5} alignItems="center">
-            <Box sx={{ color: `${color}.main` }}>{icon}</Box>
-            <Typography variant="inherit" color="text.secondary">
-              {label}
-            </Typography>
-          </Stack>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            {typeof value === "number" ? value.toLocaleString() : value}
+  const StatItem = ({ icon, label, value, sx }: StatItemProps) => {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          p: 1.5,
+          borderRadius: 1,
+          bgcolor: "background.paper",
+          boxShadow: 1,
+          ...sx,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 40,
+            height: 40,
+            borderRadius: 1,
+            bgcolor: "background.default",
+          }}
+        >
+          {icon}
+        </Box>
+        <Box>
+          <Typography variant="body2" color="text.secondary">
+            {label}
           </Typography>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
+          <Typography variant="h6" fontWeight={600}>
+            {value}
+          </Typography>
+        </Box>
+      </Box>
+    );
+  };
 
   return (
     <>
@@ -234,15 +253,41 @@ const AdminStoreModal = ({ open, onClose, storeId }: AdminStoreModalProps) => {
               <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                 Thống kê
               </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                useFlexGap
+                sx={{
+                  "& > *": {
+                    flex: "1 1 200px",
+                    minWidth: "200px",
+                    maxWidth: "300px",
+                  },
+                }}
+              >
                 <StatItem
-                  icon={<InventoryIcon />}
-                  label="Tổng sản phẩm"
+                  icon={
+                    <InventoryIcon
+                      sx={{ fontSize: 20, color: "primary.main" }}
+                    />
+                  }
+                  label="Số sản phẩm"
                   value={store?.products?.length || 0}
+                  sx={{
+                    bgcolor: "primary.lighter",
+                    "& .MuiTypography-root": {
+                      color: "primary.main",
+                    },
+                  }}
                 />
                 <StatItem
-                  icon={<InventoryIcon />}
-                  label="Sản phẩm đã bán"
+                  icon={
+                    <InventoryIcon
+                      sx={{ fontSize: 20, color: "success.main" }}
+                    />
+                  }
+                  label="Đã bán"
                   value={
                     store?.orders?.reduce(
                       (acc, order) =>
@@ -254,84 +299,167 @@ const AdminStoreModal = ({ open, onClose, storeId }: AdminStoreModalProps) => {
                       0,
                     ) || 0
                   }
+                  sx={{
+                    bgcolor: "success.lighter",
+                    "& .MuiTypography-root": {
+                      color: "success.main",
+                    },
+                  }}
                 />
                 <StatItem
-                  icon={<LocalShippingIcon />}
+                  icon={
+                    <LocalShippingIcon
+                      sx={{ fontSize: 20, color: "info.main" }}
+                    />
+                  }
                   label="Tổng đơn hàng"
                   value={store?.orders?.length || 0}
+                  sx={{
+                    bgcolor: "info.lighter",
+                    "& .MuiTypography-root": {
+                      color: "info.main",
+                    },
+                  }}
                 />
-
                 <StatItem
-                  icon={<CheckCircleIcon />}
+                  icon={
+                    <CheckCircleIcon
+                      sx={{ fontSize: 20, color: "success.main" }}
+                    />
+                  }
                   label="Đơn thành công"
                   value={
                     store?.orders?.filter(
                       (order) => order.orderStatus === OrderStatus.COMPLETED,
                     ).length || 0
                   }
-                  color="success"
+                  sx={{
+                    bgcolor: "success.lighter",
+                    "& .MuiTypography-root": {
+                      color: "success.main",
+                    },
+                  }}
                 />
-
                 <StatItem
-                  icon={<CancelIcon />}
+                  icon={
+                    <CancelIcon sx={{ fontSize: 20, color: "error.main" }} />
+                  }
                   label="Đơn hủy"
                   value={
                     store?.orders?.filter(
                       (order) => order.orderStatus === OrderStatus.CANCELLED,
                     ).length || 0
                   }
-                  color="error"
+                  sx={{
+                    bgcolor: "error.lighter",
+                    "& .MuiTypography-root": {
+                      color: "error.main",
+                    },
+                  }}
                 />
-
                 <StatItem
-                  icon={<AssignmentReturnIcon />}
+                  icon={
+                    <AssignmentReturnIcon
+                      sx={{ fontSize: 20, color: "warning.main" }}
+                    />
+                  }
                   label="Đơn hoàn trả"
                   value={
                     store?.orders?.filter(
                       (order) => order.orderStatus === OrderStatus.REFUNDED,
                     ).length || 0
                   }
-                  color="warning"
+                  sx={{
+                    bgcolor: "warning.lighter",
+                    "& .MuiTypography-root": {
+                      color: "warning.main",
+                    },
+                  }}
                 />
-
                 <StatItem
-                  icon={<StarIcon />}
-                  label="Đánh giá "
+                  icon={
+                    <StarIcon sx={{ fontSize: 20, color: "warning.main" }} />
+                  }
+                  label="Đánh giá"
                   value={rating}
-                  color="info"
+                  sx={{
+                    bgcolor: "warning.lighter",
+                    "& .MuiTypography-root": {
+                      color: "warning.main",
+                    },
+                  }}
                 />
                 <StatItem
-                  icon={<BarChartIcon />}
+                  icon={
+                    <BarChartIcon sx={{ fontSize: 20, color: "info.main" }} />
+                  }
                   label="Doanh thu"
                   value={`${
-                    store?.orders?.reduce(
-                      (acc, order) =>
-                        acc + order.totalPrice - order.shippingFee,
-                      0,
-                    ) || 0
+                    store?.orders
+                      ?.filter(
+                        (order) =>
+                          order.orderStatus !== OrderStatus.REFUNDED &&
+                          order.orderStatus !== OrderStatus.CANCELLED &&
+                          order.orderStatus !== OrderStatus.REJECTED,
+                      )
+                      .reduce(
+                        (acc, order) =>
+                          acc + order.totalPrice - order.shippingFee,
+                        0,
+                      ) || 0
                   }đ`}
-                  color="info"
+                  sx={{
+                    bgcolor: "info.lighter",
+                    "& .MuiTypography-root": {
+                      color: "info.main",
+                    },
+                  }}
                 />
                 <StatItem
-                  icon={<VerifiedUser />}
+                  icon={
+                    <VerifiedUser
+                      sx={{ fontSize: 20, color: "success.main" }}
+                    />
+                  }
                   label="Đã xác thực"
                   value={0}
-                  color="success"
+                  sx={{
+                    bgcolor: "success.lighter",
+                    "& .MuiTypography-root": {
+                      color: "success.main",
+                    },
+                  }}
                 />
                 <StatItem
-                  icon={<VerifiedUser />}
+                  icon={
+                    <VerifiedUser
+                      sx={{ fontSize: 20, color: "warning.main" }}
+                    />
+                  }
                   label="Chờ xác thực"
                   value={0}
-                  color="warning"
+                  sx={{
+                    bgcolor: "warning.lighter",
+                    "& .MuiTypography-root": {
+                      color: "warning.main",
+                    },
+                  }}
                 />
                 <StatItem
-                  icon={<PersonIcon />}
+                  icon={
+                    <PersonIcon sx={{ fontSize: 20, color: "primary.main" }} />
+                  }
                   label="Khách hàng"
                   value={
                     new Set(store?.orders?.map((order) => order.user.id))
                       .size || 0
                   }
-                  color="warning"
+                  sx={{
+                    bgcolor: "primary.lighter",
+                    "& .MuiTypography-root": {
+                      color: "primary.main",
+                    },
+                  }}
                 />
               </Stack>
             </Box>

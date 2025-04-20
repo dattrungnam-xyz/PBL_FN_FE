@@ -23,6 +23,7 @@ import { IAnalysticByCategory } from "./revenue.interface";
 import { ICustomerStatistic, ITopCustomer } from "./customer.interfact";
 import { IReviewStatistic } from "./review.interface";
 import { IRestocking } from "./restocking.interface";
+import { IUserTable } from "./user.interface";
 export type {
   IProvince,
   IDistrict,
@@ -55,4 +56,5 @@ export type {
   ITopCustomer,
   IReviewStatistic,
   IRestocking,
+  IUserTable,
 };
