@@ -8,7 +8,10 @@ import {
   formatPrice,
   isVideoUrl,
 } from "./helper";
-import { getVerifyOCOPStatusText } from "./getVerifyOCOPStatusText";
+import {
+  getVerifyOCOPStatusText,
+  getVerifyOCOPStatusColor,
+} from "./getVerifyOCOPStatusText";
 export {
   getCategoryText,
   getSellingStatusText,
@@ -17,6 +20,7 @@ export {
   getOrderStatusText,
   getStatusColor,
   getVerifyOCOPStatusText,
+  getVerifyOCOPStatusColor,
   formatPrice,
   isVideoUrl,
 };

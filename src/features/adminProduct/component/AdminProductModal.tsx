@@ -42,7 +42,7 @@ interface ProductDetailModalProps {
   productId: string;
 }
 
-const ProductDetailModal = ({
+const AdminProductModal = ({
   open,
   onClose,
   productId,
@@ -469,4 +469,4 @@ const ProductDetailModal = ({
   );
 };
 
-export default ProductDetailModal;
+export default AdminProductModal;

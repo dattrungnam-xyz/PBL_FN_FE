@@ -113,17 +113,19 @@ const RestockModal = ({ open, onClose }: RestockModalProps) => {
                 {...params}
                 label="Tìm kiếm sản phẩm"
                 size="small"
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: <SearchIcon sx={{ mr: 1 }} />,
-                  endAdornment: (
-                    <>
-                      {isLoadingProducts ? (
-                        <CircularProgress color="inherit" size={20} />
-                      ) : null}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
+                slotProps={{
+                  input: {
+                    ...params.InputProps,
+                    startAdornment: <SearchIcon sx={{ mr: 1 }} />,
+                    endAdornment: (
+                      <>
+                        {isLoadingProducts ? (
+                          <CircularProgress color="inherit" size={20} />
+                        ) : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  },
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {

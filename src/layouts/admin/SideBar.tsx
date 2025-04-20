@@ -78,22 +78,22 @@ const menuGroups: MenuGroup[] = [
       {
         label: "Yêu cầu phê duyệt",
         icon: <VerifiedUserIcon />,
-        path: "/admin/ocop",
+        path: "/admin/verify",
         subItems: [
           {
             label: "Chờ duyệt",
             icon: <PendingIcon />,
-            path: "/admin/ocop/pending",
+            path: "/admin/verify?status=pending",
           },
           {
             label: "Đã duyệt",
             icon: <CheckCircleIcon />,
-            path: "/admin/ocop/approved",
+            path: "/admin/verify?status=verified",
           },
           {
             label: "Đã từ chối",
             icon: <CancelIcon />,
-            path: "/admin/ocop/rejected",
+            path: "/admin/verify?status=rejected",
           },
         ],
       },

@@ -49,6 +49,40 @@ export const getVerifyHistory = async (
       },
     },
   );
-  console.log(response.data);
+  return response.data;
+};
+
+export const getVerify = async ({
+  page = 1,
+  limit = 10,
+  status = VerifyOCOPStatus.ALL,
+  search = "",
+  storeId,
+}: {
+  page: number;
+  limit: number;
+  status?: VerifyOCOPStatus;
+  search?: string;
+  storeId?: string | null;
+}) => {
+  const response = await axios.get<PaginatedData<IVerifyTableData>>(`/verify`, {
+    params: {
+      page,
+      limit,
+      status: status === VerifyOCOPStatus.ALL ? undefined : status,
+      search,
+      storeId: storeId !== "all" ? storeId : undefined,
+    },
+  });
+  return response.data;
+};
+
+export const approveVerify = async (id: string) => {
+  const response = await axios.patch(`/verify/${id}/approve`);
+  return response.data;
+};
+
+export const rejectVerify = async (id: string, reason: string) => {
+  const response = await axios.patch(`/verify/${id}/reject`, { reason });
   return response.data;
 };

@@ -31,11 +31,12 @@ import { useState, useEffect } from "react";
 import { Category } from "../../enums";
 import { useQuery } from "@tanstack/react-query";
 import { getProductByStoreId } from "../../services/product.service";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { SellingProductStatus, VerifyOCOPStatus } from "../../enums";
 import { getCategoryText } from "../../utils/getCategoryText";
 import { IProductTableData } from "../../interface/product.interface";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
+import AdminProductModal from "./component/AdminProductModal";
 interface HeadCell {
   id: keyof IProductTableData;
   label: string;
@@ -69,7 +70,6 @@ const categories = [
 ];
 
 const AdminProduct = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [page, setPage] = useState(1);
@@ -82,8 +82,9 @@ const AdminProduct = () => {
   );
   const [selectedVerifyOcopStatus, setSelectedVerifyOcopStatus] =
     useState<VerifyOCOPStatus>(VerifyOCOPStatus.ALL);
+  const [open, setOpen] = useState(false);
+  const [productId, setProductId] = useState<string | null>(null);
 
-  // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -395,9 +396,10 @@ const AdminProduct = () => {
                           <Tooltip title="Xem chi tiết">
                             <IconButton
                               size="small"
-                              onClick={() =>
-                                navigate(`/seller/product/${product.id}`)
-                              }
+                              onClick={() => {
+                                setOpen(true);
+                                setProductId(product.id);
+                              }}
                               sx={{ color: "primary.main" }}
                             >
                               <VisibilityIcon fontSize="small" />
@@ -426,6 +428,13 @@ const AdminProduct = () => {
           </Card>
         </Stack>
       </Box>
+      {productId ? (
+        <AdminProductModal
+          open={open}
+          onClose={() => setOpen(false)}
+          productId={productId}
+        />
+      ) : null}
     </>
   );
 };

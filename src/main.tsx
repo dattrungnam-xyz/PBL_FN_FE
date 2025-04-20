@@ -60,6 +60,8 @@ import AdminStore from "./features/adminStore/AdminStore.tsx";
 import AdminProduct from "./features/adminProduct/AdminProduct.tsx";
 import Restocking from "./features/restocking/Restocking.tsx";
 import AdminUsers from "./features/adminUser/AdminUser.tsx";
+import AdminVerify from "./features/adminVerify/AdminVerify.tsx";
+import AdminDashboard from "./features/adminDashboard/AdminDashboard.tsx";
 
 const router = createBrowserRouter([
   {
@@ -224,6 +226,10 @@ const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       {
+        path: "",
+        element: <AdminDashboard />,
+      },
+      {
         path: "stores",
         element: <AdminStore />,
       },
@@ -234,6 +240,10 @@ const router = createBrowserRouter([
       {
         path: "users",
         element: <AdminUsers />,
+      },
+      {
+        path: "verify",
+        element: <AdminVerify />,
       },
     ],
   },

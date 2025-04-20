@@ -14,3 +14,17 @@ export const getVerifyOCOPStatusText = (status: VerifyOCOPStatus) => {
       return "Không xác định";
   }
 };
+export const getVerifyOCOPStatusColor = (status: VerifyOCOPStatus) => {
+  switch (status) {
+    case VerifyOCOPStatus.VERIFIED:
+      return "success";
+    case VerifyOCOPStatus.REJECTED:
+      return "error";
+    case VerifyOCOPStatus.PENDING:
+      return "warning";
+    case VerifyOCOPStatus.NOT_SUBMITTED:
+      return "info";
+    default:
+      return "default";
+  }
+};
