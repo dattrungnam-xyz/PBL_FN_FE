@@ -312,40 +312,51 @@ const Revenue = () => {
                 Doanh thu theo danh mục
               </Typography>
               <Stack spacing={1}>
-                {revenueByCategory.map((category) => (
-                  <Stack key={category.category} spacing={0.5}>
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Typography variant="body2">
-                        {getCategoryText(category.category)}
-                      </Typography>
-                      <Typography variant="body2" fontWeight={500}>
-                        {formatPrice(category.revenueCurrentCycle)}
-                      </Typography>
+                {revenueByCategory.map((category) => {
+                  const totalRevenue = revenueByCategory.reduce(
+                    (acc, curr) => acc + curr.revenueCurrentCycle,
+                    0,
+                  );
+                  return (
+                    <Stack key={category.category} spacing={0.5}>
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <Typography variant="body2">
+                          {getCategoryText(category.category)}
+                        </Typography>
+                        <Typography variant="body2" fontWeight={500}>
+                          {formatPrice(category.revenueCurrentCycle)}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <LinearProgress
+                          variant="determinate"
+                          value={
+                            (category.revenueCurrentCycle / totalRevenue) * 100
+                          }
+                          sx={{
+                            flex: 1,
+                            height: 6,
+                            borderRadius: 3,
+                            backgroundColor: "primary.lighter",
+                            "& .MuiLinearProgress-bar": {
+                              backgroundColor: "primary.main",
+                            },
+                          }}
+                        />
+                        <Typography variant="caption" color="success.main">
+                          {Math.round(
+                            (category.revenueCurrentCycle / totalRevenue) * 100,
+                          )}
+                          %
+                        </Typography>
+                      </Stack>
                     </Stack>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <LinearProgress
-                        variant="determinate"
-                        value={category.percentage}
-                        sx={{
-                          flex: 1,
-                          height: 6,
-                          borderRadius: 3,
-                          backgroundColor: "primary.lighter",
-                          "& .MuiLinearProgress-bar": {
-                            backgroundColor: "primary.main",
-                          },
-                        }}
-                      />
-                      <Typography variant="caption" color="success.main">
-                        {category.percentage}%
-                      </Typography>
-                    </Stack>
-                  </Stack>
-                ))}
+                  );
+                })}
               </Stack>
             </CardContent>
           </Card>
