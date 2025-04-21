@@ -37,6 +37,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useSelector } from "react-redux";
 import { RootState } from "../../stores";
 import { deleteReview } from "../../services/review.service";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { VerifyOCOPStatus } from "../../enums";
 
 const Product = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,6 +70,10 @@ const Product = () => {
   };
 
   const handleAddToCart = async () => {
+    if (!currentUser) {
+      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
+      return;
+    }
     try {
       if (!productData?.id) {
         throw new Error("Product ID is required");
@@ -513,6 +520,9 @@ const Product = () => {
             >
               <Tab label="Mô tả sản phẩm" />
               <Tab label={`Đánh giá (${productData.reviews?.length || 0})`} />
+              {productData.verifyOcopStatus === VerifyOCOPStatus.VERIFIED && (
+                <Tab label="Xác thực OCOP" />
+              )}
             </Tabs>
 
             {activeTab === 0 && (
@@ -713,6 +723,126 @@ const Product = () => {
                 </Stack>
               </Box>
             )}
+
+            {activeTab === 2 &&
+              productData.verifyOcopStatus === VerifyOCOPStatus.VERIFIED && (
+                <Box>
+                  {(() => {
+                    const latestVerify = productData.verify
+                      ?.filter(
+                        (ver) => ver.status === VerifyOCOPStatus.VERIFIED,
+                      )
+                      ?.sort(
+                        (a, b) =>
+                          new Date(b.createdAt).getTime() -
+                          new Date(a.createdAt).getTime(),
+                      )[0];
+
+                    if (!latestVerify) return null;
+
+                    return (
+                      <Stack spacing={1}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Box>
+                            <Typography
+                              variant="h6"
+                              fontWeight="bold"
+                              gutterBottom
+                            >
+                              {latestVerify.productName}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              Cơ sở sản xuất: {latestVerify.manufacturer}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Xác thực ngày:{" "}
+                              {format(
+                                new Date(latestVerify.createdAt),
+                                "dd/MM/yyyy",
+                                { locale: vi },
+                              )}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <Box>
+                          <Typography
+                            variant="subtitle1"
+                            fontWeight="bold"
+                            gutterBottom
+                          >
+                            Đánh giá OCOP
+                          </Typography>
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1}
+                          >
+                            <Rating
+                              value={latestVerify.star}
+                              readOnly
+                              precision={0.5}
+                              size="large"
+                            />
+                            <Typography variant="h6" color="primary">
+                              {latestVerify.star} sao
+                            </Typography>
+                          </Stack>
+                        </Box>
+
+                        {latestVerify.images &&
+                          latestVerify.images.length > 0 && (
+                            <Box>
+                              <Typography
+                                variant="subtitle1"
+                                fontWeight="bold"
+                                gutterBottom
+                              >
+                                Hình ảnh chứng nhận
+                              </Typography>
+                              <Box
+                                display="flex"
+                                flexWrap="wrap"
+                                gap={1}
+                                sx={{
+                                  "& img": {
+                                    width: 80,
+                                    height: 80,
+                                    objectFit: "cover",
+                                    borderRadius: 1,
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease-in-out",
+                                    border: "2px solid",
+                                    borderColor: "divider",
+                                    "&:hover": {
+                                      transform: "scale(1.05)",
+                                      borderColor: "primary.main",
+                                      boxShadow: (theme) =>
+                                        `0 0 0 2px ${theme.palette.primary.main}`,
+                                    },
+                                  },
+                                }}
+                              >
+                                {latestVerify.images.map((image, index) => (
+                                  <img
+                                    key={index}
+                                    src={image}
+                                    alt={`Chứng nhận ${index + 1}`}
+                                    onClick={() => setSelectedMedia(image)}
+                                  />
+                                ))}
+                              </Box>
+                            </Box>
+                          )}
+                      </Stack>
+                    );
+                  })()}
+                </Box>
+              )}
           </Paper>
 
           {selectedMedia && (

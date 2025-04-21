@@ -1,4 +1,5 @@
 import { Category, SellingProductStatus, VerifyOCOPStatus } from "../enums";
+import { IOrderDetail } from "./order.interface";
 import { IReview } from "./review.interface";
 import { IVerify } from "./verify.interface";
 interface ISellerRelation {
@@ -61,5 +62,6 @@ export interface IProduct {
   seller: ISellerRelation;
   reviews: IReview[];
   verify: IVerify[];
+  orderDetails: IOrderDetail[];
   // relatedProducts: IProduct[];
 }

@@ -2,7 +2,7 @@ import axios from "../axios";
 import { SellingProductStatus, VerifyOCOPStatus } from "../enums";
 import { Category } from "../enums";
 import { ICreateProduct } from "../interface";
-import { IProductTableData } from "../interface/product.interface";
+import { IProduct, IProductTableData } from "../interface/product.interface";
 import PaginatedData from "../types/PaginatedData";
 
 interface GetProductByStoreIdParams {
@@ -20,7 +20,7 @@ export const createProduct = async (product: ICreateProduct) => {
 };
 
 export const getProductById = async (id: string) => {
-  const response = await axios.get(`/products/${id}`);
+  const response = await axios.get<IProduct>(`/products/${id}`);
   return response.data;
 };
 

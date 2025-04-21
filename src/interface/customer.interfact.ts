@@ -15,3 +15,8 @@ export interface ITopCustomer {
   lastOrder: string;
   totalSpent: number;
 }
+export interface ICustomerCountGroupByProvince {
+  province: string;
+  customerCount: number;
+  provinceText?: string;
+}

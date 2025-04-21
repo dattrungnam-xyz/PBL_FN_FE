@@ -63,6 +63,7 @@ const AdminProductModal = ({
     return videoExtensions.some((ext) => url?.toLowerCase()?.endsWith(ext));
   };
 
+  if (!product) return null;
   return (
     <>
       <Dialog
@@ -100,7 +101,7 @@ const AdminProductModal = ({
               </Typography>
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <Rating
-                  value={+product?.star}
+                  value={product?.star || 0}
                   readOnly
                   precision={0.5}
                   size="small"
@@ -108,7 +109,7 @@ const AdminProductModal = ({
                 <Typography variant="body2" color="text.secondary">
                   ({product?.star} sao OCOP)
                 </Typography>
-                {product?.isVerified && (
+                {product?.verifyOcopStatus === VerifyOCOPStatus.VERIFIED && (
                   <Chip
                     icon={<VerifiedIcon />}
                     label="Đã xác thực"
@@ -222,7 +223,7 @@ const AdminProductModal = ({
                 </Box>
                 <Typography className="info-label">Danh mục</Typography>
                 <Typography className="info-value">
-                  {getCategoryText(product?.category)}
+                  {getCategoryText(product.category)}
                 </Typography>
               </Box>
 
@@ -249,10 +250,10 @@ const AdminProductModal = ({
                 </Typography>
                 <Typography className="info-value">
                   {(
-                    product?.reviews?.reduce(
+                    product.reviews?.reduce(
                       (acc: number, curr: IReview) => acc + curr.rating,
                       0,
-                    ) / product?.reviews?.length || 0
+                    ) / (product?.reviews?.length || 0) || 0
                   ).toFixed(1)}{" "}
                   / 5
                 </Typography>
@@ -264,7 +265,7 @@ const AdminProductModal = ({
                 </Box>
                 <Typography className="info-label">Trạng thái bán</Typography>
                 <Chip
-                  label={getSellingStatusText(product?.status)}
+                  label={getSellingStatusText(product.status)}
                   color={
                     product?.status === "SELLING"
                       ? "success"
@@ -292,7 +293,7 @@ const AdminProductModal = ({
                   Trạng thái xác thực
                 </Typography>
                 <Chip
-                  label={getVerifyOCOPStatusText(product?.verifyOcopStatus)}
+                  label={getVerifyOCOPStatusText(product.verifyOcopStatus)}
                   color={
                     product?.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
                       ? "success"
@@ -324,6 +325,157 @@ const AdminProductModal = ({
                 {product?.description}
               </Typography>
             </Box>
+
+            {product?.verifyOcopStatus === VerifyOCOPStatus.VERIFIED && (
+              <Box>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={0.5}
+                  mb={0.5}
+                >
+                  <VerifiedIcon color="primary" sx={{ fontSize: 20 }} />
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Thông tin xác thực OCOP
+                  </Typography>
+                </Stack>
+                <Card variant="outlined" sx={{ p: 1 }}>
+                  <Stack spacing={1}>
+                    {(() => {
+                      const latestVerify = product?.verify
+                        ?.filter(
+                          (ver) => ver.status === VerifyOCOPStatus.VERIFIED,
+                        )
+                        ?.sort(
+                          (a, b) =>
+                            new Date(b.createdAt).getTime() -
+                            new Date(a.createdAt).getTime(),
+                        )[0];
+
+                      if (!latestVerify) return null;
+
+                      return (
+                        <>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Avatar
+                              src={latestVerify.images?.[0] || ""}
+                              variant="rounded"
+                              sx={{
+                                width: 60,
+                                height: 60,
+                                cursor: "pointer",
+                                "&:hover": {
+                                  opacity: 0.8,
+                                },
+                              }}
+                              onClick={() =>
+                                handleImageClick(latestVerify.images?.[0] || "")
+                              }
+                            />
+                            <Box>
+                              <Typography variant="subtitle2" fontWeight="bold">
+                                {latestVerify.productName}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Cơ sở sản xuất: {latestVerify.manufacturer}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                display="block"
+                              >
+                                Xác thực ngày:{" "}
+                                {format(
+                                  new Date(latestVerify.createdAt),
+                                  "dd/MM/yyyy",
+                                  { locale: vi },
+                                )}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          <Box>
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight="bold"
+                              mb={0.5}
+                            >
+                              Đánh giá OCOP
+                            </Typography>
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              spacing={1}
+                            >
+                              <Rating
+                                value={latestVerify.star}
+                                readOnly
+                                precision={0.5}
+                                size="small"
+                              />
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {latestVerify.star} sao
+                              </Typography>
+                            </Stack>
+                          </Box>
+
+                          {latestVerify.images &&
+                            latestVerify.images.length > 0 && (
+                              <Box>
+                                <Typography
+                                  variant="subtitle2"
+                                  fontWeight="bold"
+                                  mb={0.5}
+                                >
+                                  Hình ảnh chứng nhận
+                                </Typography>
+                                <Box
+                                  display="flex"
+                                  flexWrap="wrap"
+                                  gap={1}
+                                  sx={{
+                                    "& img": {
+                                      width: 50,
+                                      height: 50,
+                                      objectFit: "cover",
+                                      borderRadius: 1,
+                                      cursor: "pointer",
+                                      transition: "all 0.2s ease-in-out",
+                                      border: "1px solid",
+                                      borderColor: "divider",
+                                      "&:hover": {
+                                        transform: "scale(1.05)",
+                                        borderColor: "primary.main",
+                                        boxShadow: (theme) =>
+                                          `0 0 0 2px ${theme.palette.primary.main}`,
+                                      },
+                                    },
+                                  }}
+                                >
+                                  {latestVerify.images.map((image, index) => (
+                                    <img
+                                      key={index}
+                                      src={image}
+                                      alt={`Chứng nhận ${index + 1}`}
+                                      onClick={() => handleImageClick(image)}
+                                    />
+                                  ))}
+                                </Box>
+                              </Box>
+                            )}
+                        </>
+                      );
+                    })()}
+                  </Stack>
+                </Card>
+              </Box>
+            )}
 
             {product?.reviews && product.reviews.length > 0 && (
               <Box>

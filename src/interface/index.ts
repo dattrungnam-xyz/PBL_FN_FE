@@ -20,7 +20,11 @@ import { IAddress } from "./userAddress.interface";
 import { IAnalystic, IOrdersAnalystic } from "./common.interface";
 import { ICreateReview, IReview } from "./review.interface";
 import { IAnalysticByCategory } from "./revenue.interface";
-import { ICustomerStatistic, ITopCustomer } from "./customer.interfact";
+import {
+  ICustomerStatistic,
+  ITopCustomer,
+  ICustomerCountGroupByProvince,
+} from "./customer.interfact";
 import { IReviewStatistic } from "./review.interface";
 import { IRestocking } from "./restocking.interface";
 import { IUserTable } from "./user.interface";
@@ -57,4 +61,5 @@ export type {
   IReviewStatistic,
   IRestocking,
   IUserTable,
+  ICustomerCountGroupByProvince,
 };

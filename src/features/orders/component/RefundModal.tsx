@@ -32,7 +32,13 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
     refundReasonImage: [],
   });
 
-  const [errors, setErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<{
+    refundReason: string;
+    refundReasonImage: string;
+  }>({
+    refundReason: "",
+    refundReasonImage: "",
+  });
   const [selectedProof, setSelectedProof] = useState<{
     file: string;
     index: number;
@@ -43,9 +49,10 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
       ...prev,
       refundReason: value,
     }));
-    setErrors((prev) =>
-      prev.filter((error) => error !== "Vui lòng nhập lý do yêu cầu trả hàng"),
-    );
+    setErrors((prev) => ({
+      ...prev,
+      refundReason: "",
+    }));
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,13 +75,10 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
               ...prev,
               refundReasonImage: [...prev.refundReasonImage, ...newFiles],
             }));
-            setErrors((prev) =>
-              prev.filter(
-                (error) =>
-                  error !==
-                  "Vui lòng tải lên ít nhất một hình ảnh hoặc video làm bằng chứng",
-              ),
-            );
+            setErrors((prev) => ({
+              ...prev,
+              refundReasonImage: "",
+            }));
           }
         }
       };
@@ -99,19 +103,22 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
   };
 
   const handleSubmit = () => {
-    const newErrors: string[] = [];
+    const newErrors: {
+      refundReason: string;
+      refundReasonImage: string;
+    } = {
+      ...errors,
+    };
 
     if (refundRequest.refundReason === "") {
-      newErrors.push("Vui lòng nhập lý do yêu cầu trả hàng");
+      newErrors.refundReason = "Vui lòng nhập lý do yêu cầu trả hàng";
     }
-
     if (refundRequest.refundReasonImage.length === 0) {
-      newErrors.push(
-        "Vui lòng tải lên ít nhất một hình ảnh hoặc video làm bằng chứng",
-      );
+      newErrors.refundReasonImage =
+        "Vui lòng tải lên ít nhất một hình ảnh hoặc video làm bằng chứng";
     }
 
-    if (newErrors.length > 0) {
+    if (newErrors.refundReason !== "" || newErrors.refundReasonImage !== "") {
       setErrors(newErrors);
       return;
     }
@@ -261,12 +268,8 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
                 placeholder="Vui lòng mô tả chi tiết lý do yêu cầu trả hàng..."
                 value={refundRequest.refundReason}
                 onChange={(e) => handleReasonChange(e.target.value)}
-                error={errors.includes("Vui lòng nhập lý do yêu cầu trả hàng")}
-                helperText={
-                  errors.includes("Vui lòng nhập lý do yêu cầu trả hàng")
-                    ? "Vui lòng nhập lý do yêu cầu trả hàng"
-                    : ""
-                }
+                error={errors.refundReason !== ""}
+                helperText={errors.refundReason}
               />
             </Box>
 
@@ -279,9 +282,8 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
                 sx={{
                   p: 1,
                   border: 1,
-                  borderColor: errors.includes("refundReasonImage")
-                    ? "error.main"
-                    : "divider",
+                  borderColor:
+                    errors.refundReasonImage !== "" ? "error.main" : "divider",
                   borderRadius: 1,
                   bgcolor: "background.paper",
                 }}
@@ -398,7 +400,7 @@ const RefundModal = ({ open, onClose, order, onSubmit }: RefundModalProps) => {
                     style={{ display: "none" }}
                   />
                 </Box>
-                {errors.includes("refundReasonImage") && (
+                {errors.refundReasonImage !== "" && (
                   <Typography
                     color="error"
                     variant="caption"

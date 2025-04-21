@@ -147,3 +147,8 @@ export const getRevenueAnalysticByCategory = async (
   });
   return response.data;
 };
+
+export const getRevenueFiveMonth = async () => {
+  const response = await axios.get("/orders/analysis/revenue-five-month");
+  return response.data;
+};

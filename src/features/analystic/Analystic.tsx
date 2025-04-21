@@ -30,6 +30,7 @@ import { getCustomerCount } from "../../services/customer.service";
 import { getReviewCount } from "../../services/review.service";
 import { getTopProduct } from "../../services/product.service";
 import { IProductTableData } from "../../interface/product.interface";
+import { formatPrice } from "../../utils";
 interface RevenueByTime {
   time: string;
   revenue: number;
@@ -224,13 +225,6 @@ const mockAnalytics: AnalyticsData = {
   ],
 };
 
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
-};
-
 const Analystic = () => {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">(
     "month",
@@ -354,7 +348,7 @@ const Analystic = () => {
                   Tổng doanh thu
                 </Typography>
                 <Typography variant="h6" fontWeight={600}>
-                  {formatCurrency(revenue.currentCycle)}
+                  {formatPrice(revenue.currentCycle)}
                 </Typography>
                 <Typography
                   variant="caption"
@@ -497,7 +491,7 @@ const Analystic = () => {
                     <Tooltip
                       formatter={(value: number, name: string) => {
                         if (name === "averageOrderValue") {
-                          return [formatCurrency(value), "Giá trị đơn hàng"];
+                          return [formatPrice(value), "Giá trị đơn hàng"];
                         }
                         if (name === "conversionRate") {
                           return [`${value}%`, "Tỷ lệ chuyển đổi"];

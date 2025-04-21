@@ -35,97 +35,14 @@ import {
   getOrdersAnalystic,
   getRevenueAnalystic,
   getRevenueAnalysticByCategory,
+  getRevenueFiveMonth,
 } from "../../services/order.service";
-import { getCategoryText } from "../../utils";
+import { formatPrice, getCategoryText } from "../../utils";
 import { IProductTableData } from "../../interface/product.interface";
 import { getTrendProduct } from "../../services/product.service";
 
-interface RevenueMetrics {
-  time: string;
-  revenue: number;
-  orders: number;
-  averageOrderValue: number;
-}
-
-interface RevenueByCategory {
-  category: string;
-  revenue: number;
-  percentage: number;
-  growth: number;
-}
-
-interface TopProduct {
-  id: string;
-  name: string;
-  image: string;
-  sold: number;
-  revenue: number;
-}
-
-interface RevenueData {
-  totalRevenue: number;
-  totalOrders: number;
-  averageOrderValue: number;
-  revenueGrowth: number;
-  revenueMetrics: RevenueMetrics[];
-  revenueByCategory: RevenueByCategory[];
-  topProducts: TopProduct[];
-}
-
-const mockRevenueData: RevenueData = {
-  totalRevenue: 25000000,
-  totalOrders: 200,
-  averageOrderValue: 125000,
-  revenueGrowth: 12.5,
-  revenueMetrics: [
-    { time: "1/1", revenue: 3000000, orders: 25, averageOrderValue: 120000 },
-    { time: "2/1", revenue: 3500000, orders: 28, averageOrderValue: 125000 },
-    { time: "3/1", revenue: 2800000, orders: 22, averageOrderValue: 127000 },
-    { time: "4/1", revenue: 4200000, orders: 33, averageOrderValue: 127000 },
-    { time: "5/1", revenue: 3800000, orders: 30, averageOrderValue: 126000 },
-    { time: "6/1", revenue: 4500000, orders: 35, averageOrderValue: 128000 },
-  ],
-  revenueByCategory: [
-    { category: "Nông sản", revenue: 10000000, percentage: 40, growth: 15 },
-    { category: "Thủy sản", revenue: 7500000, percentage: 30, growth: 12 },
-    { category: "Thực phẩm", revenue: 5000000, percentage: 20, growth: 8 },
-    { category: "Khác", revenue: 2500000, percentage: 10, growth: 5 },
-  ],
-  topProducts: [
-    {
-      id: "1",
-      name: "Gạo ST25",
-      image: "https://example.com/rice.jpg",
-      sold: 120,
-      revenue: 6000000,
-    },
-    {
-      id: "2",
-      name: "Mật ong rừng",
-      image: "https://example.com/honey.jpg",
-      sold: 95,
-      revenue: 4750000,
-    },
-    {
-      id: "3",
-      name: "Cá basa",
-      image: "https://example.com/fish.jpg",
-      sold: 80,
-      revenue: 4000000,
-    },
-  ],
-};
-
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
-};
-
 const Revenue = () => {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("week");
-  const [revenueData] = useState<RevenueData>(mockRevenueData);
   const [revenue, setRevenue] = useState<IAnalystic>({
     currentCycle: 0,
     previousCycle: 0,
@@ -143,6 +60,15 @@ const Revenue = () => {
   >([]);
   const [trendProduct, setTrendProduct] = useState<IProductTableData[]>([]);
 
+  const [revenueFiveMonth, setRevenueFiveMonth] = useState<
+    {
+      month: string;
+      totalRevenue: number;
+      totalOrders: number;
+      revenuePerCustomer: number;
+    }[]
+  >([]);
+
   useEffect(() => {
     getRevenueAnalystic(timeRange).then((res) => {
       setRevenue(res);
@@ -157,6 +83,13 @@ const Revenue = () => {
       setTrendProduct(res);
     });
   }, [timeRange]);
+
+  useEffect(() => {
+    getRevenueFiveMonth().then((res) => {
+      setRevenueFiveMonth(res);
+    });
+  }, []);
+
   return (
     <Box sx={{ p: 0.5, maxWidth: 1200, margin: "0 auto" }}>
       <Stack spacing={0.5}>
@@ -198,7 +131,7 @@ const Revenue = () => {
                   Tổng doanh thu
                 </Typography>
                 <Typography variant="h6" fontWeight={600}>
-                  {formatCurrency(revenue.currentCycle)}
+                  {formatPrice(revenue.currentCycle)}
                 </Typography>
                 <Stack spacing={0.5}>
                   <Typography variant="caption" color="text.secondary">
@@ -246,7 +179,7 @@ const Revenue = () => {
                     <Typography variant="caption" color="text.secondary">
                       Giá trị trung bình:{" "}
                       {orders.currentCycle
-                        ? formatCurrency(
+                        ? formatPrice(
                             orders.currentCycleTotalPrice / orders.currentCycle,
                           )
                         : 0}{" "}
@@ -289,30 +222,84 @@ const Revenue = () => {
         <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
           <Card sx={{ flex: 2, minWidth: 400 }}>
             <CardContent sx={{ p: 1 }}>
-              <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                Doanh thu theo thời gian
-              </Typography>
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                mb={0.5}
+              >
+                <Typography variant="subtitle2" fontWeight="bold">
+                  Doanh thu 5 tháng gần nhất
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Đơn vị: Triệu đồng
+                </Typography>
+              </Stack>
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={revenueData.revenueMetrics}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Area
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#8884d8"
-                      fill="#8884d8"
-                      name="Doanh thu"
+                  <AreaChart data={revenueFiveMonth}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 12 }}
+                      axisLine={{ stroke: "#f0f0f0" }}
+                      label={{ value: "Tháng", position: "bottom", offset: 0 }}
+                    />
+                    <YAxis
+                      tickFormatter={(value) => `${value / 1000000}`}
+                      tick={{ fontSize: 12 }}
+                      axisLine={{ stroke: "#f0f0f0" }}
+                      label={{
+                        value: "Triệu đồng",
+                        angle: -90,
+                        position: "insideLeft",
+                        offset: 0,
+                      }}
+                    />
+                    <Tooltip
+                      formatter={(value: number, name: string) => {
+                        if (name === "Tổng doanh thu") {
+                          return [formatPrice(value), "Doanh thu"];
+                        }
+                        return [formatPrice(value), "Đơn hàng trung bình"];
+                      }}
+                      labelFormatter={(label) => `Tháng ${label}`}
+                      contentStyle={{
+                        backgroundColor: "white",
+                        border: "none",
+                        borderRadius: 8,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      }}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      height={36}
+                      formatter={(value) => (
+                        <Typography
+                          variant="caption"
+                          sx={{ fontSize: "0.75rem" }}
+                        >
+                          {value}
+                        </Typography>
+                      )}
                     />
                     <Area
                       type="monotone"
-                      dataKey="orders"
-                      stroke="#82ca9d"
-                      fill="#82ca9d"
+                      dataKey="totalRevenue"
+                      stroke="#1976d2"
+                      fill="#1976d2"
+                      fillOpacity={0.2}
+                      name="Tổng doanh thu"
+                      strokeWidth={2}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenuePerCustomer"
+                      stroke="#4CAF50"
+                      fill="#4CAF50"
+                      fillOpacity={0.2}
                       name="Số đơn hàng"
+                      strokeWidth={2}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -336,7 +323,7 @@ const Revenue = () => {
                         {getCategoryText(category.category)}
                       </Typography>
                       <Typography variant="body2" fontWeight={500}>
-                        {formatCurrency(category.revenueCurrentCycle)}
+                        {formatPrice(category.revenueCurrentCycle)}
                       </Typography>
                     </Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -426,9 +413,11 @@ const Revenue = () => {
                           </Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell align="right">{product.orderDetailCount}</TableCell>
                       <TableCell align="right">
-                        {formatCurrency(product.totalRevenue || 0)}
+                        {product.orderDetailCount}
+                      </TableCell>
+                      <TableCell align="right">
+                        {formatPrice(product.totalRevenue || 0)}
                       </TableCell>
                     </TableRow>
                   ))}
