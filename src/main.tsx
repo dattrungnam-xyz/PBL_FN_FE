@@ -62,11 +62,16 @@ import Restocking from "./features/restocking/Restocking.tsx";
 import AdminUsers from "./features/adminUser/AdminUser.tsx";
 import AdminVerify from "./features/adminVerify/AdminVerify.tsx";
 import AdminDashboard from "./features/adminDashboard/AdminDashboard.tsx";
+import Store from "./features/store/index/Store.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <HomePage />,
+  },
+  {
+    path: "/store/:id",
+    element: <Store />,
   },
   {
     path: "/products",

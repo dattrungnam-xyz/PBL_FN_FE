@@ -2,6 +2,7 @@ import React, { ReactNode } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { Box, Stack, SxProps } from "@mui/material";
+import Chat from "../components/Chat";
 
 // Định nghĩa kiểu cho props
 interface Props {
@@ -28,6 +29,7 @@ const Content: React.FC<Props> = ({ children, withoutFooter = false, sx }) => (
       </Box>
     </Box>
     {!withoutFooter && <Footer />}
+    <Chat />
   </Stack>
 );
 
