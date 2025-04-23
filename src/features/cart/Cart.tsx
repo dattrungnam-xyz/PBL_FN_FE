@@ -92,6 +92,25 @@ const Cart = () => {
   };
 
   const handleSelectItem = (id: number) => {
+    const selectedItem = cartItems
+      .flatMap((item) => item.items)
+      .find((item) => item.id === id);
+
+    if (!selectedItem) return;
+
+    const currentSellerId = selectedItem.product.seller.id;
+    const hasSelectedItemsFromOtherStores = selectedItems.some((selectedId) => {
+      const item = cartItems
+        .flatMap((item) => item.items)
+        .find((item) => item.id === selectedId);
+      return item && item.product.seller.id !== currentSellerId;
+    });
+
+    if (hasSelectedItemsFromOtherStores) {
+      toast.error("Bạn chỉ có thể chọn sản phẩm từ cùng một cửa hàng");
+      return;
+    }
+
     setSelectedItems((prev) =>
       prev.includes(id)
         ? prev.filter((itemId) => itemId !== id)
@@ -108,16 +127,22 @@ const Cart = () => {
         prev.filter((id) => !storeItemIds.includes(id)),
       );
     } else {
+      const hasSelectedItemsFromOtherStores = selectedItems.some(
+        (selectedId) => {
+          const item = cartItems
+            .flatMap((item) => item.items)
+            .find((item) => item.id === selectedId);
+          return item && item.product.seller.id !== storeItems.seller.id;
+        },
+      );
+
+      if (hasSelectedItemsFromOtherStores) {
+        toast.error("Bạn chỉ có thể chọn sản phẩm từ cùng một cửa hàng");
+        return;
+      }
+
       setSelectedItems((prev) => [...new Set([...prev, ...storeItemIds])]);
     }
-  };
-
-  const handleSelectAll = () => {
-    setSelectedItems(
-      selectedItems.length === cartItems.flatMap((item) => item.items).length
-        ? []
-        : cartItems.flatMap((item) => item.items).map((item) => item.id),
-    );
   };
 
   const handleCheckout = async () => {
@@ -155,21 +180,6 @@ const Cart = () => {
                 minHeight: 40,
               }}
             >
-              {cartItems?.length > 0 && (
-                <Checkbox
-                  size={window.innerWidth < 600 ? "small" : "medium"}
-                  checked={
-                    selectedItems.length ===
-                    cartItems.flatMap((item) => item.items).length
-                  }
-                  indeterminate={
-                    selectedItems.length > 0 &&
-                    selectedItems.length <
-                      cartItems.flatMap((item) => item.items).length
-                  }
-                  onChange={handleSelectAll}
-                />
-              )}
               <Typography
                 variant="h6"
                 color="primary"

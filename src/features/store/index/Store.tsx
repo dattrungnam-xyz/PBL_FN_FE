@@ -6,9 +6,7 @@ import {
   Avatar,
   Card,
   CardContent,
-  CardMedia,
   Stack,
-  Rating,
 } from "@mui/material";
 import {
   Storefront as StorefrontIcon,
@@ -19,7 +17,8 @@ import {
 import Content from "../../../layouts/Content";
 import { IStore } from "../../../interface";
 import { getStoreById } from "../../../services/store.service";
-import { Category } from "../../../enums";
+import ProductCard from "../../../components/ProductCard";
+import { VerifyOCOPStatus } from "../../../enums";
 
 const Store = () => {
   const { id } = useParams<{ id: string }>();
@@ -152,59 +151,18 @@ const Store = () => {
           }}
         >
           {store.products.map((product) => (
-            <Card
+            <ProductCard
               key={product.id}
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                transition: "transform 0.2s",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: 3,
-                },
-              }}
-            >
-              <CardMedia
-                component="img"
-                height="200"
-                image={product.images[0]}
-                alt={product.name}
-                sx={{ objectFit: "cover" }}
-              />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography
-                  gutterBottom
-                  variant="h6"
-                  component="div"
-                  sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {product.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {Category[product.category]}
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                  <Rating value={product.star} readOnly size="small" />
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ ml: 1 }}
-                  >
-                    ({product.reviews?.length})
-                  </Typography>
-                </Box>
-                <Typography variant="h6" color="primary">
-                  {product.price.toLocaleString("vi-VN")}đ
-                </Typography>
-              </CardContent>
-            </Card>
+              image={product.images[0]}
+              name={product.name}
+              price={product.price}
+              rating={product.star}
+              location={`${store.wardName}, ${store.districtName}`}
+              soldCount={0}
+              isVerified={
+                product.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
+              }
+            />
           ))}
         </Box>
       </Box>

@@ -63,5 +63,6 @@ export interface IProduct {
   reviews: IReview[];
   verify: IVerify[];
   orderDetails: IOrderDetail[];
+  soldCount: number;
   // relatedProducts: IProduct[];
 }

@@ -37,6 +37,7 @@ import CustomBackdrop from "../../components/UI/CustomBackdrop";
 import AddressDialog from "../profile/AddressDialog";
 import { PaymentMethod } from "../../enums";
 import { createOrders } from "../../services/order.service";
+import { createZaloPayPaymentUrl } from "../../services/payment.service";
 
 const paymentMethods = [
   {
@@ -45,9 +46,9 @@ const paymentMethods = [
     description: "Thanh toán bằng tiền mặt khi nhận hàng",
   },
   {
-    id: PaymentMethod.BANK_TRANSFER,
-    name: "Chuyển khoản ngân hàng",
-    description: "Thanh toán qua tài khoản ngân hàng",
+    id: PaymentMethod.ZALOPAY,
+    name: "ZaloPay",
+    description: "Thanh toán qua ví điện tử ZaloPay",
   },
 ];
 
@@ -162,10 +163,29 @@ const Payment = () => {
         };
         orders.push(order);
       });
-      await createOrders(orders);
-      toast.success("Đặt hàng thành công");
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      navigate("/orders");
+      const order = await createOrders(orders);
+      if (paymentMethod === PaymentMethod.ZALOPAY) {
+        const zaloOrder = {
+          orderId: order[0].id,
+          amount: totalPrice,
+          paymentMethod: paymentMethod,
+        };
+
+        const response = await createZaloPayPaymentUrl(zaloOrder);
+        console.log(order,response)
+        toast.success("Đặt hàng thành công");
+        const redirectUrl = response.data.order_url;
+
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        } else {
+          toast.error("Redirect URL not received from server");
+        }
+      } else {
+        toast.success("Đặt hàng thành công");
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+        navigate("/orders");
+      }
     } catch (error) {
       console.error("Error creating order:", error);
       toast.error("Có lỗi xảy ra khi đặt hàng");
