@@ -344,16 +344,19 @@ const Pending = () => {
                           selectedOrders.length > 0 &&
                           orders?.data &&
                           selectedOrders.length < orders.data.length
+                            ? true
+                            : false
                         }
                         checked={
                           orders?.data &&
                           orders.data.length > 0 &&
                           selectedOrders.length === orders.data.length
+                            ? true
+                            : false
                         }
                         onChange={handleSelectAllClick}
                       />
                     </TableCell>
-                    <TableCell sx={{ width: "5%" }}>STT</TableCell>
                     <TableCell sx={{ width: "20%" }}>Người mua</TableCell>
                     <TableCell sx={{ width: "30%" }}>Địa chỉ</TableCell>
                     <TableCell sx={{ width: "20%" }}>Thời gian</TableCell>

@@ -14,7 +14,7 @@ import PaginatedData from "../types/PaginatedData";
 export interface OrderSellerFilter {
   page: number;
   limit: number;
-  orderStatus: OrderStatus;
+  orderStatus?: OrderStatus;
   search?: string;
   province?: string;
   district?: string;
@@ -150,5 +150,28 @@ export const getRevenueAnalysticByCategory = async (
 
 export const getRevenueFiveMonth = async () => {
   const response = await axios.get("/orders/analysis/revenue-five-month");
+  return response.data;
+};
+
+export const getListOrders = async (
+  filters: OrderSellerFilter,
+): Promise<PaginatedData<IOrder>> => {
+  const response = await axios.get("/orders/list", {
+    params: {
+      page: filters.page || 1,
+      limit: filters.limit || 15,
+      search: filters.search,
+      province: filters.province === "all" ? undefined : filters.province,
+      district: filters.district === "all" ? undefined : filters.district,
+      ward: filters.ward === "all" ? undefined : filters.ward,
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+    },
+  });
+  return response.data;
+};
+
+export const getAdminRevenue = async () => {
+  const response = await axios.get("/orders/revenue");
   return response.data;
 };

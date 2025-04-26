@@ -28,9 +28,15 @@ import {
 } from "../../services/order.service";
 import { getCustomerCount } from "../../services/customer.service";
 import { getReviewCount } from "../../services/review.service";
-import { getTopProduct } from "../../services/product.service";
+import {
+  getProductCountCategory,
+  getTopProduct,
+} from "../../services/product.service";
 import { IProductTableData } from "../../interface/product.interface";
 import { formatPrice } from "../../utils";
+import { useQuery } from "@tanstack/react-query";
+import { RootState } from "../../stores";
+import { useSelector } from "react-redux";
 interface RevenueByTime {
   time: string;
   revenue: number;
@@ -272,6 +278,20 @@ const Analystic = () => {
       setTopProduct(res);
     });
   }, [timeRange]);
+
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  const { data: productCountCategory } = useQuery({
+    queryKey: ["productCountCategory"],
+    queryFn: () => getProductCountCategory(user?.storeId),
+  });
+
+  const productByCategory = [
+    { name: "Thực phẩm", value: productCountCategory[0].count },
+    { name: "Đồ uống", value: productCountCategory[1].count },
+    { name: "Thủ công mỹ nghệ", value: productCountCategory[2].count },
+    { name: "Thảo dược", value: productCountCategory[3].count },
+  ];
 
   return (
     <Box sx={{ p: 0.5, maxWidth: 1200, margin: "0 auto" }}>
@@ -555,18 +575,16 @@ const Analystic = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={analytics.productByCategory}
+                      data={productByCategory}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                      }
+                      label={({ name }) => `${name}`}
                     >
-                      {analytics.productByCategory.map((_entry, index) => (
+                      {productByCategory.map((_entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}

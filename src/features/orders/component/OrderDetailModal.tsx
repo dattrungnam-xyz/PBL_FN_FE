@@ -18,6 +18,7 @@ import { getOrderStatusText } from "../../../utils";
 import { OrderStatus } from "../../../enums/orderStatus.enum";
 import Proof from "./Proof";
 import { useState } from "react";
+import { PaymentStatus } from "../../../enums/paymentStatus.enum";
 
 interface OrderDetailModalProps {
   open: boolean;
@@ -108,6 +109,25 @@ const OrderDetailModal = ({ open, onClose, order }: OrderDetailModalProps) => {
                 size="small"
               />
             </Box>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
+                Thanh toán
+              </Typography>
+              {
+                order.payment.paymentStatus === PaymentStatus.PAID ? (
+                  <Chip
+                    label="Đã thanh toán"
+                    color="success"
+                    size="small"
+                  />
+                ) : (
+                  <Chip
+                    label="Chưa thanh toán"
+                    color="error"
+                    size="small"
+                  />
+                )}
+              </Box>
 
             {/* Order Information */}
             <Box>

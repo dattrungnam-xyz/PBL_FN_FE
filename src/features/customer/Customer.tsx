@@ -222,7 +222,6 @@ const Customer = () => {
                   <TableCell align="right">Đơn hàng</TableCell>
                   <TableCell align="right">Tổng chi tiêu</TableCell>
                   <TableCell align="right">Đánh giá trung bình</TableCell>
-                  <TableCell>Lần mua gần nhất</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -246,7 +245,7 @@ const Customer = () => {
                     </TableCell>
                     <TableCell align="right">{customer.orderCount}</TableCell>
                     <TableCell align="right">
-                      {formatPrice(customer.totalSpent)}
+                      {formatPrice(+customer.totalSpent)}
                     </TableCell>
                     <TableCell align="right">
                       <Stack

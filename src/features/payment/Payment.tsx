@@ -172,9 +172,8 @@ const Payment = () => {
         };
 
         const response = await createZaloPayPaymentUrl(zaloOrder);
-        console.log(order,response)
         toast.success("Đặt hàng thành công");
-        const redirectUrl = response.data.order_url;
+        const redirectUrl = response.order_url;
 
         if (redirectUrl) {
           window.location.href = redirectUrl;

@@ -41,7 +41,7 @@ export const getUsers = async ({
       page,
       limit,
       search,
-      isActive: isActive === true ? undefined : false,
+      isActive: isActive,
     },
   });
   return response.data;

@@ -33,7 +33,7 @@ import {
   IOrderDetail,
   IRefundRequest,
 } from "../../interface";
-import { OrderStatus } from "../../enums";
+import { OrderStatus, PaymentMethod } from "../../enums";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -49,6 +49,7 @@ import { createReview, deleteReview } from "../../services/review.service";
 import ViewReviewModal from "./component/ViewReviewModal";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { createZaloPayPaymentUrl } from "../../services/payment.service";
 
 const orderStatuses = {
   pending_payment: {
@@ -284,6 +285,28 @@ const Orders = () => {
     }
   };
 
+  const handlePayOrder = async (order: IOrder) => {
+    try {
+      const zaloOrder = {
+        orderId: order.id,
+        amount: order.totalPrice,
+        paymentMethod: PaymentMethod.ZALOPAY,
+      };
+      const response = await createZaloPayPaymentUrl(zaloOrder);
+      toast.success("Đặt hàng thành công");
+      const redirectUrl = response.order_url;
+
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        toast.error("Redirect URL not received from server");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    }
+  };
+
   const OrderItem = ({ order }: { order: IOrder }) => {
     const handleUpdateOrderStatus = async (status: OrderStatus) => {
       try {
@@ -312,6 +335,7 @@ const Orders = () => {
                 size="small"
                 color="primary"
                 sx={{ fontSize: "0.813rem" }}
+                onClick={() => handlePayOrder(order)}
               >
                 Thanh toán
               </Button>

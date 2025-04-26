@@ -203,6 +203,7 @@ const UpdateVerifyProduct = () => {
     console.log(formData);
     if (validateForm()) {
       setLoading(true);
+      setOpenConfirmUpdateDialog(false);
       try {
         const payload = {
           ...formData,
@@ -210,7 +211,6 @@ const UpdateVerifyProduct = () => {
         };
         await updateVerifyMutation.mutateAsync(payload);
       } finally {
-        setOpenConfirmUpdateDialog(false);
         setLoading(false);
       }
     }

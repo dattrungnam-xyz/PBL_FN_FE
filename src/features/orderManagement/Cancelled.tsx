@@ -309,16 +309,19 @@ const Cancelled = () => {
                           selectedOrders.length > 0 &&
                           orders?.data &&
                           selectedOrders.length < orders.data.length
+                            ? true
+                            : false
                         }
                         checked={
                           orders?.data &&
                           orders.data.length > 0 &&
                           selectedOrders.length === orders.data.length
+                            ? true
+                            : false
                         }
                         onChange={handleSelectAllClick}
                       />
                     </TableCell>
-                    <TableCell sx={{ width: "5%" }}>STT</TableCell>
                     <TableCell sx={{ width: "20%" }}>Người mua</TableCell>
                     <TableCell sx={{ width: "30%" }}>Địa chỉ</TableCell>
                     <TableCell sx={{ width: "20%" }}>Thời gian</TableCell>
@@ -327,26 +330,13 @@ const Cancelled = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {orders?.data?.map((order: IOrder, index: number) => (
+                  {orders?.data?.map((order: IOrder) => (
                     <TableRow key={order.id}>
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={selectedOrders.includes(order.id)}
                           onChange={() => handleSelectOrder(order.id)}
                         />
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          color="text.secondary"
-                          sx={{
-                            fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                          }}
-                        >
-                          {page * rowsPerPage + index + 1}
-                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1} alignItems="center">

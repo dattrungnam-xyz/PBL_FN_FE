@@ -308,7 +308,7 @@ const Completed = () => {
                             gap: 0.5,
                           }}
                         >
-                          {order.address.textAddress}
+                          {order.address?.textAddress}
                         </Typography>
                       </TableCell>
                       <TableCell>

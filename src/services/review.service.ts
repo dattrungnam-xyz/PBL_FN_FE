@@ -57,3 +57,8 @@ export const getReviews = async (
   });
   return response.data;
 };
+
+export const getReviewAverage = async () => {
+  const response = await axios.get("/reviews/average");
+  return response.data;
+};

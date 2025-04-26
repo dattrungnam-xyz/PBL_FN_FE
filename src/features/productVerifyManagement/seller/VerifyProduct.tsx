@@ -247,6 +247,7 @@ const VerifyProduct = () => {
 
   const handleSubmit = async () => {
     if (validateForm()) {
+      setOpenConfirmCreateVerifyDialog(false);
       setLoading(true);
       try {
         const payload = {
@@ -260,7 +261,6 @@ const VerifyProduct = () => {
         console.error("Error submitting verification:", error);
         toast.error("Có lỗi xảy ra khi gửi yêu cầu xác thực");
       } finally {
-        setOpenConfirmCreateVerifyDialog(false);
         setLoading(false);
       }
     }
@@ -643,7 +643,11 @@ const VerifyProduct = () => {
                 Hủy
               </Button>
               <Button
-                onClick={() => setOpenConfirmCreateVerifyDialog(true)}
+                onClick={() => {
+                  if (validateForm()) {
+                    setOpenConfirmCreateVerifyDialog(true);
+                  }
+                }}
                 variant="contained"
                 size="small"
                 disabled={selectedProducts.length === 0}

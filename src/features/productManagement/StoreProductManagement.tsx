@@ -425,9 +425,8 @@ const StoreProductManagement = () => {
                               />
                             </IconButton>
                           </Tooltip>
-                          {product.verifyOcopStatus ===
-                            VerifyOCOPStatus.NOT_SUBMITTED ||
-                          VerifyOCOPStatus.REJECTED ? (
+                          {product.verifyOcopStatus !==
+                          VerifyOCOPStatus.VERIFIED ? (
                             <Tooltip title="Xác thực">
                               <IconButton
                                 size="small"

@@ -81,3 +81,15 @@ export const updateProductQuantity = async (id: string, quantity: number) => {
   const response = await axios.patch(`/products/${id}/quantity`, { quantity });
   return response.data;
 };
+
+export const getProductCountCategory = async (sellerId?: string) => {
+  const response = await axios.get(
+    `/products/count/category`,
+    {
+      params: {
+        sellerId,
+      },
+    },
+  );
+  return response.data;
+};
