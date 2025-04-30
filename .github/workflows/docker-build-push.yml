@@ -45,4 +45,4 @@ jobs:
             docker images -q dattrungnam510/fe_ocop_mart:latest | xargs -r docker rmi -f
 
             echo "Starting the container with the new image..."
-            docker-compose -f /home/ocop/docker-compose-fe.yml up -d
+            docker compose -f /home/ocop/docker-compose-fe.yml up -d
