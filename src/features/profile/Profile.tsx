@@ -295,6 +295,9 @@ const Profile = () => {
       if (formData.avatar !== user.avatar)
         changedFields.avatar = formData.avatar;
     }
+    if (changedFields.avatar === "") {
+      delete changedFields.avatar;
+    }
 
     if (Object.keys(changedFields).length > 0) {
       updateProfileMutation.mutate(changedFields);
