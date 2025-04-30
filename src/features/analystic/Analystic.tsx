@@ -287,10 +287,10 @@ const Analystic = () => {
   });
 
   const productByCategory = [
-    { name: "Thực phẩm", value: productCountCategory[0].count },
-    { name: "Đồ uống", value: productCountCategory[1].count },
-    { name: "Thủ công mỹ nghệ", value: productCountCategory[2].count },
-    { name: "Thảo dược", value: productCountCategory[3].count },
+    { name: "Thực phẩm", value: productCountCategory?.[0]?.count },
+    { name: "Đồ uống", value: productCountCategory?.[1]?.count },
+    { name: "Thủ công mỹ nghệ", value: productCountCategory?.[2]?.count },
+    { name: "Thảo dược", value: productCountCategory?.[3]?.count },
   ];
 
   return (
