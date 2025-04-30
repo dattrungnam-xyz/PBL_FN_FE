@@ -25,7 +25,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { SelectChangeEvent } from "@mui/material/Select";
 import { styled } from "@mui/material/styles";
-import { Category, SellingProductStatus } from "../../../enums";
+import {
+  Category,
+  SellingProductStatus,
+  VerifyOCOPStatus,
+} from "../../../enums";
 import {
   convertToBase64,
   getCategoryText,
@@ -109,8 +113,8 @@ const UpdateProduct = () => {
           name: data.name,
           description: data.description,
           category: data.category,
-          price: data.price.toString(),
-          quantity: data.quantity.toString(),
+          price: +data.price,
+          quantity: +data.quantity,
           status: data.status,
           images: data.images || [],
           star: data.star || 0,
@@ -120,15 +124,15 @@ const UpdateProduct = () => {
           name: data.name,
           description: data.description,
           category: data.category,
-          price: data.price.toString(),
-          quantity: data.quantity.toString(),
+          price: data.price,
+          quantity: data.quantity,
           status: data.status,
           images: data.images || [],
           star: data.star || 0,
         });
 
         setImagePreviews(data.images || []);
-        setIsOcopVerified(data.isOcopVerified);
+        setIsOcopVerified(data.verifyOcopStatus === VerifyOCOPStatus.VERIFIED);
       } catch (error) {
         console.error("Error fetching product:", error);
         toast.error("Sản phẩm không tồn tại");

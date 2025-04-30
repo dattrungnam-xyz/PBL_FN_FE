@@ -93,3 +93,8 @@ export const getProductCountCategory = async (sellerId?: string) => {
   );
   return response.data;
 };
+
+export const getRelativeProducts = async (productId: string) => {
+  const response = await axios.get(`/products/${productId}/relative`);
+  return response.data;
+};
