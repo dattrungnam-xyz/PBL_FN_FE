@@ -328,14 +328,15 @@ const Revenue = () => {
                           {getCategoryText(category.category)}
                         </Typography>
                         <Typography variant="body2" fontWeight={500}>
-                          {formatPrice(category.revenueCurrentCycle)}
+                          {formatPrice(category.revenueCurrentCycle || 0)}
                         </Typography>
                       </Stack>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <LinearProgress
                           variant="determinate"
                           value={
-                            (category.revenueCurrentCycle / totalRevenue) * 100
+                            (category.revenueCurrentCycle / totalRevenue) *
+                              100 || 0
                           }
                           sx={{
                             flex: 1,
@@ -349,7 +350,8 @@ const Revenue = () => {
                         />
                         <Typography variant="caption" color="success.main">
                           {Math.round(
-                            (category.revenueCurrentCycle / totalRevenue) * 100,
+                            (category.revenueCurrentCycle / totalRevenue) *
+                              100 || 0,
                           )}
                           %
                         </Typography>

@@ -172,7 +172,7 @@ const Review = () => {
           <CardContent sx={{ p: 1 }}>
             <Stack spacing={0.25} alignItems="center">
               <Typography variant="h4" fontWeight={600}>
-                {(+reviewStatistic.averageRating).toFixed(1)}
+                {(+reviewStatistic.averageRating)?.toFixed(1)}
               </Typography>
               <Rating
                 value={reviewStatistic.averageRating}
@@ -224,7 +224,7 @@ const Review = () => {
                         color="text.secondary"
                         sx={{ minWidth: 40 }}
                       >
-                        ({dist.percentage.toFixed(1)}%)
+                        ({dist.percentage?.toFixed(1)}%)
                       </Typography>
                     </Stack>
                   </Stack>
