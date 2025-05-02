@@ -24,10 +24,10 @@ import Herb from "./assets/herb.png";
 import HandicraftsDecoration from "./assets/handicrafts_decoration.jpeg";
 import ProductCard from "../../components/ProductCard";
 import IntroduceCarousel from "./components/IntroduceCarousel";
-import StorefrontIcon from '@mui/icons-material/Storefront';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import SecurityIcon from '@mui/icons-material/Security';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import SecurityIcon from "@mui/icons-material/Security";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 
 const responsive = {
   superLargeDesktop: {
@@ -163,23 +163,23 @@ const SellerBenefits = [
   {
     icon: <StorefrontIcon sx={{ fontSize: 40, color: "#fff" }} />,
     title: "Quản lý cửa hàng dễ dàng",
-    description: "Công cụ quản lý đơn hàng, sản phẩm và khách hàng trực quan"
+    description: "Công cụ quản lý đơn hàng, sản phẩm và khách hàng trực quan",
   },
   {
     icon: <TrendingUpIcon sx={{ fontSize: 40, color: "#fff" }} />,
     title: "Tăng doanh số bán hàng",
-    description: "Tiếp cận hàng triệu khách hàng tiềm năng trên nền tảng"
+    description: "Tiếp cận hàng triệu khách hàng tiềm năng trên nền tảng",
   },
   {
     icon: <SecurityIcon sx={{ fontSize: 40, color: "#fff" }} />,
     title: "Thanh toán an toàn",
-    description: "Hệ thống thanh toán bảo mật, hỗ trợ đa dạng phương thức"
+    description: "Hệ thống thanh toán bảo mật, hỗ trợ đa dạng phương thức",
   },
   {
     icon: <SupportAgentIcon sx={{ fontSize: 40, color: "#fff" }} />,
     title: "Hỗ trợ 24/7",
-    description: "Đội ngũ hỗ trợ chuyên nghiệp, sẵn sàng giải quyết mọi vấn đề"
-  }
+    description: "Đội ngũ hỗ trợ chuyên nghiệp, sẵn sàng giải quyết mọi vấn đề",
+  },
 ];
 
 const HomePage = () => {
@@ -259,8 +259,8 @@ const HomePage = () => {
           </Box>
         </Box>
         <Box
-            sx={{
-              display: "flex",
+          sx={{
+            display: "flex",
             flexDirection: "column",
             mt: { xs: 1, sm: 2 },
             maxHeight: "100%",
@@ -291,6 +291,7 @@ const HomePage = () => {
             >
               <Box sx={{ p: 0.5 }}>
                 <ProductCard
+                  id="1"
                   image={ProductSlider1}
                   name="Sản phẩm 1"
                   price={100000}
@@ -393,7 +394,7 @@ const HomePage = () => {
                   soldCount={100}
                 />
               </Box>
-                  <Box sx={{ p: 0.5 }}>
+              <Box sx={{ p: 0.5 }}>
                 <ProductCard
                   image={ProductSlider1}
                   name="Sản phẩm 1"
@@ -526,7 +527,8 @@ const HomePage = () => {
         >
           <Box
             sx={{
-              background: "linear-gradient(135deg,rgb(46, 158, 52) 0%,rgb(25, 119, 31) 100%)",
+              background:
+                "linear-gradient(135deg,rgb(46, 158, 52) 0%,rgb(25, 119, 31) 100%)",
               borderRadius: 2,
               mt: 1,
               p: { xs: 2, sm: 4 },
@@ -539,7 +541,8 @@ const HomePage = () => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: "radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)",
+                background:
+                  "radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)",
                 zIndex: 1,
               },
               "&::after": {
@@ -549,9 +552,10 @@ const HomePage = () => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: "linear-gradient(45deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%)",
+                background:
+                  "linear-gradient(45deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%)",
                 zIndex: 1,
-              }
+              },
             }}
           >
             <Box
@@ -585,7 +589,8 @@ const HomePage = () => {
                   textShadow: "0 1px 2px rgba(0,0,0,0.1)",
                 }}
               >
-                Khám phá cơ hội kinh doanh cùng nền tảng thương mại điện tử hàng đầu
+                Khám phá cơ hội kinh doanh cùng nền tảng thương mại điện tử hàng
+                đầu
               </Typography>
               <Button
                 variant="contained"

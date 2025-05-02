@@ -1,162 +1,128 @@
 import {
   Box,
   Typography,
-  Slider,
-  FormControl,
-  Select,
-  MenuItem,
   Divider,
   Stack,
-  Checkbox,
-  ListItemText,
   TextField,
-  List,
-  ListItem,
-  ListItemButton,
   Pagination,
+  Autocomplete,
+  Chip,
+  Checkbox,
+  FormControlLabel,
   Button,
-  Menu,
-  ListItemIcon,
 } from "@mui/material";
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import ProductCard from "../../components/ProductCard";
 import { Content } from "../../layouts";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
-import NewReleasesIcon from "@mui/icons-material/NewReleases";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-
-const vietnamProvinces = [
-  "Hà Nội",
-  "TP Hồ Chí Minh",
-  "Hải Phòng",
-  "Đà Nẵng",
-  "Cần Thơ",
-  "An Giang",
-  "Bà Rịa - Vũng Tàu",
-  "Bắc Giang",
-  "Bắc Kạn",
-  "Bạc Liêu",
-  "Bắc Ninh",
-  "Bến Tre",
-  "Bình Định",
-  "Bình Dương",
-  "Bình Phước",
-  "Bình Thuận",
-  "Cà Mau",
-  "Cao Bằng",
-  "Đắk Lắk",
-  "Đắk Nông",
-  "Điện Biên",
-  "Đồng Nai",
-  "Đồng Tháp",
-  "Gia Lai",
-  "Hà Giang",
-  "Hà Nam",
-  "Hà Tĩnh",
-  "Hải Dương",
-  "Hậu Giang",
-  "Hòa Bình",
-  "Hưng Yên",
-  "Khánh Hòa",
-  "Kiên Giang",
-  "Kon Tum",
-  "Lai Châu",
-  "Lâm Đồng",
-  "Lạng Sơn",
-  "Lào Cai",
-  "Long An",
-  "Nam Định",
-  "Nghệ An",
-  "Ninh Bình",
-  "Ninh Thuận",
-  "Phú Thọ",
-  "Phú Yên",
-  "Quảng Bình",
-  "Quảng Nam",
-  "Quảng Ngãi",
-  "Quảng Ninh",
-  "Quảng Trị",
-  "Sóc Trăng",
-  "Sơn La",
-  "Tây Ninh",
-  "Thái Bình",
-  "Thái Nguyên",
-  "Thanh Hóa",
-  "Thừa Thiên Huế",
-  "Tiền Giang",
-  "Trà Vinh",
-  "Tuyên Quang",
-  "Vĩnh Long",
-  "Vĩnh Phúc",
-  "Yên Bái",
-];
+import { RootState } from "../../stores";
+import { useSelector } from "react-redux";
+import { IProduct, IProvince } from "../../interface";
+import { getProducts } from "../../services/product.service";
+import { Category } from "../../enums";
+import { getProvinces } from "../../services/location.service";
+import {
+  createSearchHistory,
+  createViewHistory,
+} from "../../services/searchHistory.service";
 
 const categories = [
-  { value: "all", label: "Tất cả danh mục" },
-  { value: "food", label: "Thực phẩm" },
-  { value: "beverage", label: "Đồ uống" },
-  { value: "herb", label: "Thảo dược" },
-  { value: "handicraft", label: "Đồ thủ công" },
-];
-
-const sortOptions = [
-  { value: "popular", label: "Phổ biến", icon: <TrendingUpIcon /> },
-  { value: "bestseller", label: "Bán chạy", icon: <LocalFireDepartmentIcon /> },
-  { value: "newest", label: "Hàng mới", icon: <NewReleasesIcon /> },
-  { value: "price_asc", label: "Giá thấp đến cao", icon: <ArrowUpwardIcon /> },
-  {
-    value: "price_desc",
-    label: "Giá cao đến thấp",
-    icon: <ArrowDownwardIcon />,
-  },
+  { value: Category.FOOD, label: "Thực phẩm" },
+  { value: Category.BEVERAGE, label: "Đồ uống" },
+  { value: Category.HERB, label: "Thảo dược" },
+  { value: Category.HANDICRAFTS_DECORATION, label: "Đồ thủ công" },
 ];
 
 const Products = () => {
-  const [priceRange, setPriceRange] = useState<number[]>([0, 1000000]);
-  const [selectedProvinces, setSelectedProvinces] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [provinceSearch, setProvinceSearch] = useState("");
+  const [minPrice, setMinPrice] = useState<number>(0);
+  const [maxPrice, setMaxPrice] = useState<number>(1000000);
+  const [isPriceFilterEnabled, setIsPriceFilterEnabled] =
+    useState<boolean>(false);
+  const [selectedProvinces, setSelectedProvinces] = useState<IProvince[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [page, setPage] = useState(1);
-  const [totalProducts] = useState(25);
+  const [totalProducts, setTotalProducts] = useState(0);
   const itemsPerPage = 12;
-  const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedSort, setSelectedSort] = useState("popular");
+  const [search, setSearch] = useState("");
+  const { user } = useSelector((state: RootState) => state.auth);
+  console.log(user, "aaaa");
+  const [products, setProducts] = useState<IProduct[]>([]);
 
-  const handlePriceChange = (_event: Event, newValue: number | number[]) => {
-    setPriceRange(newValue as number[]);
+  const [provinces, setProvinces] = useState<IProvince[]>([]);
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const response = await getProvinces();
+      setProvinces(response);
+    };
+    fetchProvinces();
+  }, []);
+
+  const handleMinPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value) || 0;
+    setMinPrice(value);
   };
 
-  const filteredProvinces = useMemo(() => {
-    return vietnamProvinces.filter((province) =>
-      province.toLowerCase().includes(provinceSearch.toLowerCase()),
-    );
-  }, [provinceSearch]);
-
-  const handleProvinceToggle = (province: string) => {
-    setSelectedProvinces((prev) =>
-      prev.includes(province)
-        ? prev.filter((p) => p !== province)
-        : [...prev, province],
-    );
+  const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value) || 0;
+    setMaxPrice(value);
   };
 
   // Sample data - replace with actual data from API
-  const sampleProducts = Array.from({ length: 20 }, (_, index) => ({
-    id: index + 1,
-    name: `Sản phẩm ${index + 1}`,
-    price: 100000,
-    rating: 4.5,
-    location: "Hà Nội",
-    image: "https://via.placeholder.com/300",
-  }));
+  // const sampleProducts = Array.from({ length: 20 }, (_, index) => ({
+  //   id: index + 1,
+  //   name: `Sản phẩm ${index + 1}`,
+  //   price: 100000,
+  //   rating: 4.5,
+  //   location: "Hà Nội",
+  //   image: "https://via.placeholder.com/300",
+  // }));
 
-  const totalPages = Math.ceil(sampleProducts.length / itemsPerPage);
-  const paginatedProducts = sampleProducts.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage,
-  );
+  // const totalPages = Math.ceil(sampleProducts.length / itemsPerPage);
+  // const paginatedProducts = sampleProducts.slice(
+  //   (page - 1) * itemsPerPage,
+  //   page * itemsPerPage,
+  // );
+
+  const getListProducts = async () => {
+    const searchHistory = localStorage.getItem("searchHistory");
+    const viewHistory = localStorage.getItem("viewHistory");
+    const searchHistoryArray = JSON.parse(searchHistory || "[]") || [];
+    const viewHistoryArray = JSON.parse(viewHistory || "[]") || [];
+    let payload = [];
+    if (search) {
+      payload = [...searchHistoryArray, search];
+    } else {
+      payload = [...searchHistoryArray];
+    }
+    if (searchHistoryArray.length > 0 && user) {
+      await createSearchHistory(payload);
+      localStorage.setItem("searchHistory", JSON.stringify([]));
+    } else {
+      localStorage.setItem("searchHistory", JSON.stringify(payload));
+    }
+    if (viewHistoryArray.length > 0 && user) {
+      await createViewHistory(viewHistoryArray);
+      localStorage.setItem("viewHistory", JSON.stringify([]));
+    }
+
+    const response = await getProducts({
+      categories: selectedCategories,
+      provinces: selectedProvinces.map((province) => province.id),
+      minPrice: isPriceFilterEnabled ? minPrice : undefined,
+      maxPrice: isPriceFilterEnabled ? maxPrice : undefined,
+      search,
+      userId: user?.id,
+      page,
+      limit: itemsPerPage,
+      searchHistory: searchHistoryArray,
+      viewHistory: viewHistoryArray,
+    });
+    setProducts(response.data);
+    setTotalProducts(response.total);
+  };
+  useEffect(() => {
+    getListProducts();
+  }, [page]);
 
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
@@ -165,17 +131,8 @@ const Products = () => {
     setPage(value);
   };
 
-  const handleSortClick = (event: React.MouseEvent<HTMLElement>) => {
-    setSortAnchorEl(event.currentTarget);
-  };
-
-  const handleSortClose = () => {
-    setSortAnchorEl(null);
-  };
-
-  const handleSortSelect = (value: string) => {
-    setSelectedSort(value);
-    handleSortClose();
+  const handleClickButtonSearch = async () => {
+    getListProducts();
   };
 
   return (
@@ -194,164 +151,282 @@ const Products = () => {
           <Box
             sx={{
               bgcolor: "background.paper",
-              p: 1,
-              borderRadius: 1,
+              p: 1.5,
+              borderRadius: 1.5,
               height: "fit-content",
               border: 1,
               borderColor: "divider",
+              boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.05)",
             }}
           >
             <Typography
               variant="h6"
               sx={{
                 fontSize: "1.125rem",
-                mb: 1,
+                mb: 1.5,
                 fontWeight: 600,
+                color: "text.primary",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
               }}
             >
               Bộ lọc
             </Typography>
 
+            {/* Search Text Field */}
+            <Box sx={{ mb: 1.5 }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Tìm kiếm sản phẩm..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "background.paper",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "primary.main",
+                    },
+                  },
+                }}
+              />
+            </Box>
+
             {/* Category Filter */}
-            <Box sx={{ mb: 1 }}>
+            <Box sx={{ mb: 1.5 }}>
               <Typography
                 variant="subtitle2"
-                color="primary"
+                color="text.secondary"
                 sx={{
-                  mb: 0.5,
-                  fontWeight: 600,
+                  mb: 0.75,
+                  fontWeight: 500,
                 }}
               >
                 Danh mục
               </Typography>
-              <FormControl fullWidth size="small">
-                <Select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  {categories.map((category) => (
-                    <MenuItem key={category.value} value={category.value}>
-                      {category.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Autocomplete
+                multiple
+                options={categories}
+                getOptionLabel={(option) => option.label}
+                value={categories.filter((category) =>
+                  selectedCategories.includes(category.value),
+                )}
+                onChange={(_event, newValue) => {
+                  setSelectedCategories(
+                    newValue.map((category) => category.value),
+                  );
+                }}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      label={option.label}
+                      {...getTagProps({ index })}
+                      size="small"
+                      sx={{
+                        color: "primary.dark",
+                        "& .MuiChip-deleteIcon": {
+                          color: "primary.dark",
+                          "&:hover": {
+                            color: "primary.main",
+                          },
+                        },
+                      }}
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    placeholder="Chọn danh mục..."
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "background.paper",
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
+                )}
+                sx={{
+                  "& .MuiAutocomplete-inputRoot": {
+                    paddingY: 0.5,
+                  },
+                }}
+              />
             </Box>
 
-            <Divider sx={{ my: 1 }} />
+            <Divider sx={{ my: 1.5, borderColor: "divider" }} />
 
             {/* Province Filter */}
-            <Box sx={{ mb: 1 }}>
+            <Box sx={{ mb: 1.5 }}>
               <Typography
                 variant="subtitle2"
-                color="primary"
+                color="text.secondary"
                 sx={{
-                  mb: 1,
-                  fontWeight: 600,
+                  mb: 0.75,
+                  fontWeight: 500,
                 }}
               >
                 Tỉnh/Thành phố
               </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Tìm kiếm tỉnh/thành phố..."
-                value={provinceSearch}
-                onChange={(e) => setProvinceSearch(e.target.value)}
-                sx={{ mb: 1 }}
-              />
-              <Box
+              <Autocomplete
+                multiple
+                options={provinces}
+                getOptionLabel={(option) => option.name}
+                value={selectedProvinces}
+                onChange={(_event, newValue) => {
+                  setSelectedProvinces(newValue);
+                }}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      label={option.name}
+                      {...getTagProps({ index })}
+                      size="small"
+                      sx={{
+                        color: "primary.dark",
+                        "& .MuiChip-deleteIcon": {
+                          color: "primary.dark",
+                          "&:hover": {
+                            color: "primary.main",
+                          },
+                        },
+                      }}
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    placeholder="Chọn tỉnh/thành phố..."
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "background.paper",
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
+                )}
                 sx={{
-                  maxHeight: 200,
-                  overflow: "auto",
-                  border: 1,
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  "&::-webkit-scrollbar": {
-                    width: 6,
-                  },
-                  "&::-webkit-scrollbar-track": {
-                    background: "#f1f1f1",
-                    borderRadius: 3,
-                  },
-                  "&::-webkit-scrollbar-thumb": {
-                    background: "#888",
-                    borderRadius: 3,
+                  "& .MuiAutocomplete-inputRoot": {
+                    paddingY: 0.5,
                   },
                 }}
-              >
-                <List dense disablePadding>
-                  {filteredProvinces.map((province) => (
-                    <ListItem key={province} disablePadding>
-                      <ListItemButton
-                        dense
-                        onClick={() => handleProvinceToggle(province)}
-                      >
-                        <Checkbox
-                          edge="start"
-                          checked={selectedProvinces.includes(province)}
-                          tabIndex={-1}
-                          disableRipple
-                          size="small"
-                        />
-                        <ListItemText
-                          primary={province}
-                          slotProps={{
-                            primary: { fontSize: "0.875rem" },
-                          }}
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-              {selectedProvinces.length > 0 && (
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mt: 1, display: "block" }}
-                >
-                  Đã chọn {selectedProvinces.length} tỉnh/thành phố
-                </Typography>
-              )}
+              />
             </Box>
 
-            <Divider sx={{ my: 1 }} />
+            <Divider sx={{ my: 1.5, borderColor: "divider" }} />
 
             {/* Price Range */}
             <Box>
-              <Typography
-                variant="subtitle2"
-                color="primary"
-                sx={{
-                  mb: 1,
-                  fontWeight: 600,
-                }}
-              >
-                Khoảng giá
-              </Typography>
-              <Slider
-                value={priceRange}
-                onChange={handlePriceChange}
-                valueLabelDisplay="auto"
-                min={0}
-                max={1000000}
-                step={100000}
-                marks
-                  sx={{ mt: 1 }}
-              />
               <Stack
                 direction="row"
-                justifyContent="space-between"
-                sx={{ mt: 1 }}
+                alignItems="center"
+                spacing={1}
+                sx={{ mb: 0.75 }}
               >
-                <Typography variant="caption">
-                  {priceRange[0].toLocaleString()}đ
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  sx={{
+                    fontWeight: 500,
+                  }}
+                >
+                  Khoảng giá
                 </Typography>
-                <Typography variant="caption">
-                  {priceRange[1].toLocaleString()}đ
-                </Typography>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={isPriceFilterEnabled}
+                      onChange={(e) =>
+                        setIsPriceFilterEnabled(e.target.checked)
+                      }
+                      sx={{
+                        color: "primary.main",
+                        "&.Mui-checked": {
+                          color: "primary.main",
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" color="text.secondary">
+                      Lọc theo giá
+                    </Typography>
+                  }
+                />
               </Stack>
+              <Stack direction="row" spacing={1}>
+                <TextField
+                  size="small"
+                  type="number"
+                  label="Từ"
+                  value={minPrice}
+                  onChange={handleMinPriceChange}
+                  InputProps={{
+                    endAdornment: <Typography variant="body2">đ</Typography>,
+                  }}
+                  disabled={!isPriceFilterEnabled}
+                  sx={{
+                    flex: 1,
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "background.paper",
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "primary.main",
+                      },
+                    },
+                  }}
+                />
+                <TextField
+                  size="small"
+                  type="number"
+                  label="Đến"
+                  value={maxPrice}
+                  onChange={handleMaxPriceChange}
+                  InputProps={{
+                    endAdornment: <Typography variant="body2">đ</Typography>,
+                  }}
+                  disabled={!isPriceFilterEnabled}
+                  sx={{
+                    flex: 1,
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "background.paper",
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "primary.main",
+                      },
+                    },
+                  }}
+                />
+              </Stack>
+            </Box>
+
+            {/* Search Button */}
+            <Box sx={{ mt: 2 }}>
+              <Button
+                variant="contained"
+                fullWidth
+                color="primary"
+                sx={{
+                  py: 0.5,
+                  borderRadius: 1,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  boxShadow: "none",
+                  "&:hover": {
+                    boxShadow: "0px 2px 4px rgba(0,0,0,0.1)",
+                  },
+                }}
+                onClick={() => handleClickButtonSearch()}
+              >
+                Tìm kiếm
+              </Button>
             </Box>
           </Box>
 
@@ -400,42 +475,6 @@ const Products = () => {
                 </Typography>{" "}
                 sản phẩm
               </Typography>
-              <Box>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={handleSortClick}
-                  startIcon={
-                    sortOptions.find((option) => option.value === selectedSort)
-                      ?.icon
-                  }
-                  sx={{
-                    fontSize: "0.875rem",
-                    textTransform: "none",
-                  }}
-                >
-                  {
-                    sortOptions.find((option) => option.value === selectedSort)
-                      ?.label
-                  }
-                </Button>
-                <Menu
-                  anchorEl={sortAnchorEl}
-                  open={Boolean(sortAnchorEl)}
-                  onClose={handleSortClose}
-                >
-                  {sortOptions.map((option) => (
-                    <MenuItem
-                      key={option.value}
-                      onClick={() => handleSortSelect(option.value)}
-                      selected={selectedSort === option.value}
-                    >
-                      <ListItemIcon>{option.icon}</ListItemIcon>
-                      <ListItemText>{option.label}</ListItemText>
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </Box>
             </Box>
 
             {/* Products Grid */}
@@ -452,15 +491,21 @@ const Products = () => {
                 mb: 1,
               }}
             >
-              {paginatedProducts.map((product) => (
+              {products?.map((product) => (
                 <ProductCard
+                  id={product.id}
                   key={product.id}
                   name={product.name}
                   price={product.price}
-                  rating={product.rating}
-                  location={product.location}
-                  image={product.image}
-                  soldCount={100}
+                  rating={
+                    product.reviews.reduce(
+                      (acc, review) => acc + review.rating,
+                      0,
+                    ) / product.reviews.length
+                  }
+                  location={product.seller.provinceName}
+                  image={product.images[0]}
+                  soldCount={product?.soldCount || 0}
                 />
               ))}
             </Box>
@@ -477,7 +522,7 @@ const Products = () => {
               }}
             >
               <Pagination
-                count={totalPages}
+                count={Math.ceil(totalProducts / itemsPerPage)}
                 page={page}
                 onChange={handlePageChange}
                 color="primary"

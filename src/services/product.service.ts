@@ -98,3 +98,31 @@ export const getRelativeProducts = async (productId: string) => {
   const response = await axios.get(`/products/${productId}/relative`);
   return response.data;
 };
+
+
+export const getProducts = async (filters: {
+  page?: number;
+  limit?: number;
+  categories?: Category[];
+  provinces?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  userId?: string;
+  viewHistory?: string[];
+  searchHistory?: string[];
+}) => {
+  const response = await axios.get<PaginatedData<IProduct>>("/products", { params: {
+    page: filters.page || 1,
+    limit: filters.limit || 15,
+    categories: filters.categories ? filters.categories.join(",") : undefined,
+    provinces: filters.provinces ? filters.provinces.join(",") : undefined,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    search: filters.search,
+    userId: filters.userId,
+    viewHistory: filters.viewHistory ? filters.viewHistory.join(",") : undefined,
+    searchHistory: filters.searchHistory ? filters.searchHistory.join(",") : undefined,
+  } });
+  return response.data;
+};

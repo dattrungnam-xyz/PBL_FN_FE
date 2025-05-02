@@ -13,6 +13,7 @@ import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import VerifiedIcon from "@mui/icons-material/Verified";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
   image: string;
@@ -22,9 +23,11 @@ interface ProductCardProps {
   location: string;
   soldCount: number;
   isVerified?: boolean;
+  id?: string;
 }
 
 const ProductCard = ({
+  id,
   image,
   name,
   price,
@@ -33,6 +36,7 @@ const ProductCard = ({
   soldCount,
   isVerified = false,
 }: ProductCardProps) => {
+  const navigate = useNavigate();
   return (
     <Card
       sx={{
@@ -46,6 +50,9 @@ const ProductCard = ({
         },
         maxWidth: 240,
         position: "relative",
+      }}
+      onClick={() => {
+        navigate(`/product/${id}`);
       }}
     >
       {isVerified && (

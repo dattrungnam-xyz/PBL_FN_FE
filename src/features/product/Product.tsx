@@ -11,7 +11,7 @@ import {
   Chip,
   CircularProgress,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getProductById } from "../../services/product.service";
@@ -97,6 +97,17 @@ const Product = () => {
       console.error("Error deleting review:", error);
     }
   };
+  useEffect(() => {
+    const viewHistory = localStorage.getItem("viewHistory");
+    const viewHistoryArray = JSON.parse(viewHistory || "[]") || [];
+    if (productData && !viewHistoryArray.includes(productData.id)) {
+      const payload = [...viewHistoryArray, productData.id];
+      while (payload.length > 10) {
+        payload.shift();
+      }
+      localStorage.setItem("viewHistory", JSON.stringify(payload));
+    }
+  }, [productData]);
 
   if (isLoading) {
     return (
