@@ -48,6 +48,7 @@ export interface IOrderDetail {
   price: number;
   product: IProduct;
   review: IReview | null;
+  order: IOrder;
 }
 
 export interface IRefundRequest {

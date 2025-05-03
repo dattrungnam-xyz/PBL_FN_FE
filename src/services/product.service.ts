@@ -126,3 +126,8 @@ export const getProducts = async (filters: {
   } });
   return response.data;
 };
+
+export const getRelatedProducts = async (id: string) => {
+  const response = await axios.get(`/products/similar/${id}`);
+  return response.data;
+};

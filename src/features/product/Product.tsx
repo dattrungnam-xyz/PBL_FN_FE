@@ -14,7 +14,10 @@ import {
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getProductById } from "../../services/product.service";
+import {
+  getProductById,
+  getRelatedProducts,
+} from "../../services/product.service";
 import { Content } from "../../layouts";
 import { IProduct } from "../../interface";
 import AddIcon from "@mui/icons-material/Add";
@@ -39,7 +42,8 @@ import { RootState } from "../../stores";
 import { deleteReview } from "../../services/review.service";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { VerifyOCOPStatus } from "../../enums";
+import { OrderStatus, VerifyOCOPStatus } from "../../enums";
+import ProductCard from "../../components/ProductCard";
 
 const Product = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,6 +61,12 @@ const Product = () => {
   } = useQuery<IProduct>({
     queryKey: ["product", id],
     queryFn: () => getProductById(id!),
+    enabled: !!id,
+  });
+
+  const { data: relatedProducts } = useQuery<IProduct[]>({
+    queryKey: ["relatedProducts", id],
+    queryFn: () => getRelatedProducts(id!),
     enabled: !!id,
   });
 
@@ -933,6 +943,37 @@ const Product = () => {
             >
               Sản phẩm liên quan
             </Typography>
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 1, p: 1 }}>
+              {relatedProducts?.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  image={product.images[0]}
+                  name={product.name}
+                  price={product.price}
+                  rating={
+                    product.reviews?.reduce(
+                      (acc, curr) => acc + curr.rating,
+                      0,
+                    ) / (product.reviews?.length || 1)
+                  }
+                  location={product.seller.provinceName}
+                  soldCount={product?.orderDetails.reduce(
+                    (acc, curr) =>
+                      acc +
+                      (curr.order.orderStatus !== OrderStatus.REFUNDED &&
+                      curr.order.orderStatus !== OrderStatus.CANCELLED &&
+                      curr.order.orderStatus !== OrderStatus.REJECTED
+                        ? curr.quantity
+                        : 0),
+                    0,
+                  )}
+                  isVerified={
+                    product.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
+                  }
+                  id={product.id}
+                />
+              ))}
+            </Box>
           </Paper>
         </Box>
       </Box>
