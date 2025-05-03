@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaComment, FaTimes } from "react-icons/fa";
 import "./Chat.css";
 import { getChat } from "../services/chat.service";
@@ -17,18 +17,36 @@ const Chat: React.FC = () => {
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputMessage.trim()) {
       setMessages([...messages, { text: inputMessage, isUser: true }]);
       setInputMessage("");
+      setIsLoading(true);
 
       const response = await getChat(inputMessage);
       setMessages((prev) => [
         ...prev,
         { text: response.response, isUser: false },
       ]);
+      setIsLoading(false);
     }
   };
 
@@ -55,6 +73,16 @@ const Chat: React.FC = () => {
                 {message.text}
               </div>
             ))}
+            {isLoading && (
+              <div className="message bot loading">
+                <div className="loading-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
           <form onSubmit={handleSendMessage} className="chat-input">
             <input
