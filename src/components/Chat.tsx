@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaComment, FaTimes } from "react-icons/fa";
 import "./Chat.css";
+import { getChat } from "../services/chat.service";
 
 interface Message {
   text: string;
@@ -9,21 +10,25 @@ interface Message {
 
 const Chat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      text: "Xin chào, tôi là bot của cửa hàng. Tôi có thể giúp gì cho bạn?",
+      isUser: false,
+    },
+  ]);
   const [inputMessage, setInputMessage] = useState("");
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputMessage.trim()) {
       setMessages([...messages, { text: inputMessage, isUser: true }]);
       setInputMessage("");
-      // Simulate bot response
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          { text: "This is a bot response", isUser: false },
-        ]);
-      }, 1000);
+
+      const response = await getChat(inputMessage);
+      setMessages((prev) => [
+        ...prev,
+        { text: response.response, isUser: false },
+      ]);
     }
   };
 
