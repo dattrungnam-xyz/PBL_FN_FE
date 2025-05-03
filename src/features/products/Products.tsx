@@ -67,22 +67,6 @@ const Products = () => {
     setMaxPrice(value);
   };
 
-  // Sample data - replace with actual data from API
-  // const sampleProducts = Array.from({ length: 20 }, (_, index) => ({
-  //   id: index + 1,
-  //   name: `Sản phẩm ${index + 1}`,
-  //   price: 100000,
-  //   rating: 4.5,
-  //   location: "Hà Nội",
-  //   image: "https://via.placeholder.com/300",
-  // }));
-
-  // const totalPages = Math.ceil(sampleProducts.length / itemsPerPage);
-  // const paginatedProducts = sampleProducts.slice(
-  //   (page - 1) * itemsPerPage,
-  //   page * itemsPerPage,
-  // );
-
   const getListProducts = async () => {
     const searchHistory = localStorage.getItem("searchHistory");
     const viewHistory = localStorage.getItem("viewHistory");
