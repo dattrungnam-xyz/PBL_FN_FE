@@ -12,7 +12,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   getProductById,
@@ -71,6 +71,7 @@ const Product = () => {
   });
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
+  const navigate = useNavigate();
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => {
@@ -506,6 +507,7 @@ const Product = () => {
                     mt: { xs: 1, sm: 1.5 },
                     fontSize: { xs: "0.75rem", sm: "0.875rem" },
                   }}
+                  onClick={() => navigate(`/store/${productData.seller.id}`)}
                 >
                   Xem thêm sản phẩm của cửa hàng
                 </Button>
@@ -943,7 +945,14 @@ const Product = () => {
             >
               Sản phẩm liên quan
             </Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 1, p: 1 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(5, 1fr)",
+                gap: 1,
+                p: 1,
+              }}
+            >
               {relatedProducts?.map((product) => (
                 <ProductCard
                   key={product.id}

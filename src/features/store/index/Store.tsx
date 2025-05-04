@@ -19,7 +19,7 @@ import { IStore } from "../../../interface";
 import { getStoreById } from "../../../services/store.service";
 import ProductCard from "../../../components/ProductCard";
 import { VerifyOCOPStatus } from "../../../enums";
-
+import storeImage from "../../../assets/images/store.png";
 const Store = () => {
   const { id } = useParams<{ id: string }>();
   const [store, setStore] = useState<IStore | null>(null);
@@ -71,7 +71,7 @@ const Store = () => {
             sx={{
               position: "relative",
               height: 200,
-              backgroundImage: `url(${store.banner})`,
+              backgroundImage: `url(${store.banner ? store.banner : storeImage})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}

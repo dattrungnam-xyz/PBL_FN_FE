@@ -230,11 +230,23 @@ const Cart = () => {
                       onChange={() => handleSelectStore(group)}
                     />
                     <Stack direction="row" alignItems="center" gap={0.25}>
-                      <img
+                      <Avatar
+                        variant="square"
                         src={group.seller.avatar}
                         alt={group.seller.name}
-                        style={{ width: 32, height: 32 }}
-                      />
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          bgcolor: "grey.100",
+                          fontSize: "0.875rem",
+                          border: 1,
+                          borderColor: "divider",
+                          borderRadius: 1,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {group.seller.name.charAt(0)}
+                      </Avatar>
                       <Typography
                         sx={{
                           fontSize: { xs: "0.875rem", sm: "1rem" },
