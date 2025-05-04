@@ -152,6 +152,7 @@ const Store = () => {
         >
           {store.products.map((product) => (
             <ProductCard
+              id={product.id}
               key={product.id}
               image={product.images[0]}
               name={product.name}
