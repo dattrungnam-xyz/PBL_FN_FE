@@ -1,12 +1,15 @@
 import { Box, TextField, MenuItem, Button, Menu } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { useState } from "react";
+import { Category } from "../enums";
+import { useNavigate } from "react-router-dom";
 
 const SearchBar = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const open = Boolean(anchorEl);
-
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
   const handleCategoryClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -15,17 +18,21 @@ const SearchBar = () => {
     setAnchorEl(null);
   };
 
-  const handleCategorySelect = (category: string) => {
+  const handleCategorySelect = (category: Category) => {
     setSelectedCategory(category);
     handleCategoryClose();
   };
 
+  const handleSearch = () => {
+    navigate(`/products?category=${selectedCategory}&search=${search}`);
+  };
+
   const categories = [
     { value: "all", label: "Tất cả danh mục" },
-    { value: "food", label: "Thực phẩm" },
-    { value: "beverage", label: "Đồ uống" },
-    { value: "herb", label: "Thảo dược" },
-    { value: "handicraft", label: "Đồ thủ công" },
+    { value: Category.FOOD, label: "Thực phẩm" },
+    { value: Category.BEVERAGE, label: "Đồ uống" },
+    { value: Category.HERB, label: "Thảo dược" },
+    { value: Category.HANDICRAFTS_DECORATION, label: "Đồ thủ công" },
   ];
 
   return (
@@ -59,6 +66,8 @@ const SearchBar = () => {
         </Button>
         <TextField
           fullWidth
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Tìm kiếm sản phẩm OCOP..."
           variant="outlined"
           size="small"
@@ -85,6 +94,7 @@ const SearchBar = () => {
               borderColor: "primary.main",
             },
           }}
+          onClick={() => handleSearch()}
         >
           <SearchIcon sx={{ color: "primary.main" }} />
         </Button>
@@ -104,7 +114,7 @@ const SearchBar = () => {
           {categories.map((category) => (
             <MenuItem
               key={category.value}
-              onClick={() => handleCategorySelect(category.value)}
+              onClick={() => handleCategorySelect(category.value as Category)}
             >
               {category.label}
             </MenuItem>

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   Box,
   Typography,
@@ -24,6 +25,7 @@ import {
   createSearchHistory,
   createViewHistory,
 } from "../../services/searchHistory.service";
+import { useSearchParams } from "react-router-dom";
 
 const categories = [
   { value: Category.FOOD, label: "Thực phẩm" },
@@ -44,10 +46,13 @@ const Products = () => {
   const itemsPerPage = 12;
   const [search, setSearch] = useState("");
   const { user } = useSelector((state: RootState) => state.auth);
-  console.log(user, "aaaa");
+
   const [products, setProducts] = useState<IProduct[]>([]);
 
   const [provinces, setProvinces] = useState<IProvince[]>([]);
+  const [searchParams] = useSearchParams();
+  const search_param = searchParams.get("search");
+  const category_param = searchParams.get("category");
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -67,7 +72,13 @@ const Products = () => {
     setMaxPrice(value);
   };
 
-  const getListProducts = async () => {
+  const getListProducts = async ({
+    search_param,
+    category_param,
+  }: {
+    search_param?: string;
+    category_param?: Category;
+  }) => {
     const searchHistory = localStorage.getItem("searchHistory");
     const viewHistory = localStorage.getItem("viewHistory");
     const searchHistoryArray = JSON.parse(searchHistory || "[]") || [];
@@ -90,11 +101,11 @@ const Products = () => {
     }
 
     const response = await getProducts({
-      categories: selectedCategories,
+      categories: category_param ? [category_param] : selectedCategories,
       provinces: selectedProvinces.map((province) => province.id),
       minPrice: isPriceFilterEnabled ? minPrice : undefined,
       maxPrice: isPriceFilterEnabled ? maxPrice : undefined,
-      search,
+      search: search_param ? search_param : search,
       userId: user?.id,
       page,
       limit: itemsPerPage,
@@ -105,8 +116,22 @@ const Products = () => {
     setTotalProducts(response.total);
   };
   useEffect(() => {
-    getListProducts();
+    getListProducts({});
   }, [page]);
+
+  useEffect(() => {
+    if (search_param) {
+      setSearch(search_param);
+    }
+    if (category_param && category_param !== "all") {
+      setSelectedCategories([category_param as Category]);
+    }
+
+    getListProducts({
+      search_param: search_param || undefined,
+      category_param: category_param as Category | undefined,
+    });
+  }, [search_param, category_param]);
 
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
@@ -116,7 +141,7 @@ const Products = () => {
   };
 
   const handleClickButtonSearch = async () => {
-    getListProducts();
+    getListProducts({});
   };
 
   return (
