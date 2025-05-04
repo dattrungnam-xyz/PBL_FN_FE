@@ -235,8 +235,8 @@ const Cart = () => {
                         src={group.seller.avatar}
                         alt={group.seller.name}
                         sx={{
-                          width: 48,
-                          height: 48,
+                          width: 36,
+                          height: 36,
                           bgcolor: "grey.100",
                           fontSize: "0.875rem",
                           border: 1,

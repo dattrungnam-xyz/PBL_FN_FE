@@ -33,7 +33,7 @@ import {
   getPopularProduct,
 } from "../../services/product.service";
 import { useQuery } from "@tanstack/react-query";
-import { VerifyOCOPStatus } from "../../enums";
+import { Category, VerifyOCOPStatus } from "../../enums";
 import { getTopRecentReviews } from "../../services/review.service";
 import { format } from "date-fns";
 import ImageDetail from "../../components/ImageDetail";
@@ -90,26 +90,31 @@ const CategoryItems = [
     src: AllProduct,
     alt: "all_product",
     text: "Tất cả sản phẩm",
+    value: "all",
   },
   {
     src: Food,
     alt: "food",
     text: "Thực phẩm",
+    value: Category.FOOD,
   },
   {
     src: Beverage,
     alt: "beverage",
     text: "Đồ uống",
+    value: Category.BEVERAGE,
   },
   {
     src: Herb,
     alt: "herb",
     text: "Thảo dược",
+    value: Category.HERB,
   },
   {
     src: HandicraftsDecoration,
     alt: "handicrafts_decoration",
     text: "Đồ trang trí",
+    value: Category.HANDICRAFTS_DECORATION,
   },
 ];
 
@@ -255,6 +260,7 @@ const HomePage = () => {
                   src={item.src}
                   alt={item.alt}
                   text={item.text}
+                  value={item.value}
                 />
               ))}
             </Box>

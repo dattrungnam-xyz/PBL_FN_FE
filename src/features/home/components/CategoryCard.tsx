@@ -1,13 +1,19 @@
 import { Box, SxProps, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 type CategoryCardProps = {
   text?: string;
   src: string;
   alt?: string;
   sx?: SxProps;
+  value?: string;
 };
 
-const CategoryCard = ({ text, src, alt, sx }: CategoryCardProps) => {
+const CategoryCard = ({ text, src, alt, sx, value }: CategoryCardProps) => {
+  const navigate = useNavigate();
+  const handleClick = (value: string) => {
+    navigate(`/products?category=${value}`);
+  };
   return (
     <Box
       sx={{
@@ -21,6 +27,7 @@ const CategoryCard = ({ text, src, alt, sx }: CategoryCardProps) => {
         },
         position: "relative",
       }}
+      onClick={() => handleClick(value as string)}
     >
       <img
         src={src}
