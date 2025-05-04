@@ -19,7 +19,7 @@ import { IStore } from "../../../interface";
 import { getStoreById } from "../../../services/store.service";
 import ProductCard from "../../../components/ProductCard";
 import { VerifyOCOPStatus } from "../../../enums";
-import storeImage from "../../../assets/images/store.png";
+import storeImage from "../asset/ocopimage.png";
 const Store = () => {
   const { id } = useParams<{ id: string }>();
   const [store, setStore] = useState<IStore | null>(null);
