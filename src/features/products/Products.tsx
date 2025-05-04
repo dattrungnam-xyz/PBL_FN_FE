@@ -18,7 +18,7 @@ import { RootState } from "../../stores";
 import { useSelector } from "react-redux";
 import { IProduct, IProvince } from "../../interface";
 import { getProducts } from "../../services/product.service";
-import { Category } from "../../enums";
+import { Category, VerifyOCOPStatus } from "../../enums";
 import { getProvinces } from "../../services/location.service";
 import {
   createSearchHistory,
@@ -490,6 +490,9 @@ const Products = () => {
                   location={product.seller.provinceName}
                   image={product.images[0]}
                   soldCount={product?.soldCount || 0}
+                  isVerified={
+                    product.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
+                  }
                 />
               ))}
             </Box>

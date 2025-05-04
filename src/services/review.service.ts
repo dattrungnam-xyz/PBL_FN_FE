@@ -36,6 +36,10 @@ export const getRecentReviews = async (): Promise<IReview[]> => {
   return response.data;
 };
 
+export const getTopRecentReviews = async (): Promise<IReview[]> => {
+  const response = await axios.get("/reviews/top-recent");
+  return response.data;
+};
 interface IReviewParams {
   productId?: string;
   rating?: number;

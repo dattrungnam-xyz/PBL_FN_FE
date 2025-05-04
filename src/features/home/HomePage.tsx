@@ -28,6 +28,16 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import SecurityIcon from "@mui/icons-material/Security";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import {
+  getFiveStarProduct,
+  getPopularProduct,
+} from "../../services/product.service";
+import { useQuery } from "@tanstack/react-query";
+import { VerifyOCOPStatus } from "../../enums";
+import { getTopRecentReviews } from "../../services/review.service";
+import { format } from "date-fns";
+import ImageDetail from "../../components/ImageDetail";
+import { useState } from "react";
 
 const responsive = {
   superLargeDesktop: {
@@ -103,62 +113,6 @@ const CategoryItems = [
   },
 ];
 
-const ReviewItems = [
-  {
-    avatar: ProductSlider1,
-    name: "Nguyễn Văn A",
-    rating: 5,
-    comment:
-      "Sản phẩm rất tốt, chất lượng cao. Giao hàng nhanh chóng và đóng gói cẩn thận.",
-    product: "Mật ong rừng U Minh",
-    date: "20/03/2024",
-  },
-  {
-    avatar: ProductSlider1,
-    name: "Trần Thị B",
-    rating: 4.5,
-    comment: "Sản phẩm đúng như mô tả, giá cả hợp lý. Sẽ ủng hộ thêm.",
-    product: "Trà thảo dược",
-    date: "18/03/2024",
-  },
-  {
-    avatar: ProductSlider1,
-    name: "Lê Văn C",
-    rating: 5,
-    comment:
-      "Rất hài lòng với chất lượng sản phẩm. Đóng gói đẹp, giao hàng nhanh.",
-    product: "Mật ong rừng U Minh",
-    date: "15/03/2024",
-  },
-  {
-    avatar: ProductSlider1,
-    name: "Lê Văn C",
-    rating: 5,
-    comment:
-      "Rất hài lòng với chất lượng sản phẩm. Đóng gói đẹp, giao hàng nhanh.",
-    product: "Mật ong rừng U Minh",
-    date: "15/03/2024",
-  },
-  {
-    avatar: ProductSlider1,
-    name: "Lê Văn C",
-    rating: 5,
-    comment:
-      "Rất hài lòng với chất lượng sản phẩm. Đóng gói đẹp, giao hàng nhanh.",
-    product: "Mật ong rừng U Minh",
-    date: "15/03/2024",
-  },
-  {
-    avatar: ProductSlider1,
-    name: "Lê Văn C",
-    rating: 5,
-    comment:
-      "Rất hài lòng với chất lượng sản phẩm. Đóng gói đẹp, giao hàng nhanh.",
-    product: "Mật ong rừng U Minh",
-    date: "15/03/2024",
-  },
-];
-
 const SellerBenefits = [
   {
     icon: <StorefrontIcon sx={{ fontSize: 40, color: "#fff" }} />,
@@ -183,6 +137,54 @@ const SellerBenefits = [
 ];
 
 const HomePage = () => {
+  const { data: products } = useQuery({
+    queryKey: ["five-star-product"],
+    queryFn: () => getFiveStarProduct(),
+  });
+
+  const { data: popularProducts } = useQuery({
+    queryKey: ["popular-product"],
+    queryFn: () => getPopularProduct(),
+  });
+
+  const { data: recentReviews } = useQuery({
+    queryKey: ["top-recent-reviews"],
+    queryFn: () => getTopRecentReviews(),
+  });
+
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [mediaList, setMediaList] = useState<string[]>([]);
+  const [isImageDetailOpen, setIsImageDetailOpen] = useState(false);
+
+  const handleMediaClick = (mediaUrl: string, allMedia: string[]) => {
+    setSelectedMedia(mediaUrl);
+    setMediaList(allMedia);
+    setIsImageDetailOpen(true);
+  };
+
+  const handleCloseImageDetail = () => {
+    setIsImageDetailOpen(false);
+    setSelectedMedia(null);
+    setMediaList([]);
+  };
+
+  const handleNextMedia = () => {
+    if (selectedMedia && mediaList.length > 0) {
+      const currentIndex = mediaList.indexOf(selectedMedia);
+      const nextIndex = (currentIndex + 1) % mediaList.length;
+      setSelectedMedia(mediaList[nextIndex]);
+    }
+  };
+
+  const handlePrevMedia = () => {
+    if (selectedMedia && mediaList.length > 0) {
+      const currentIndex = mediaList.indexOf(selectedMedia);
+      const prevIndex =
+        (currentIndex - 1 + mediaList.length) % mediaList.length;
+      setSelectedMedia(mediaList[prevIndex]);
+    }
+  };
+
   return (
     <Content
       sx={{
@@ -258,265 +260,250 @@ const HomePage = () => {
             </Box>
           </Box>
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            mt: { xs: 1, sm: 2 },
-            maxHeight: "100%",
-          }}
-        >
-          <Typography color="text.primary" variant="h5">
-            Sản phẩm nổi bật
-          </Typography>
+        {popularProducts && popularProducts.length > 0 ? (
           <Box
             sx={{
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              mt: 1,
-              py: 2,
-              px: 1,
+              display: "flex",
+              flexDirection: "column",
+              mt: { xs: 1, sm: 2 },
+              maxHeight: "100%",
             }}
           >
-            <Carousel
-              removeArrowOnDeviceType={[
-                "superLargeDesktop",
-                "desktop",
-                "tablet",
-                "mobile",
-              ]}
-              infinite
-              autoPlay
-              responsive={responsive}
+            <Typography color="text.primary" variant="h5">
+              Sản phẩm nổi bật
+            </Typography>
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: 2,
+                mt: 1,
+                py: 2,
+                px: 1,
+              }}
             >
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  id="1"
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-            </Carousel>
+              <Carousel
+                removeArrowOnDeviceType={[
+                  "superLargeDesktop",
+                  "desktop",
+                  "tablet",
+                  "mobile",
+                ]}
+                infinite
+                autoPlay
+                responsive={responsive}
+              >
+                {popularProducts?.map((product) => (
+                  <Box sx={{ p: 0.5 }}>
+                    <ProductCard
+                      id={product.id}
+                      key={product.id}
+                      name={product.name}
+                      price={product.price}
+                      rating={
+                        product.reviews.reduce(
+                          (acc, review) => acc + review.rating,
+                          0,
+                        ) / product.reviews.length
+                      }
+                      location={product.seller.provinceName}
+                      image={product.images[0]}
+                      soldCount={product?.soldCount || 0}
+                      isVerified={
+                        product.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
+                      }
+                    />
+                  </Box>
+                ))}
+              </Carousel>
+            </Box>
           </Box>
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            mt: { xs: 1, sm: 2 },
-            maxHeight: "100%",
-          }}
-        >
-          <Typography color="text.primary" variant="h5">
-            Sản phẩm OCOP 5 sao
-          </Typography>
+        ) : null}
+        {products && products.length > 0 ? (
           <Box
             sx={{
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              mt: 1,
-              py: 2,
-              px: 1,
+              display: "flex",
+              flexDirection: "column",
+              mt: { xs: 1, sm: 2 },
+              maxHeight: "100%",
             }}
           >
-            <Carousel
-              removeArrowOnDeviceType={[
-                "superLargeDesktop",
-                "desktop",
-                "tablet",
-                "mobile",
-              ]}
-              infinite
-              autoPlay
-              responsive={responsive}
+            <Typography color="text.primary" variant="h5">
+              Sản phẩm OCOP 5 sao
+            </Typography>
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: 2,
+                mt: 1,
+                py: 2,
+                px: 1,
+              }}
             >
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-              <Box sx={{ p: 0.5 }}>
-                <ProductCard
-                  image={ProductSlider1}
-                  name="Sản phẩm 1"
-                  price={100000}
-                  rating={4.5}
-                  location="Hà Nội"
-                  soldCount={100}
-                />
-              </Box>
-            </Carousel>
+              <Carousel
+                removeArrowOnDeviceType={[
+                  "superLargeDesktop",
+                  "desktop",
+                  "tablet",
+                  "mobile",
+                ]}
+                infinite
+                autoPlay
+                responsive={responsive}
+              >
+                {products?.map((product) => (
+                  <Box sx={{ p: 0.5 }}>
+                    <ProductCard
+                      id={product.id}
+                      key={product.id}
+                      name={product.name}
+                      price={product.price}
+                      rating={
+                        product.reviews.reduce(
+                          (acc, review) => acc + review.rating,
+                          0,
+                        ) / product.reviews.length
+                      }
+                      location={product.seller.provinceName}
+                      image={product.images[0]}
+                      soldCount={product?.soldCount || 0}
+                      isVerified={
+                        product.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
+                      }
+                    />
+                  </Box>
+                ))}
+              </Carousel>
+            </Box>
           </Box>
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            mt: { xs: 1, sm: 2 },
-            maxHeight: "100%",
-          }}
-        >
-          <Typography color="text.primary" variant="h5">
-            Đánh giá sản phẩm OCOP
-          </Typography>
+        ) : null}
+
+        {recentReviews && recentReviews.length > 0 && (
           <Box
             sx={{
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              mt: 1,
-              py: 2,
-              px: 1,
+              display: "flex",
+              flexDirection: "column",
+              mt: { xs: 1, sm: 2 },
+              maxHeight: "100%",
             }}
           >
-            <Carousel
-              removeArrowOnDeviceType={[
-                "superLargeDesktop",
-                "desktop",
-                "tablet",
-                "mobile",
-              ]}
-              infinite
-              autoPlay
-              responsive={responsive}
+            <Typography color="text.primary" variant="h5">
+              Đánh giá sản phẩm OCOP
+            </Typography>
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: 2,
+                mt: 1,
+                py: 2,
+                px: 1,
+              }}
             >
-              {ReviewItems.map((review, idx) => (
-                <Card key={idx} sx={{ height: "100%", m: 0.25 }}>
-                  <CardContent>
-                    <Stack spacing={1}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <Avatar src={review.avatar} />
-                        <Box>
-                          <Typography variant="subtitle2" fontWeight={600}>
-                            {review.name}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {review.date}
-                          </Typography>
+              <Carousel
+                removeArrowOnDeviceType={[
+                  "superLargeDesktop",
+                  "desktop",
+                  "tablet",
+                  "mobile",
+                ]}
+                infinite
+                autoPlay
+                responsive={responsive}
+              >
+                {recentReviews?.map((review, idx) => (
+                  <Card key={idx} sx={{ height: "100%", m: 0.25 }}>
+                    <CardContent>
+                      <Stack spacing={1}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <Avatar src={review.user.avatar} />
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600}>
+                              {review.user.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {format(new Date(review.createdAt), "dd/MM/yyyy")}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                      <Typography
-                        variant="body2"
-                        color="primary"
-                        fontWeight={500}
-                      >
-                        {review.product}
-                      </Typography>
-                      <Rating value={review.rating} readOnly size="small" />
-                      <Typography variant="body2" color="text.secondary">
-                        {review.comment}
-                      </Typography>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              ))}
-            </Carousel>
+                        <Typography
+                          variant="body2"
+                          color="primary"
+                          fontWeight={500}
+                        >
+                          {review.product.name} - {review.orderDetail?.quantity}
+                        </Typography>
+                        <Rating value={review.rating} readOnly size="small" />
+                        <Typography variant="body2" color="text.secondary">
+                          {review.description}
+                        </Typography>
+                        {review.media && review.media.length > 0 && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 1,
+                              overflowX: "auto",
+                              py: 1,
+                            }}
+                          >
+                            {review.media.map((mediaUrl, mediaIdx) => (
+                              <Box
+                                key={mediaIdx}
+                                onClick={() =>
+                                  handleMediaClick(mediaUrl, review.media)
+                                }
+                                sx={{
+                                  cursor: "pointer",
+                                  position: "relative",
+                                  minWidth: "100px",
+                                  height: "100px",
+                                  borderRadius: 1,
+                                  overflow: "hidden",
+                                  "&:hover": {
+                                    opacity: 0.8,
+                                  },
+                                }}
+                              >
+                                {mediaUrl.endsWith(".mp4") ||
+                                mediaUrl.endsWith(".webm") ? (
+                                  <video
+                                    src={mediaUrl}
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                ) : (
+                                  <img
+                                    src={mediaUrl}
+                                    alt={`Review media ${mediaIdx + 1}`}
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Carousel>
+            </Box>
           </Box>
-        </Box>
+        )}
         <Box
           sx={{
             display: "flex",
@@ -676,7 +663,17 @@ const HomePage = () => {
           </Box>
         </Box>
       </Box>
+
+      <ImageDetail
+        open={isImageDetailOpen}
+        onClose={handleCloseImageDetail}
+        currentMedia={selectedMedia || ""}
+        mediaList={mediaList}
+        onNext={handleNextMedia}
+        onPrev={handlePrevMedia}
+      />
     </Content>
   );
 };
+
 export default HomePage;

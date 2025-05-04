@@ -83,14 +83,11 @@ export const updateProductQuantity = async (id: string, quantity: number) => {
 };
 
 export const getProductCountCategory = async (sellerId?: string) => {
-  const response = await axios.get(
-    `/products/count/category`,
-    {
-      params: {
-        sellerId,
-      },
+  const response = await axios.get(`/products/count/category`, {
+    params: {
+      sellerId,
     },
-  );
+  });
   return response.data;
 };
 
@@ -98,7 +95,6 @@ export const getRelativeProducts = async (productId: string) => {
   const response = await axios.get(`/products/${productId}/relative`);
   return response.data;
 };
-
 
 export const getProducts = async (filters: {
   page?: number;
@@ -112,22 +108,39 @@ export const getProducts = async (filters: {
   viewHistory?: string[];
   searchHistory?: string[];
 }) => {
-  const response = await axios.get<PaginatedData<IProduct>>("/products", { params: {
-    page: filters.page || 1,
-    limit: filters.limit || 15,
-    categories: filters.categories ? filters.categories.join(",") : undefined,
-    provinces: filters.provinces ? filters.provinces.join(",") : undefined,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
-    search: filters.search,
-    userId: filters.userId,
-    viewHistory: filters.viewHistory ? filters.viewHistory.join(",") : undefined,
-    searchHistory: filters.searchHistory ? filters.searchHistory.join(",") : undefined,
-  } });
+  const response = await axios.get<PaginatedData<IProduct>>("/products", {
+    params: {
+      page: filters.page || 1,
+      limit: filters.limit || 15,
+      categories: filters.categories ? filters.categories.join(",") : undefined,
+      provinces: filters.provinces ? filters.provinces.join(",") : undefined,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      search: filters.search,
+      userId: filters.userId,
+      viewHistory: filters.viewHistory
+        ? filters.viewHistory.join(",")
+        : undefined,
+      searchHistory: filters.searchHistory
+        ? filters.searchHistory.join(",")
+        : undefined,
+    },
+  });
   return response.data;
 };
 
 export const getRelatedProducts = async (id: string) => {
   const response = await axios.get(`/products/similar/${id}`);
   return response.data;
+};
+
+export const getFiveStarProduct = async () => {
+  const response = await axios.get<IProduct[]>(`/products/five-star`);
+  return response.data;
+};
+
+export const getPopularProduct = async () => {
+  const response =
+    await axios.get<PaginatedData<IProduct>>(`/products/popular`);
+  return response.data.data;
 };
