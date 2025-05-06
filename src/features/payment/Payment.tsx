@@ -453,6 +453,8 @@ const Payment = () => {
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
+                                    maxWidth: 240,
+                                    display: "block",
                                   }}
                                 >
                                   {item.product.name}

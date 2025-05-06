@@ -395,6 +395,15 @@ const Orders = () => {
               >
                 Chi tiết đơn hàng
               </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                sx={{ fontSize: "0.813rem" }}
+                onClick={() => handleOpenRefundModal(order)}
+              >
+                Yêu cầu trả hàng
+              </Button>
             </Stack>
           );
         case OrderStatus.COMPLETED:
