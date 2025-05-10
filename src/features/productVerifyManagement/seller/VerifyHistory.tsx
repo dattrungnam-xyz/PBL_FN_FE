@@ -168,11 +168,6 @@ const VerifyHistory = () => {
     setSelectedProof(null);
   };
 
-  if (!user?.storeId) {
-    toast.error("Bạn chưa tạo cửa hàng");
-    return null;
-  }
-
   return (
     <>
       {isLoading && <CustomBackdrop />}

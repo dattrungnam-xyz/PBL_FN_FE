@@ -34,10 +34,7 @@ import CustomBackdrop from "../../../components/UI/CustomBackdrop";
 import { ICreateProduct, ICreateProductError } from "../../../interface";
 import { createProduct } from "../../../services/product.service";
 import { toast } from "react-toastify";
-import { Navigate, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../stores";
-import { AuthState } from "../../../stores/authSlice";
+import { useNavigate } from "react-router-dom";
 import Proof from "../../orders/component/Proof";
 
 const VisuallyHiddenInput = styled("input")({
@@ -80,13 +77,6 @@ const CreateProduct = () => {
     file: string;
     index: number;
   } | null>(null);
-
-  const { user } = useSelector<RootState, AuthState>((state) => state.auth);
-
-  if (!user || !user.storeId) {
-    toast.error("Bạn chưa tạo cửa hàng");
-    return <Navigate to="/seller/create" />;
-  }
 
   const validateForm = (): boolean => {
     const newErrors: ICreateProductError = {};

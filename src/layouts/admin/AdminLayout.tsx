@@ -8,12 +8,17 @@ import { RootState } from "../../stores";
 import { AuthState } from "../../stores/authSlice";
 
 const AdminLayout = () => {
-  const { isAuthenticated } = useSelector<RootState, AuthState>(
+  const { user, isAuthenticated } = useSelector<RootState, AuthState>(
     (state) => state.auth,
   );
 
   if (!isAuthenticated) {
     toast.error("Bạn cần đăng nhập để truy cập vào trang này");
+    return <Navigate to="/" />;
+  }
+
+  if (!user?.roles?.includes("admin")) {
+    toast.error("Bạn không có quyền truy cập vào trang này");
     return <Navigate to="/" />;
   }
 

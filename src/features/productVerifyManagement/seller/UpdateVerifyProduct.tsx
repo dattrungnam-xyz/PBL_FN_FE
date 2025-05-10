@@ -185,11 +185,6 @@ const UpdateVerifyProduct = () => {
     }
   }, [verifyData]);
 
-  if (!user || !user.storeId) {
-    toast.error("Bạn chưa tạo cửa hàng");
-    return <Navigate to="/seller/create" />;
-  }
-
   if (isLoadingVerify) {
     return <CustomBackdrop />;
   }

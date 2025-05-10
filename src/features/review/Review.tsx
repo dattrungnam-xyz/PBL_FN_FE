@@ -36,7 +36,6 @@ import { getProductByStoreId } from "../../services/product.service";
 import { useSelector } from "react-redux";
 import { RootState } from "../../stores";
 import { AuthState } from "../../stores/authSlice";
-import { Navigate } from "react-router-dom";
 import { IProductTableData } from "../../interface/product.interface";
 import { useDebounce } from "../../hooks/useDebounce";
 
@@ -147,10 +146,6 @@ const Review = () => {
       setSelectedMedia(selectedMediaList[prevIndex]);
     }
   };
-
-  if (!user?.storeId) {
-    return <Navigate to="/seller/create" />;
-  }
 
   const renderPagination = (totalItems: number) => (
     <Stack alignItems="center" sx={{ mt: 1 }}>

@@ -129,7 +129,7 @@ const SellerHeader = () => {
               },
             }}
           >
-            <MenuItem component={Link} to="/seller/profile" sx={{ py: 0.75 }}>
+            <MenuItem component={Link} to="/profile" sx={{ py: 0.75 }}>
               <AccountCircleIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Thông tin tài khoản</Typography>
             </MenuItem>

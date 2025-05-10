@@ -41,7 +41,7 @@ import {
   deleteProduct,
   getProductByStoreId,
 } from "../../services/product.service";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { SellingProductStatus, VerifyOCOPStatus } from "../../enums";
 import { getCategoryText } from "../../utils/getCategoryText";
@@ -138,11 +138,6 @@ const StoreProductManagement = () => {
         verifyStatus: selectedVerifyOcopStatus,
       }),
   });
-
-  if (!user || !user.storeId) {
-    toast.error("Bạn chưa tạo cửa hàng");
-    return <Navigate to="/seller/create" />;
-  }
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;

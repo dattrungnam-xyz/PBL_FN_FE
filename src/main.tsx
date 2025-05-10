@@ -63,6 +63,7 @@ import AdminUsers from "./features/adminUser/AdminUser.tsx";
 import AdminVerify from "./features/adminVerify/AdminVerify.tsx";
 import AdminDashboard from "./features/adminDashboard/AdminDashboard.tsx";
 import Store from "./features/store/index/Store.tsx";
+import RequireCreateSeller from "./layouts/seller/RequireCreateSeller.tsx";
 
 const router = createBrowserRouter([
   {
@@ -130,23 +131,43 @@ const router = createBrowserRouter([
       },
       {
         path: "restocking",
-        element: <Restocking />,
+        element: (
+          <RequireCreateSeller>
+            <Restocking />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "analytics",
-        element: <Analystic />,
+        element: (
+          <RequireCreateSeller>
+            <Analystic />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "reviews",
-        element: <Review />,
+        element: (
+          <RequireCreateSeller>
+            <Review />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "customers",
-        element: <Customer />,
+        element: (
+          <RequireCreateSeller>
+            <Customer />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "revenue",
-        element: <Revenue />,
+        element: (
+          <RequireCreateSeller>
+            <Revenue />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "create",
@@ -154,71 +175,139 @@ const router = createBrowserRouter([
       },
       {
         path: "products",
-        element: <StoreProductManagement />,
+        element: (
+          <RequireCreateSeller>
+            <StoreProductManagement />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "products/verify",
-        element: <VerifyProduct />,
+        element: (
+          <RequireCreateSeller>
+            <VerifyProduct />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "products/verify/:id",
-        element: <UpdateVerifyProduct />,
+        element: (
+          <RequireCreateSeller>
+            <UpdateVerifyProduct />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "products/verify/history",
-        element: <VerifyHistory />,
+        element: (
+          <RequireCreateSeller>
+            <VerifyHistory />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "product/:id/verify",
-        element: <VerifyProduct />,
+        element: (
+          <RequireCreateSeller>
+            <VerifyProduct />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "product/create",
-        element: <CreateProduct />,
+        element: (
+          <RequireCreateSeller>
+            <CreateProduct />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "product/:id",
-        element: <UpdateProduct />,
+        element: (
+          <RequireCreateSeller>
+            <UpdateProduct />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/unpaid",
-        element: <UnPaid />,
+        element: (
+          <RequireCreateSeller>
+            <UnPaid />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/pending",
-        element: <Pending />,
+        element: (
+          <RequireCreateSeller>
+            <Pending />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/preparing-for-shipping",
-        element: <PrepareForShipping />,
+        element: (
+          <RequireCreateSeller>
+            <PrepareForShipping />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/shipping",
-        element: <Shipping />,
+        element: (
+          <RequireCreateSeller>
+            <Shipping />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/completed",
-        element: <Completed />,
+        element: (
+          <RequireCreateSeller>
+            <Completed />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/cancelled",
-        element: <Cancelled />,
+        element: (
+          <RequireCreateSeller>
+            <Cancelled />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/refunded",
-        element: <Refunded />,
+        element: (
+          <RequireCreateSeller>
+            <Refunded />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/require-refund",
-        element: <RequireRefund />,
+        element: (
+          <RequireCreateSeller>
+            <RequireRefund />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/require-cancelled",
-        element: <RequireCancelled />,
+        element: (
+          <RequireCreateSeller>
+            <RequireCancelled />
+          </RequireCreateSeller>
+        ),
       },
       {
         path: "orders/rejected",
-        element: <Rejected />,
+        element: (
+          <RequireCreateSeller>
+            <Rejected />
+          </RequireCreateSeller>
+        ),
       },
     ],
   },

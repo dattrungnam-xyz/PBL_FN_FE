@@ -33,8 +33,6 @@ import { useSelector } from "react-redux";
 import { AuthState } from "../../stores/authSlice";
 import { useQuery } from "@tanstack/react-query";
 import { getProductByStoreId } from "../../services/product.service";
-import { Navigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { SellingProductStatus } from "../../enums";
 import { getCategoryText } from "../../utils/getCategoryText";
 import CustomBackdrop from "../../components/UI/CustomBackdrop";
@@ -127,11 +125,6 @@ const Restocking = () => {
         search: debouncedSearchTerm,
       }),
   });
-
-  if (!user || !user.storeId) {
-    toast.error("Bạn chưa tạo cửa hàng");
-    return <Navigate to="/seller/create" />;
-  }
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;

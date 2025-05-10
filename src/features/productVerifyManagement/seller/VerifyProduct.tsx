@@ -34,7 +34,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../stores";
 import { AuthState } from "../../../stores/authSlice";
 import { toast } from "react-toastify";
-import { Navigate } from "react-router-dom";
 import CustomBackdrop from "../../../components/UI/CustomBackdrop";
 import { convertToBase64, getCategoryText } from "../../../utils";
 import { IProductTableData } from "../../../interface/product.interface";
@@ -140,13 +139,6 @@ const VerifyProduct = () => {
       setSelectedProducts((prev) => [...prev, initialProduct]);
     }
   }, [initialProduct, selectedProducts]);
-
-  if (!user || !user.storeId) {
-    toast.error("Bạn chưa tạo cửa hàng");
-    return <Navigate to="/seller/create" />;
-  }
-
-  // Add initial product to selected products if it exists
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
