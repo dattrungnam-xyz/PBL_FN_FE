@@ -4,22 +4,22 @@ import {
   CardContent,
   CardMedia,
   Typography,
-  Rating,
   Stack,
   Tooltip,
 } from "@mui/material";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import StarIcon from "@mui/icons-material/Star";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
 import VerifiedIcon from "@mui/icons-material/Verified";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
   image: string;
   name: string;
   price: number;
-  rating: number;
+  rating?: number;
+  ocopRating?: number;
   location: string;
   soldCount: number;
   isVerified?: boolean;
@@ -31,7 +31,8 @@ const ProductCard = ({
   image,
   name,
   price,
-  rating,
+  rating = 0,
+  ocopRating = 0,
   location,
   soldCount,
   isVerified = false,
@@ -152,19 +153,24 @@ const ProductCard = ({
           spacing={1}
           sx={{ mt: "auto" }}
         >
-          <Rating
-            value={rating}
-            precision={0.5}
-            readOnly
-            size="small"
-            icon={<StarIcon sx={{ color: "#FFB400" }} />}
-            emptyIcon={<StarBorderIcon sx={{ color: "#FFB400" }} />}
-            sx={{
-              "& .MuiRating-iconFilled": {
-                filter: "drop-shadow(0px 1px 2px rgba(255, 180, 0, 0.3))",
-              },
-            }}
-          />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Tooltip title="Đánh giá khách hàng">
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <StarIcon sx={{ color: "#FFB400", fontSize: 16 }} />
+                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 500 }}>
+                  {rating}
+                </Typography>
+              </Box>
+            </Tooltip>
+            <Tooltip title="Đánh giá OCOP">
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <WorkspacePremiumIcon sx={{ color: "#4CAF50", fontSize: 16 }} />
+                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 500 }}>
+                  {ocopRating}
+                </Typography>
+              </Box>
+            </Tooltip>
+          </Box>
 
           <Box
             sx={{

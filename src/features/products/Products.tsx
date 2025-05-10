@@ -510,8 +510,9 @@ const Products = () => {
                     product.reviews.reduce(
                       (acc, review) => acc + review.rating,
                       0,
-                    ) / product.reviews.length
+                    ) / (product.reviews.length || 1)
                   }
+                  ocopRating={product.star}
                   location={product.seller.provinceName}
                   image={product.images[0]}
                   soldCount={product?.soldCount || 0}

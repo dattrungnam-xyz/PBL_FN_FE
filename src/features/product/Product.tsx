@@ -965,6 +965,7 @@ const Product = () => {
                       0,
                     ) / (product.reviews?.length || 1)
                   }
+                  ocopRating={product.star}
                   location={product.seller.provinceName}
                   soldCount={product?.orderDetails.reduce(
                     (acc, curr) =>
