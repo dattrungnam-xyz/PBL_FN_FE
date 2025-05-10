@@ -24,31 +24,31 @@ interface FormData {
 
 const validationRules = {
   username: {
-    required: "Username is required",
+    required: "Tên tài khoản là bắt buộc",
   },
   email: {
-    required: "Email is required",
+    required: "Email là bắt buộc",
     pattern: {
       value: /^\S+@\S+$/i,
-      message: "Invalid email format",
+      message: "Định dạng email không hợp lệ",
     },
   },
   name: {
     required: "Name is required",
     minLength: {
       value: 6,
-      message: "Name must be at least 6 characters long",
+      message: "Tên phải có ít nhất 6 ký tự",
     },
   },
   password: {
     required: "Password is required",
     minLength: {
       value: 6,
-      message: "Password must be at least 6 characters long",
+      message: "Mật khẩu phải có ít nhất 6 ký tự",
     },
   },
   passwordConfirm: {
-    required: "Confirm password is required",
+    required: "Xác nhận mật khẩu là bắt buộc",
   },
 };
 
@@ -66,7 +66,7 @@ const RegisterPage: React.FC = () => {
     mutationFn: postRegister,
     onSuccess: () => {
       navigate("/account/login");
-      toast.success("Register successful! Please login to continue.");
+      toast.success("Đăng kí thành công. Vui lòng đăng nhập để tiếp tục.");
     },
   });
 
@@ -104,7 +104,7 @@ const RegisterPage: React.FC = () => {
 
       <Stack sx={{ gap: 2, width: "100%" }}>
         <Typography variant="body1" sx={{ textAlign: "center" }}>
-          Register now to discover quality OCOP goods.
+          Đăng kí ngay để khám phá sản phẩm OCOP chất lượng.
         </Typography>
 
         {isError && errorMessages}
@@ -121,8 +121,8 @@ const RegisterPage: React.FC = () => {
               render={({ field }) => (
                 <RoundedInput
                   {...field}
-                  label="User name"
-                  placeholder="Enter your user name"
+                  label="Tên tài khoản"
+                  placeholder="Nhập tên tài khoản của bạn"
                   validationError={errors.username?.message}
                   gap={0.4}
                 />
@@ -137,7 +137,7 @@ const RegisterPage: React.FC = () => {
                 <RoundedInput
                   {...field}
                   label="Email"
-                  placeholder="Enter your email"
+                  placeholder="Nhập email của bạn"
                   validationError={errors.email?.message}
                   gap={0.4}
                 />
@@ -151,8 +151,8 @@ const RegisterPage: React.FC = () => {
               render={({ field }) => (
                 <RoundedInput
                   {...field}
-                  label="Name"
-                  placeholder="Enter your name"
+                  label="Tên"
+                  placeholder="Nhập tên của bạn"
                   validationError={errors.name?.message}
                   gap={0.4}
                 />
@@ -166,8 +166,8 @@ const RegisterPage: React.FC = () => {
               render={({ field }) => (
                 <RoundedPasswordInput
                   {...field}
-                  label="Password"
-                  placeholder="Enter your password"
+                  label="Mật khẩu"
+                  placeholder="Nhập mật khẩu của bạn"
                   validationError={errors.password?.message}
                   gap={0.4}
                 />
@@ -185,8 +185,8 @@ const RegisterPage: React.FC = () => {
               render={({ field }) => (
                 <RoundedPasswordInput
                   {...field}
-                  label="Confirm Password"
-                  placeholder="Retype your password"
+                  label="Xác nhận mật khẩu"
+                  placeholder="Nhập lại mật khẩu của bạn"
                   validationError={errors.passwordConfirm?.message}
                   gap={0.4}
                 />
@@ -206,7 +206,7 @@ const RegisterPage: React.FC = () => {
             alignSelf: { lg: "flex-end" },
           }}
         >
-          Register
+          Đăng kí
         </Button>
       </Stack>
     </>

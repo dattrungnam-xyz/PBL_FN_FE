@@ -61,8 +61,8 @@ const LoginPage: React.FC = () => {
       loginGoogleMutation.mutate(response.access_token);
     },
     onError: (error) => {
-      toast.error("Please try another way to login!");
-      console.error("Google login error: ", error);
+      toast.error("Vui lòng thử cách đăng nhập khác!");
+      console.error("Lỗi đăng nhập Google: ", error);
     },
   });
 
@@ -82,7 +82,7 @@ const LoginPage: React.FC = () => {
         navigate("/");
       }
 
-      toast.success("Login successful!");
+      toast.success("Đăng nhập thành công!");
     },
     [dispatch, navigate],
   );
@@ -107,11 +107,11 @@ const LoginPage: React.FC = () => {
 
       <Stack sx={{ gap: 2, width: "100%" }}>
         <Typography variant="body1" sx={{ textAlign: "center" }}>
-          Sign in to explore our OCOP marketplace.
+          Đăng nhập để khám phá thị trường OCOP của chúng tôi.
         </Typography>
         {isError && (
           <Alert severity="error" onClose={() => reset()}>
-            {error?.message || "Something went wrong!"}
+            {error?.message || "Đã xảy ra lỗi!"}
           </Alert>
         )}
         <form id="login-form" onSubmit={handleSubmit(onSubmit)}>
@@ -124,8 +124,8 @@ const LoginPage: React.FC = () => {
               render={({ field }) => (
                 <RoundedInput
                   {...field}
-                  label="User name"
-                  placeholder="Enter your user name"
+                  label="Tên tài khoản"
+                  placeholder="Nhập tên tài khoản của bạn"
                   validationError={errors.username?.message}
                 />
               )}
@@ -139,8 +139,8 @@ const LoginPage: React.FC = () => {
               render={({ field }) => (
                 <RoundedPasswordInput
                   {...field} // Pass form field props (value, onChange, etc.)
-                  label="Password"
-                  placeholder="Enter your password"
+                  label="Mật khẩu"
+                  placeholder="Nhập mật khẩu của bạn"
                   validationError={errors.password?.message}
                 />
               )}
@@ -151,7 +151,10 @@ const LoginPage: React.FC = () => {
               justifyContent="space-between"
               alignItems="center"
             >
-              <FormControlLabel control={<Checkbox />} label="Remember me" />
+              <FormControlLabel
+                control={<Checkbox />}
+                label="Ghi nhớ tài khoản"
+              />
               <Link
                 to="/forgot-password"
                 sx={{
@@ -161,7 +164,7 @@ const LoginPage: React.FC = () => {
                   },
                 }}
               >
-                Forgot password?
+                Quên mật khẩu?
               </Link>
             </Box>
           </Stack>
@@ -181,7 +184,7 @@ const LoginPage: React.FC = () => {
               marginBottom: "-16px",
             }}
           >
-            Login
+            Đăng nhập
           </Button>
           <Divider
             sx={{
@@ -190,7 +193,7 @@ const LoginPage: React.FC = () => {
               px: "20%",
             }}
           >
-            Or
+            Hoặc
           </Divider>
           <Button
             onClick={() => loginGg()}
@@ -213,7 +216,7 @@ const LoginPage: React.FC = () => {
               fontWeight: "400",
             }}
           >
-            Login with Google
+            Đăng nhập với Google
           </Button>
         </Stack>
       </Stack>

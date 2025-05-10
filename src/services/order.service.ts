@@ -153,6 +153,11 @@ export const getRevenueFiveMonth = async () => {
   return response.data;
 };
 
+export const getRevenueFiveDate = async () => {
+  const response = await axios.get("/orders/analysis/revenue-five-date");
+  return response.data;
+};
+
 export const getListOrders = async (
   filters: OrderSellerFilter,
 ): Promise<PaginatedData<IOrder>> => {

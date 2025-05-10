@@ -138,7 +138,7 @@ const Header: React.FC = () => {
                     <ListItemIcon>
                       <Person fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Profile</ListItemText>
+                    <ListItemText>Trang cá nhân</ListItemText>
                   </MenuItem>
                 </Link>
 
@@ -148,7 +148,7 @@ const Header: React.FC = () => {
                       <ListItemIcon>
                         <AdminIcon sx={{ fontSize: "20px" }} />
                       </ListItemIcon>
-                      <ListItemText>Admin Dashboard</ListItemText>
+                      <ListItemText>Trang quản trị</ListItemText>
                     </MenuItem>
                   </Link>
                 )}
@@ -187,7 +187,7 @@ const Header: React.FC = () => {
                   <ListItemIcon>
                     <Logout fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText>Logout</ListItemText>
+                  <ListItemText>Đăng xuất</ListItemText>
                 </MenuItem>
               </MenuList>
             </Menu>
@@ -202,14 +202,14 @@ const Header: React.FC = () => {
               }}
               onClick={() => navigate("/account/register")}
             >
-              Sign Up
+              Đăng kí
             </Button>
             <Button
               variant="contained"
               sx={{ px: "20px" }}
               onClick={() => navigate("/account/login")}
             >
-              Log In
+              Đăng nhập
             </Button>
           </Stack>
         )}

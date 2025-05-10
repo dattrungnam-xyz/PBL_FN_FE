@@ -6,7 +6,6 @@ import { AuthState, authActions } from "../../stores/authSlice";
 import {
   AppBar,
   Avatar,
-  Badge,
   Box,
   IconButton,
   Menu,
@@ -17,13 +16,11 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 const SellerHeader = () => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const [anchorElNotif, setAnchorElNotif] = useState<null | HTMLElement>(null);
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -35,16 +32,8 @@ const SellerHeader = () => {
     setAnchorElUser(event.currentTarget);
   };
 
-  const handleOpenNotifMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNotif(event.currentTarget);
-  };
-
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
-  };
-
-  const handleCloseNotifMenu = () => {
-    setAnchorElNotif(null);
   };
 
   const handleLogout = () => {
@@ -96,72 +85,6 @@ const SellerHeader = () => {
         <Box sx={{ flexGrow: 1 }} />
 
         <Stack direction="row" spacing={0.5} alignItems="center">
-          <Tooltip title="Thông báo">
-            <IconButton
-              onClick={handleOpenNotifMenu}
-              size="small"
-              sx={{ p: 0.5 }}
-            >
-              <Badge
-                badgeContent={3}
-                color="error"
-                sx={{
-                  "& .MuiBadge-badge": {
-                    fontSize: 9,
-                    height: 14,
-                    minWidth: 14,
-                    padding: "0 2px",
-                  },
-                }}
-              >
-                <NotificationsIcon
-                  sx={{ fontSize: "1.25rem" }}
-                  color="action"
-                />
-              </Badge>
-            </IconButton>
-          </Tooltip>
-          <Menu
-            sx={{
-              mt: 1,
-              "& .MuiPaper-root": {
-                width: 260,
-                maxWidth: "100%",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-              },
-            }}
-            anchorEl={anchorElNotif}
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "right",
-            }}
-            transformOrigin={{
-              vertical: "top",
-              horizontal: "right",
-            }}
-            open={Boolean(anchorElNotif)}
-            onClose={handleCloseNotifMenu}
-            slotProps={{
-              backdrop: {
-                invisible: true,
-              },
-            }}
-          >
-            <MenuItem sx={{ py: 0.75 }}>
-              <Typography variant="caption">Đơn hàng mới #DH001</Typography>
-            </MenuItem>
-            <MenuItem sx={{ py: 0.75 }}>
-              <Typography variant="caption">
-                Cập nhật trạng thái đơn #DH002
-              </Typography>
-            </MenuItem>
-            <MenuItem sx={{ py: 0.75 }}>
-              <Typography variant="caption">
-                Yêu cầu đánh giá sản phẩm
-              </Typography>
-            </MenuItem>
-          </Menu>
-
           <Tooltip title="Tài khoản">
             <IconButton
               onClick={handleOpenUserMenu}

@@ -103,7 +103,7 @@ const UnPaid = () => {
 
   const getOrders = useCallback(async () => {
     const orders = await getOrdersSellerByStatus({
-      orderStatus: OrderStatus.SHIPPING,
+      orderStatus: OrderStatus.PENDING_PAYMENT,
       page: page + 1,
       limit: rowsPerPage,
       search: debouncedSearch,

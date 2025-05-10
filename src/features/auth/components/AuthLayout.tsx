@@ -67,14 +67,14 @@ const AuthLayout: React.FC = () => {
                 color="primary.main"
                 sx={{ marginBottom: 1.25 }}
               >
-                Welcome to OCOP Mart!
+                Chào mừng đến với OCOP Mart!
               </Typography>
               <Box className={classes.tabGroup}>
                 <Link to="login">
-                  <TabItem isActive={isOnLoginPage}>Login</TabItem>
+                  <TabItem isActive={isOnLoginPage}>Đăng nhập</TabItem>
                 </Link>
                 <Link to="register">
-                  <TabItem isActive={!isOnLoginPage}>Register</TabItem>
+                  <TabItem isActive={!isOnLoginPage}>Đăng kí</TabItem>
                 </Link>
               </Box>
             </Box>
