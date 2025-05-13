@@ -239,7 +239,7 @@ const AdminDashboard = () => {
     },
     {
       title: "Đánh giá trung bình",
-      value: reviewAverage || 0,
+      value: isNaN(reviewAverage) ? 0 : reviewAverage,
       icon: <VerifiedIcon />,
       color: "info" as const,
     },
