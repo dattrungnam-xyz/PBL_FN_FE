@@ -219,7 +219,14 @@ const Revenue = () => {
         </Stack>
 
         {/* Charts */}
-        <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 0.5,
+          }}
+        >
           <Card sx={{ flex: 2, minWidth: 400 }}>
             <CardContent sx={{ p: 1 }}>
               <Stack
@@ -362,7 +369,7 @@ const Revenue = () => {
               </Stack>
             </CardContent>
           </Card>
-        </Stack>
+        </Box>
 
         {/* Top Products */}
         <Card>
