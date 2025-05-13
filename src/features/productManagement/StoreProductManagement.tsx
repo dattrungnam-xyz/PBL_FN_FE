@@ -222,6 +222,7 @@ const StoreProductManagement = () => {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
+              onClick={() => navigate("/seller/product/create")}
               sx={{
                 bgcolor: "success.main",
                 "&:hover": {
