@@ -54,11 +54,10 @@ const headCells: HeadCell[] = [
   { id: "price", label: "Giá", numeric: true, sortable: false },
   {
     id: "restocking_quantity",
-    label: "Số lượng nhập",
+    label: "Số lượng thêm",
     numeric: true,
     sortable: false,
   },
-  { id: "product_quantity", label: "Số lượng", numeric: true, sortable: false },
   { id: "status", label: "Trạng thái", numeric: false, sortable: false },
   { id: "createdAt", label: "Ngày tạo", numeric: false, sortable: false },
 ];
@@ -320,9 +319,6 @@ const Restocking = () => {
                         {formatPrice(restocking.product.price)}
                       </TableCell>
                       <TableCell align="right">{restocking.quantity}</TableCell>
-                      <TableCell align="right">
-                        {restocking.product.quantity}
-                      </TableCell>
                       <TableCell>
                         <Chip
                           label={
