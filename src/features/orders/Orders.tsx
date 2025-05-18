@@ -412,14 +412,6 @@ const Orders = () => {
               <Button
                 variant="outlined"
                 size="small"
-                color="primary"
-                sx={{ fontSize: "0.813rem" }}
-              >
-                Mua lại
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
                 color="error"
                 sx={{ fontSize: "0.813rem" }}
                 onClick={() => handleOpenRefundModal(order)}
@@ -454,14 +446,6 @@ const Orders = () => {
         case OrderStatus.CANCELLED:
           return (
             <Stack direction="row" spacing={1}>
-              <Button
-                variant="outlined"
-                size="small"
-                color="primary"
-                sx={{ fontSize: "0.813rem" }}
-              >
-                Mua lại
-              </Button>
               <Button
                 variant="outlined"
                 size="small"
@@ -504,14 +488,6 @@ const Orders = () => {
         case OrderStatus.REJECTED:
           return (
             <Stack direction="row" spacing={1}>
-              <Button
-                variant="outlined"
-                size="small"
-                color="primary"
-                sx={{ fontSize: "0.813rem" }}
-              >
-                Mua lại
-              </Button>
               <Button
                 variant="outlined"
                 size="small"

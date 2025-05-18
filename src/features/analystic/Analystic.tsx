@@ -115,7 +115,7 @@ const Analystic = () => {
     { name: "Đồ uống", value: productCountCategory?.[1]?.count },
     { name: "Thủ công mỹ nghệ", value: productCountCategory?.[2]?.count },
     { name: "Thảo dược", value: productCountCategory?.[3]?.count },
-  ];
+  ].filter((item) => item.value);
 
   return (
     <Box sx={{ p: 0.5, maxWidth: 1200, margin: "0 auto" }}>
