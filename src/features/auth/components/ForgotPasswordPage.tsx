@@ -52,13 +52,12 @@ const ForgotPasswordPage: React.FC = () => {
           color="primary.main"
           sx={{ marginBottom: 1.25 }}
         >
-          Forgot Password
+          Quên mật khẩu
         </Typography>
 
         {!forgotPasswordMutation.isSuccess && (
           <Typography>
-            OCOP Mart will send instructions on how to reset your new password
-            via email.
+            OCOP Mart sẽ gửi hướng dẫn để đặt lại mật khẩu của bạn qua email.
           </Typography>
         )}
 
@@ -74,8 +73,8 @@ const ForgotPasswordPage: React.FC = () => {
 
         {forgotPasswordMutation.isSuccess && (
           <Alert severity="success" sx={{ my: 1 }}>
-            An email has been sent to your email address. Please check your
-            inbox.
+            Một email đã được gửi đến địa chỉ email của bạn. Vui lòng kiểm tra hộp
+            thư đến của bạn.
           </Alert>
         )}
 
@@ -83,9 +82,9 @@ const ForgotPasswordPage: React.FC = () => {
           <TextField
             label="Email"
             {...form.register("email", {
-              required: "Enter your email here",
+              required: "Nhập email của bạn",
               validate: (value) =>
-                validateEmail(value) || "Please enter a valid email format",
+                validateEmail(value) || "Vui lòng nhập địa chỉ email hợp lệ",
             })}
             sx={{ width: "100%", marginTop: "20px", marginBottom: "30px" }}
             error={!!form.formState.errors.email}
@@ -119,7 +118,7 @@ const ForgotPasswordPage: React.FC = () => {
                 Sent <Done sx={{ fontSize: "1rem" }} />
               </>
             ) : (
-              "Send"
+              "Gửi"
             )}
           </Button>
         </form>

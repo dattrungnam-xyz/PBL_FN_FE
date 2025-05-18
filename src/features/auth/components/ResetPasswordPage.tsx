@@ -61,7 +61,7 @@ const ResetPasswordPage: React.FC = () => {
           color="primary.main"
           sx={{ marginBottom: 1.25 }}
         >
-          Create New Password
+          Tạo mật khẩu mới
         </Typography>
 
         {resetPasswordMutation.isError && (
@@ -77,12 +77,12 @@ const ResetPasswordPage: React.FC = () => {
         {!resetPasswordMutation.isSuccess && (
           <form onSubmit={newPasswordForm.handleSubmit(handleSaveNewPassword)}>
             <PasswordTextField
-              label="New Password"
+              label="Mật khẩu mới"
               register={newPasswordForm.register("newPassword", {
-                required: "Enter your new password!",
+                required: "Nhập mật khẩu mới!",
                 minLength: {
                   value: 6,
-                  message: "Password must be at least 6 characters long",
+                  message: "Mật khẩu phải có ít nhất 6 ký tự",
                 },
               })}
               sx={{ width: "100%", marginTop: "20px" }}
@@ -91,12 +91,12 @@ const ResetPasswordPage: React.FC = () => {
             />
 
             <PasswordTextField
-              label="Confirm Password"
+              label="Xác nhận mật khẩu mới"
               register={newPasswordForm.register("confirmPassword", {
-                required: "Confirm your new password!",
+                required: "Xác nhận mật khẩu mới!",
                 validate: (value: string) =>
                   value === newPasswordForm.getValues("newPassword") ||
-                  "Password does not match",
+                  "Mật khẩu không khớp",
               })}
               sx={{ width: "100%", marginTop: "20px", marginBottom: "30px" }}
               error={!!newPasswordForm.formState.errors.confirmPassword}
@@ -121,7 +121,7 @@ const ResetPasswordPage: React.FC = () => {
               {resetPasswordMutation.isPending ? (
                 <CircularProgress size={20} />
               ) : (
-                "Save"
+                "Lưu"
               )}
             </Button>
           </form>
@@ -130,7 +130,7 @@ const ResetPasswordPage: React.FC = () => {
         {resetPasswordMutation.isSuccess && (
           <>
             <Alert severity="success" sx={{ my: 1 }}>
-              Your password has been reset successfully!
+              Mật khẩu của bạn đã được đặt lại thành công!
             </Alert>
             <Link to="/account/login">
               <Button
@@ -144,7 +144,7 @@ const ResetPasswordPage: React.FC = () => {
                   padding: "10px 16px",
                 }}
               >
-                Continue to login
+                Tiếp tục đăng nhập
               </Button>
             </Link>
           </>
