@@ -73,8 +73,8 @@ const ForgotPasswordPage: React.FC = () => {
 
         {forgotPasswordMutation.isSuccess && (
           <Alert severity="success" sx={{ my: 1 }}>
-            Một email đã được gửi đến địa chỉ email của bạn. Vui lòng kiểm tra hộp
-            thư đến của bạn.
+            Một email đã được gửi đến địa chỉ email của bạn. Vui lòng kiểm tra
+            hộp thư đến của bạn.
           </Alert>
         )}
 

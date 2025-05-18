@@ -685,7 +685,11 @@ const Profile = () => {
       </Content>
       <ConfirmDeleteAddressDialog
         open={confirmDeleteAddressDialog}
-        onClose={(confirm) => (confirm ? handleDeleteAddressSubmit() : null)}
+        onClose={(confirm) =>
+          confirm
+            ? handleDeleteAddressSubmit()
+            : setConfirmDeleteAddressDialog(false)
+        }
         keepMounted={false}
       />
     </>
