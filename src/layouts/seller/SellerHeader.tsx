@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
-
+import HomeIcon from "@mui/icons-material/Home";
 const SellerHeader = () => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
@@ -129,6 +129,14 @@ const SellerHeader = () => {
               },
             }}
           >
+            <MenuItem component={Link} to="/" sx={{ py: 0.75 }}>
+              <HomeIcon sx={{ fontSize: "1rem", mr: 1 }} />
+              <Typography variant="caption">Trang chủ</Typography>
+            </MenuItem>
+            <MenuItem component={Link} to="/seller" sx={{ py: 0.75 }}>
+              <HomeIcon sx={{ fontSize: "1rem", mr: 1 }} />
+              <Typography variant="caption">Trang người bán</Typography>
+            </MenuItem>
             <MenuItem component={Link} to="/profile" sx={{ py: 0.75 }}>
               <AccountCircleIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Thông tin tài khoản</Typography>

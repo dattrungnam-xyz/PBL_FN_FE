@@ -20,7 +20,7 @@ import {
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
-
+import HomeIcon from "@mui/icons-material/Home";
 const HeaderAdmin = () => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [anchorElNotif, setAnchorElNotif] = useState<null | HTMLElement>(null);
@@ -206,7 +206,15 @@ const HeaderAdmin = () => {
               },
             }}
           >
-            <MenuItem component={Link} to="/seller/profile" sx={{ py: 0.25 }}>
+            <MenuItem component={Link} to="/" sx={{ py: 0.75 }}>
+              <HomeIcon sx={{ fontSize: "1rem", mr: 1 }} />
+              <Typography variant="caption">Trang chủ</Typography>
+            </MenuItem>
+            <MenuItem component={Link} to="/seller" sx={{ py: 0.75 }}>
+              <HomeIcon sx={{ fontSize: "1rem", mr: 1 }} />
+              <Typography variant="caption">Trang admin</Typography>
+            </MenuItem>
+            <MenuItem component={Link} to="/profile" sx={{ py: 0.25 }}>
               <AccountCircleIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Thông tin tài khoản</Typography>
             </MenuItem>
