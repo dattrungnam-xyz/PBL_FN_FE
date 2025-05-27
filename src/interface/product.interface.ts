@@ -1,5 +1,5 @@
 import { Category, SellingProductStatus, VerifyOCOPStatus } from "../enums";
-import { IOrderDetail } from "./order.interface";
+import { IOrder, IOrderDetail } from "./order.interface";
 import { IReview } from "./review.interface";
 import { IVerify } from "./verify.interface";
 interface ISellerRelation {
@@ -44,6 +44,9 @@ export interface IProductTableData {
   orderDetailCount?: number;
   totalRevenue?: number;
   seller: ISellerRelation;
+  reviews: IReview[];
+  verify: IVerify[];
+  orderDetails: IOrderDetail[];
 }
 
 export interface IProduct {
@@ -64,5 +67,6 @@ export interface IProduct {
   verify: IVerify[];
   orderDetails: IOrderDetail[];
   soldCount: number;
+  orders: IOrder[];
   // relatedProducts: IProduct[];
 }

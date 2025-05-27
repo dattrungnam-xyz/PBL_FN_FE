@@ -20,9 +20,12 @@ import { getStoreById } from "../../../services/store.service";
 import ProductCard from "../../../components/ProductCard";
 import { VerifyOCOPStatus } from "../../../enums";
 import storeImage from "../asset/ocopimage.png";
+import { getProductByStoreId } from "../../../services/product.service";
+import { IProductTableData } from "../../../interface/product.interface";
 const Store = () => {
   const { id } = useParams<{ id: string }>();
   const [store, setStore] = useState<IStore | null>(null);
+  const [products, setProducts] = useState<IProductTableData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,7 +42,22 @@ const Store = () => {
       }
     };
 
+    const fetchProducts = async () => {
+      try {
+        if (id) {
+          const productsData = await getProductByStoreId(id, {
+            page: 1,
+            limit: 1000,
+          });
+          setProducts(productsData.data);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      }
+    };
+
     fetchStore();
+    fetchProducts();
   }, [id]);
 
   if (loading) {
@@ -150,16 +168,25 @@ const Store = () => {
             },
           }}
         >
-          {store.products.map((product) => (
+          {products?.map((product) => (
             <ProductCard
               id={product.id}
               key={product.id}
-              image={product.images[0]}
               name={product.name}
               price={product.price}
-              rating={product.star}
-              location={`${store.wardName}, ${store.districtName}`}
-              soldCount={0}
+              rating={
+                product.reviews.reduce(
+                  (acc, review) => acc + review.rating,
+                  0,
+                ) / (product.reviews.length || 1)
+              }
+              ocopRating={product.star}
+              location={product.seller.provinceName}
+              image={product.images[0]}
+              soldCount={product?.orderDetails.reduce(
+                (acc, orderDetail) => acc + orderDetail.quantity,
+                0,
+              ) || 0}
               isVerified={
                 product.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
               }
