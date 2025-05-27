@@ -24,8 +24,6 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import PhoneIcon from "@mui/icons-material/Phone";
 import Avatar from "@mui/material/Avatar";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -49,7 +47,6 @@ const Product = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [showStoreDetails, setShowStoreDetails] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
@@ -388,20 +385,6 @@ const Product = () => {
                   >
                     Thêm vào giỏ hàng
                   </Button>
-                  <IconButton
-                    size="small"
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    color={isFavorite ? "error" : "default"}
-                    sx={{ p: { xs: 0.5, sm: 0.75 } }}
-                  >
-                    {isFavorite ? (
-                      <FavoriteIcon sx={{ fontSize: { xs: 16, sm: 20 } }} />
-                    ) : (
-                      <FavoriteBorderIcon
-                        sx={{ fontSize: { xs: 16, sm: 20 } }}
-                      />
-                    )}
-                  </IconButton>
                 </Stack>
               </Box>
             </Box>
