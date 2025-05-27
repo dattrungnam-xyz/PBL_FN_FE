@@ -137,6 +137,14 @@ const SellerHeader = () => {
               <HomeIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Trang người bán</Typography>
             </MenuItem>
+            <MenuItem
+              component={Link}
+              to={`/store/${user.storeId}`}
+              sx={{ py: 0.75 }}
+            >
+              <HomeIcon sx={{ fontSize: "1rem", mr: 1 }} />
+              <Typography variant="caption">Cửa hàng</Typography>
+            </MenuItem>
             <MenuItem component={Link} to="/profile" sx={{ py: 0.75 }}>
               <AccountCircleIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Thông tin tài khoản</Typography>

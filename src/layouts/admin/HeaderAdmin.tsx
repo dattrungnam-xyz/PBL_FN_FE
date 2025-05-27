@@ -210,7 +210,7 @@ const HeaderAdmin = () => {
               <HomeIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Trang chủ</Typography>
             </MenuItem>
-            <MenuItem component={Link} to="/seller" sx={{ py: 0.75 }}>
+            <MenuItem component={Link} to="/admin" sx={{ py: 0.75 }}>
               <HomeIcon sx={{ fontSize: "1rem", mr: 1 }} />
               <Typography variant="caption">Trang admin</Typography>
             </MenuItem>

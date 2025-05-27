@@ -167,7 +167,11 @@ const Header: React.FC = () => {
                           <ListItemIcon>
                             <AdminIcon sx={{ fontSize: "20px" }} />
                           </ListItemIcon>
-                          <ListItemText>Đăng kí bán hàng</ListItemText>
+                          <ListItemText>
+                            {user.storeId
+                              ? "Quản lý cửa hàng"
+                              : "Đăng kí bán hàng"}
+                          </ListItemText>
                         </MenuItem>
                       </Link>
                       <Link to="/orders">
