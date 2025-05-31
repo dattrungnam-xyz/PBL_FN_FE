@@ -60,6 +60,8 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     dispatch(authActions.logout());
+    navigate("/");
+    window.location.reload();
   };
 
   return (

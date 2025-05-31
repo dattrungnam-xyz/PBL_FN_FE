@@ -39,6 +39,7 @@ const SellerHeader = () => {
   const handleLogout = () => {
     dispatch(authActions.logout());
     navigate("/seller");
+    window.location.reload();
   };
 
   return (

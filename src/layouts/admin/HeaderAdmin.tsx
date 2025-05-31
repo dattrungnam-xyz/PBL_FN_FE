@@ -39,6 +39,7 @@ const HeaderAdmin = () => {
   const handleLogout = () => {
     dispatch(authActions.logout());
     navigate("/admin");
+    window.location.reload();
   };
 
   return (
