@@ -95,6 +95,7 @@ const Profile = () => {
   const [errors, setErrors] = useState({
     name: "",
     email: "",
+    phone: "",
   });
 
   const [errorPassword, setErrorPassword] = useState({
@@ -311,7 +312,7 @@ const Profile = () => {
   };
 
   const handleProfileSubmit = () => {
-    setErrors({ name: "", email: "" });
+    setErrors({ name: "", email: "", phone: "" });
 
     if (!validateProfile()) return;
 
@@ -472,6 +473,8 @@ const Profile = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
+                  error={!!errors.phone}
+                  helperText={errors.phone}
                   variant="outlined"
                 />
                 <TextField
