@@ -468,6 +468,7 @@ const Profile = () => {
                   error={!!errors.email}
                   helperText={errors.email}
                   variant="outlined"
+                  disabled={!user?.username}
                 />
                 <Button
                   variant="contained"
