@@ -279,8 +279,21 @@ const Profile = () => {
       setErrors((prev) => ({ ...prev, email: "Vui lòng nhập email" }));
       isValid = false;
     }
+    if (!validateEmail(formData.email)) {
+      setErrors((prev) => ({ ...prev, email: "Email không hợp lệ" }));
+      isValid = false;
+    }
     return isValid;
   };
+
+  const validateEmail = (email: string) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+      );
+  };
+
   const handleProfileSubmit = () => {
     setErrors({ name: "", email: "" });
 
