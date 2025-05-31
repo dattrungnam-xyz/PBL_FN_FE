@@ -358,6 +358,14 @@ const Profile = () => {
       }));
       isValid = false;
     }
+    if (passwordData.password.length < 6) {
+      setErrorPassword((prev) => ({
+        ...prev,
+        password: "Mật khẩu phải có ít nhất 6 ký tự",
+      }));
+      isValid = false;
+    }
+
     if (passwordData.password !== passwordData.passwordConfirm) {
       setErrorPassword((prev) => ({
         ...prev,
