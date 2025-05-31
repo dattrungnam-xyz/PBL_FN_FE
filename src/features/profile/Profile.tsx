@@ -283,7 +283,23 @@ const Profile = () => {
       setErrors((prev) => ({ ...prev, email: "Email không hợp lệ" }));
       isValid = false;
     }
+    if (
+      formData.phone &&
+      (formData.phone.length < 10 ||
+        formData.phone.length > 11 ||
+        !telephoneCheck(formData.phone))
+    ) {
+      setErrors((prev) => ({ ...prev, phone: "Số điện thoại không hợp lệ" }));
+      isValid = false;
+    }
     return isValid;
+  };
+
+  const telephoneCheck = (str: string) => {
+    const patt = new RegExp(
+      /^\+?1?\s*?\(?\d{3}(?:\)|[-|\s])?\s*?\d{3}[-|\s]?\d{4}$/,
+    );
+    return patt.test(str);
   };
 
   const validateEmail = (email: string) => {
