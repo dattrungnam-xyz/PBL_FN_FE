@@ -28,8 +28,6 @@ import {
 import { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { useSelector } from "react-redux";
-import { RootState } from "../../stores";
 import { toast } from "react-toastify";
 import StarIcon from "@mui/icons-material/Star";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -37,7 +35,6 @@ import AddIcon from "@mui/icons-material/Add";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { IVerifyTableData } from "../../interface/verify.interface";
-import { AuthState } from "../../stores/authSlice";
 import { VerifyOCOPStatus } from "../../enums";
 import {
   approveVerify,
@@ -79,7 +76,6 @@ const tableHeaders: TableHeader[] = [
 
 const VerifyHistory = () => {
   const navigate = useNavigate();
-  const { user } = useSelector<RootState, AuthState>((state) => state.auth);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
@@ -213,11 +209,6 @@ const VerifyHistory = () => {
   const handleCloseProof = () => {
     setSelectedProof(null);
   };
-
-  if (!user?.storeId) {
-    toast.error("Bạn chưa tạo cửa hàng");
-    return null;
-  }
 
   const handleOpenProductDetailModal = (productId: string) => {
     setSelectedProductId(productId);
