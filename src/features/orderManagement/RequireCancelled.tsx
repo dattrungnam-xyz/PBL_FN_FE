@@ -15,7 +15,7 @@ import {
   TextField,
   InputAdornment,
   Card,
-  Checkbox,
+  // Checkbox,
   Tooltip,
   IconButton,
   Button,
@@ -148,24 +148,24 @@ const RequireCancelled = () => {
     setPage(0);
   };
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = orders?.data?.map((order) => order.id) || [];
-      setSelectedOrders(newSelected);
-    } else {
-      setSelectedOrders([]);
-    }
-  };
+  // const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (event.target.checked) {
+  //     const newSelected = orders?.data?.map((order) => order.id) || [];
+  //     setSelectedOrders(newSelected);
+  //   } else {
+  //     setSelectedOrders([]);
+  //   }
+  // };
 
-  const handleSelectOrder = (orderId: string) => {
-    setSelectedOrders((prev) => {
-      if (prev.includes(orderId)) {
-        return prev.filter((id) => id !== orderId);
-      } else {
-        return [...prev, orderId];
-      }
-    });
-  };
+  // const handleSelectOrder = (orderId: string) => {
+  //   setSelectedOrders((prev) => {
+  //     if (prev.includes(orderId)) {
+  //       return prev.filter((id) => id !== orderId);
+  //     } else {
+  //       return [...prev, orderId];
+  //     }
+  //   });
+  // };
 
   const { mutate: updateStatus } = useMutation({
     mutationFn: (orderIds: string[]) =>
@@ -318,7 +318,7 @@ const RequireCancelled = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell padding="checkbox">
+                    {/* <TableCell padding="checkbox">
                       <Checkbox
                         indeterminate={
                           selectedOrders.length > 0 &&
@@ -332,7 +332,7 @@ const RequireCancelled = () => {
                         }
                         onChange={handleSelectAllClick}
                       />
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell sx={{ width: "5%" }}>STT</TableCell>
                     <TableCell sx={{ width: "20%" }}>Người mua</TableCell>
                     <TableCell sx={{ width: "30%" }}>Địa chỉ</TableCell>
@@ -344,12 +344,12 @@ const RequireCancelled = () => {
                 <TableBody>
                   {orders?.data?.map((order: IOrder, index: number) => (
                     <TableRow key={order.id}>
-                      <TableCell padding="checkbox">
+                      {/* <TableCell padding="checkbox">
                         <Checkbox
                           checked={selectedOrders.includes(order.id)}
                           onChange={() => handleSelectOrder(order.id)}
                         />
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell>
                         <Typography
                           color="text.secondary"

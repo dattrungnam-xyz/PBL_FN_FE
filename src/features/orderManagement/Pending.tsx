@@ -198,6 +198,7 @@ const Pending = () => {
       );
       getOrders();
       setOpenConfirmDialog(false);
+      setSelectedOrders([]);
     } catch (error) {
       console.error(error);
     }
@@ -365,26 +366,13 @@ const Pending = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {orders?.data?.map((order: IOrder, index: number) => (
+                  {orders?.data?.map((order: IOrder) => (
                     <TableRow key={order.id}>
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={selectedOrders.includes(order.id)}
                           onChange={() => handleSelectOrder(order.id)}
                         />
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          color="text.secondary"
-                          sx={{
-                            fontSize: { xs: "0.75rem", sm: "0.813rem" },
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                          }}
-                        >
-                          {page * rowsPerPage + index + 1}
-                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1} alignItems="center">

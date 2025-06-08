@@ -189,6 +189,7 @@ const PrepareForShipping = () => {
       await updateOrdersStatus(selectedOrders, OrderStatus.SHIPPING);
       getOrders();
       setOpenConfirmDialog(false);
+      setSelectedOrders([]);
     } catch (error) {
       console.error(error);
     }
