@@ -47,6 +47,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CancelIcon from "@mui/icons-material/Cancel";
 import OrderCancelModal from "./component/OrderCancelModal";
 import RejectCancelModal from "./component/RejectCancelModal";
+import { toast } from "react-toastify";
 
 interface FilterState {
   province: string;
@@ -175,6 +176,8 @@ const RequireCancelled = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["require-cancel-orders"] });
       setSelectedOrders([]);
+      getOrders();
+      toast.success("Phê duyệt yêu cầu hủy đơn hàng thành công");
     },
   });
 
@@ -183,6 +186,8 @@ const RequireCancelled = () => {
       updateOrderStatus(orderId, OrderStatus.REJECTED),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["require-cancel-orders"] });
+      getOrders();
+      toast.success("Từ chối yêu cầu hủy đơn hàng thành công");
     },
   });
 
@@ -191,7 +196,6 @@ const RequireCancelled = () => {
       updateStatus([selectedOrder.id]);
       setShowAcceptModal(false);
       setOpen(false);
-      getOrders();
     }
   };
 
@@ -200,7 +204,6 @@ const RequireCancelled = () => {
       rejectOrder(selectedOrder.id);
       setShowRejectModal(false);
       setOpen(false);
-      getOrders();
     }
   };
 
