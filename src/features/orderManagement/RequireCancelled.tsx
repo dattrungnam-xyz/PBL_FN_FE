@@ -190,6 +190,8 @@ const RequireCancelled = () => {
     if (selectedOrder) {
       updateStatus([selectedOrder.id]);
       setShowAcceptModal(false);
+      setOpen(false);
+      getOrders();
     }
   };
 
@@ -197,6 +199,8 @@ const RequireCancelled = () => {
     if (selectedOrder) {
       rejectOrder(selectedOrder.id);
       setShowRejectModal(false);
+      setOpen(false);
+      getOrders();
     }
   };
 
@@ -516,6 +520,7 @@ const RequireCancelled = () => {
             handleAccept();
           }
           setShowAcceptModal(false);
+      
         }}
         title="Xác nhận hủy đơn hàng"
         content="Bạn có chắc chắn muốn hủy đơn hàng này không?"
