@@ -18,7 +18,7 @@ import Content from "../../../layouts/Content";
 import { IStore } from "../../../interface";
 import { getStoreById } from "../../../services/store.service";
 import ProductCard from "../../../components/ProductCard";
-import { VerifyOCOPStatus } from "../../../enums";
+import { SellingProductStatus, VerifyOCOPStatus } from "../../../enums";
 import storeImage from "../asset/ocopimage.png";
 import { getProductByStoreId } from "../../../services/product.service";
 import { IProductTableData } from "../../../interface/product.interface";
@@ -48,6 +48,7 @@ const Store = () => {
           const productsData = await getProductByStoreId(id, {
             page: 1,
             limit: 1000,
+            status: SellingProductStatus.SELLING,
           });
           setProducts(productsData.data);
         }
