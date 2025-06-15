@@ -3,7 +3,7 @@ import axios from "../axios";
 // const BASE_URL = "https://open.oapi.vn/location";
 
 export const getProvinces = async () => {
-  const response = await axios.get(`/provinces`, {
+  const response = await axios.get(`/location/provinces`, {
     params: {
       page: 0,
       size: 1000,
@@ -13,7 +13,7 @@ export const getProvinces = async () => {
 };
 
 export const getDistricts = async (provinceId: string) => {
-  const response = await axios.get(`/districts/${provinceId}`, {
+  const response = await axios.get(`/location/districts/${provinceId}`, {
     params: {
       page: 0,
       size: 1000,
@@ -23,7 +23,7 @@ export const getDistricts = async (provinceId: string) => {
 };
 
 export const getWards = async (districtId: string) => {
-  const response = await axios.get(`/wards/${districtId}`, {
+  const response = await axios.get(`/location/wards/${districtId}`, {
     params: {
       page: 0,
       size: 1000,
