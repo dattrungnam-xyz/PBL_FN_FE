@@ -19,7 +19,7 @@ import { RootState } from "../../stores";
 import { useSelector } from "react-redux";
 import { IProduct, IProvince } from "../../interface";
 import { getProducts } from "../../services/product.service";
-import { Category, VerifyOCOPStatus } from "../../enums";
+import { Category, OrderStatus, VerifyOCOPStatus } from "../../enums";
 import { getProvinces } from "../../services/location.service";
 import {
   createSearchHistory,
@@ -515,7 +515,22 @@ const Products = () => {
                   ocopRating={product.star}
                   location={product.seller.provinceName}
                   image={product.images[0]}
-                  soldCount={product?.soldCount || 0}
+                  soldCount={
+                    product?.orderDetails
+                      ?.filter(
+                        (orderDetail) =>
+                          orderDetail.order.orderStatus !==
+                            OrderStatus.CANCELLED &&
+                          orderDetail.order.orderStatus !==
+                            OrderStatus.REFUNDED &&
+                          orderDetail.order.orderStatus !==
+                            OrderStatus.REJECTED,
+                      )
+                      ?.reduce(
+                        (acc, orderDetail) => acc + orderDetail.quantity,
+                        0,
+                      ) || 0
+                  }
                   isVerified={
                     product.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
                   }
