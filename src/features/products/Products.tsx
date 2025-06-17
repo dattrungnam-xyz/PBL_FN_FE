@@ -516,6 +516,7 @@ const Products = () => {
                   location={product.seller.provinceName}
                   image={product.images[0]}
                   soldCount={
+                    product?.soldCount ||
                     product?.orderDetails
                       ?.filter(
                         (orderDetail) =>
