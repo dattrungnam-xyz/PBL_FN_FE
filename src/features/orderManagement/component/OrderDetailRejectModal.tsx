@@ -10,6 +10,7 @@ import {
   Avatar,
   Divider,
   TextField,
+  Chip,
 } from "@mui/material";
 import { IOrder } from "../../../interface";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
@@ -18,6 +19,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import NoteIcon from "@mui/icons-material/Note";
+import { PaymentStatus } from "../../../enums";
 
 interface OrderDetailModalProps {
   open: boolean;
@@ -116,7 +118,28 @@ const OrderDetailRejectModal = ({
             </Typography>
           </Box>
         </Stack>
-
+        {order?.payment?.paymentStatus ? (
+          <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+            <Typography variant="body2" color="text.secondary">
+              Thanh toán
+            </Typography>
+            {order.payment.paymentStatus === PaymentStatus.PAID ? (
+              <Chip
+                label="Đã thanh toán"
+                color="success"
+                size="small"
+                sx={{ fontSize: "0.813rem" }}
+              />
+            ) : (
+              <Chip
+                label="Chưa thanh toán"
+                color="error"
+                size="small"
+                sx={{ fontSize: "0.813rem" }}
+              />
+            )}
+          </Stack>
+        ) : null}
         {/* Note */}
         {order.note && (
           <Stack direction="row" spacing={1} alignItems="center" mb={1}>
