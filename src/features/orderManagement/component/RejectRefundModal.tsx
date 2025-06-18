@@ -116,6 +116,20 @@ const RejectRefundModal = ({
                     {new Date(order.createdAt).toLocaleDateString("vi-VN")}
                   </Typography>
                 </Box>
+                <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography color="text.secondary" variant="body2">
+                      Ngày giao hàng:
+                    </Typography>
+                    <Typography variant="body2">
+                      {order.shippingDate
+                        ? new Date(order.shippingDate).toLocaleDateString(
+                            "vi-VN",
+                          )
+                        : "Chưa giao hàng"}
+                    </Typography>
+                  </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography color="text.secondary" variant="body2">
                     Tổng tiền:
