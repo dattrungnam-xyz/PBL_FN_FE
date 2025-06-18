@@ -182,6 +182,7 @@ const Pending = () => {
       );
       getOrders();
       setOpenConfirmDialogSingle(false);
+      setSelectedOrders([]);
     } catch (error) {
       console.error(error);
     }
