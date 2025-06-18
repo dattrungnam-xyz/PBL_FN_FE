@@ -111,7 +111,25 @@ const OrderDetailModal = ({
             </Typography>
           </Box>
         </Stack>
-
+        <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+          <AccessTimeIcon sx={{ fontSize: "1rem", color: "text.secondary" }} />
+          <Box>
+            <Typography variant="body2" color="text.secondary">
+              Ngày giao hàng
+            </Typography>
+            <Typography variant="body2" fontWeight={500}>
+              {order.shippingDate
+                ? new Date(order.shippingDate).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Chưa giao hàng"}
+            </Typography>
+          </Box>
+        </Stack>
         {/* Note */}
         {order.note && (
           <Stack direction="row" spacing={1} alignItems="center" mb={1}>

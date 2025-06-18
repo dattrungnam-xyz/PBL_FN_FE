@@ -38,6 +38,7 @@ export interface IOrder {
   refundReason: string | null;
   refundReasonImage: string[];
   rejectReason: string | null;
+  shippingDate: string | null;
 }
 
 export interface IOrderDetail {
