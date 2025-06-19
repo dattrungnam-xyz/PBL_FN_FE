@@ -164,6 +164,7 @@ const RequireRefund = () => {
         await acceptRefundOrder(confirmOrderId);
         queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
         setOpenConfirm(false);
+        setOpen(false);
         setConfirmOrderId(null);
         toast.success("Phê duyệt yêu cầu trả hàng thành công");
         getOrders();
@@ -184,6 +185,7 @@ const RequireRefund = () => {
         queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
         setOpenReject(false);
         setRejectOrderId(null);
+        setOpen(true);
         toast.success("Từ chối yêu cầu trả hàng thành công");
         getOrders();
       } catch (error) {
