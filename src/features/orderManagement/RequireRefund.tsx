@@ -411,6 +411,8 @@ const RequireRefund = () => {
                               }}
                               onClick={() => {
                                 setSelectedOrder(order);
+                                setConfirmOrderId(order.id);
+                                setRejectOrderId(order.id);
                                 setOpen(true);
                               }}
                             >
