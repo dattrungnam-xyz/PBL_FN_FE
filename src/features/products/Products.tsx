@@ -123,13 +123,13 @@ const Products = () => {
     if (search_param) {
       setSearch(search_param);
     }
-    if (category_param && category_param !== "all") {
-      setSelectedCategories([category_param as Category]);
-    }
+    // if (category_param && category_param !== "all") {
+    //   setSelectedCategories([category_param as Category]);
+    // }
 
     getListProducts({
       search_param: search_param || undefined,
-      category_param: category_param as Category | undefined,
+      // category_param: category_param as Category | undefined,
     });
   }, [search_param, category_param, page]);
 
