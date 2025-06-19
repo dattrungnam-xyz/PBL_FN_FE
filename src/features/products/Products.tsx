@@ -101,11 +101,15 @@ const Products = () => {
     }
 
     const response = await getProducts({
-      categories: category_param ? [category_param] : selectedCategories,
+      categories: selectedCategories.length
+        ? selectedCategories
+        : (category_param && category_param !== "all" as Category)
+          ? [category_param]
+          : undefined,
       provinces: selectedProvinces.map((province) => province.id),
       minPrice: isPriceFilterEnabled ? minPrice : undefined,
       maxPrice: isPriceFilterEnabled ? maxPrice : undefined,
-      search: search_param ? search_param : search,
+      search: search ? search : search_param ? search_param : undefined,
       userId: user?.id,
       page,
       limit: itemsPerPage,
@@ -115,23 +119,25 @@ const Products = () => {
     setProducts(response.data);
     setTotalProducts(response.total);
   };
-  // useEffect(() => {
-  //   getListProducts({});
-  // }, [page]);
 
   useEffect(() => {
     if (search_param) {
       setSearch(search_param);
     }
-    // if (category_param && category_param !== "all") {
-    //   setSelectedCategories([category_param as Category]);
-    // }
+    if (category_param && category_param !== "all") {
+      setSelectedCategories([category_param as Category]);
+    }
 
     getListProducts({
       search_param: search_param || undefined,
-      // category_param: category_param as Category | undefined,
+      category_param: category_param as Category | undefined,
     });
-  }, [search_param, category_param, page]);
+  }, [search_param, category_param]);
+
+  // useEffect(() => {
+  //   getListProducts({});
+  // }, [page, search, JSON.stringify(selectedCategories)]);
+
 
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
@@ -141,6 +147,7 @@ const Products = () => {
   };
 
   const handleClickButtonSearch = async () => {
+    setPage(1);
     getListProducts({});
   };
 

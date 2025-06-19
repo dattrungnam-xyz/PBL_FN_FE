@@ -38,6 +38,7 @@ import { getTopRecentReviews } from "../../services/review.service";
 import { format } from "date-fns";
 import ImageDetail from "../../components/ImageDetail";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const responsive = {
   superLargeDesktop: {
@@ -142,6 +143,8 @@ const SellerBenefits = [
 ];
 
 const HomePage = () => {
+  const navigate = useNavigate();
+
   const { data: products } = useQuery({
     queryKey: ["five-star-product"],
     queryFn: () => getFiveStarProduct(),
@@ -589,6 +592,7 @@ const HomePage = () => {
               </Typography>
               <Button
                 variant="contained"
+                onClick={() => navigate("/seller")}
                 sx={{
                   mb: 4,
                   px: 4,
