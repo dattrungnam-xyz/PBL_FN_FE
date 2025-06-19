@@ -10,9 +10,9 @@ const SearchBar = () => {
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const handleCategoryClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // const handleCategoryClick = (event: React.MouseEvent<HTMLElement>) => {
+  //   setAnchorEl(event.currentTarget);
+  // };
 
   const handleCategoryClose = () => {
     setAnchorEl(null);
@@ -52,7 +52,7 @@ const SearchBar = () => {
       <Box sx={{ position: "relative", flex: 1, display: "flex" }}>
         <Button
           variant="outlined"
-          onClick={handleCategoryClick}
+          // onClick={handleCategoryClick}
           sx={{
             borderRadius: "8px 0 0 8px",
             borderRight: "none",
@@ -62,7 +62,7 @@ const SearchBar = () => {
             },
           }}
         >
-          {categories.find((cat) => cat.value === selectedCategory)?.label}
+          Tất cả danh mục
         </Button>
         <TextField
           fullWidth
