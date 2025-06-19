@@ -113,21 +113,12 @@ const OrderDetailModal = ({ open, onClose, order }: OrderDetailModalProps) => {
               <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 0.5 }}>
                 Thanh toán
               </Typography>
-              {
-                order.payment.paymentStatus === PaymentStatus.PAID ? (
-                  <Chip
-                    label="Đã thanh toán"
-                    color="success"
-                    size="small"
-                  />
-                ) : (
-                  <Chip
-                    label="Chưa thanh toán"
-                    color="error"
-                    size="small"
-                  />
-                )}
-              </Box>
+              {order.payment.paymentStatus === PaymentStatus.PAID ? (
+                <Chip label="Đã thanh toán" color="success" size="small" />
+              ) : (
+                <Chip label="Chưa thanh toán" color="error" size="small" />
+              )}
+            </Box>
 
             {/* Order Information */}
             <Box>
@@ -170,7 +161,9 @@ const OrderDetailModal = ({ open, onClose, order }: OrderDetailModalProps) => {
                     </Typography>
                     <Typography variant="body2">
                       {order.shippingDate
-                        ? new Date(order.shippingDate).toLocaleDateString("vi-VN")
+                        ? new Date(order.shippingDate).toLocaleDateString(
+                            "vi-VN",
+                          )
                         : "Chưa giao hàng"}
                     </Typography>
                   </Box>
@@ -240,7 +233,7 @@ const OrderDetailModal = ({ open, onClose, order }: OrderDetailModalProps) => {
             </Box>
 
             {/* Refund Information */}
-            {order.refundReason && (
+            {order.refundReason ? (
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -261,9 +254,9 @@ const OrderDetailModal = ({ open, onClose, order }: OrderDetailModalProps) => {
                   <Typography variant="body2">{order.refundReason}</Typography>
                 </Box>
               </Box>
-            )}
+            ) : null}
 
-            {order.cancelReason && (
+            {order.cancelReason ? (
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -284,10 +277,10 @@ const OrderDetailModal = ({ open, onClose, order }: OrderDetailModalProps) => {
                   <Typography variant="body2">{order.cancelReason}</Typography>
                 </Box>
               </Box>
-            )}
+            ) : null}
 
             {/* Refund Images/Videos */}
-            {order.refundReasonImage && order.refundReasonImage.length > 0 && (
+            {order.refundReasonImage && order.refundReasonImage.length > 0 ? (
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -352,7 +345,30 @@ const OrderDetailModal = ({ open, onClose, order }: OrderDetailModalProps) => {
                   })}
                 </Box>
               </Box>
-            )}
+            ) : null}
+
+            {order.rejectReason ? (
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={500}
+                  sx={{ mb: 0.5 }}
+                >
+                  Lý do bị từ chối
+                </Typography>
+                <Box
+                  sx={{
+                    p: 1,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <Typography variant="body2">{order.rejectReason}</Typography>
+                </Box>
+              </Box>
+            ) : null}
 
             {/* Shipping Information */}
             <Box>
