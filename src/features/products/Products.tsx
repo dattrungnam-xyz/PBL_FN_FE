@@ -115,9 +115,9 @@ const Products = () => {
     setProducts(response.data);
     setTotalProducts(response.total);
   };
-  useEffect(() => {
-    getListProducts({});
-  }, [page]);
+  // useEffect(() => {
+  //   getListProducts({});
+  // }, [page]);
 
   useEffect(() => {
     if (search_param) {
@@ -131,7 +131,7 @@ const Products = () => {
       search_param: search_param || undefined,
       category_param: category_param as Category | undefined,
     });
-  }, [search_param, category_param]);
+  }, [search_param, category_param, page]);
 
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
@@ -530,7 +530,8 @@ const Products = () => {
                       ?.reduce(
                         (acc, orderDetail) => acc + orderDetail.quantity,
                         0,
-                      ) || 0
+                      ) ||
+                    0
                   }
                   isVerified={
                     product.verifyOcopStatus === VerifyOCOPStatus.VERIFIED
