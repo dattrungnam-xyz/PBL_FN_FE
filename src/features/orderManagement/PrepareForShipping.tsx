@@ -507,9 +507,9 @@ const PrepareForShipping = () => {
             : setOpenConfirmDialogSingle(false)
         }
         keepMounted={false}
-        title="Chuẩn bị giao hàng"
-        content="Bạn có chắc chắn muốn chuẩn bị giao hàng cho đơn hàng này?"
-        confirmText="Chuẩn bị giao hàng"
+        title="Vận chuyển đơn hàng"
+        content="Bạn có chắc chắn muốn xác nhận vận chuyển đơn hàng này?"
+        confirmText="Vận chuyển đơn hàng"
         cancelText="Hủy bỏ"
       />
     </LocalizationProvider>

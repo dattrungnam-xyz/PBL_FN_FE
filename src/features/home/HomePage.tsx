@@ -161,11 +161,11 @@ const HomePage = () => {
   const [mediaList, setMediaList] = useState<string[]>([]);
   const [isImageDetailOpen, setIsImageDetailOpen] = useState(false);
 
-  const handleMediaClick = (mediaUrl: string, allMedia: string[]) => {
-    setSelectedMedia(mediaUrl);
-    setMediaList(allMedia);
-    setIsImageDetailOpen(true);
-  };
+  // const handleMediaClick = (mediaUrl: string, allMedia: string[]) => {
+  //   setSelectedMedia(mediaUrl);
+  //   setMediaList(allMedia);
+  //   setIsImageDetailOpen(true);
+  // };
 
   const handleCloseImageDetail = () => {
     setIsImageDetailOpen(false);
@@ -452,7 +452,7 @@ const HomePage = () => {
                         <Typography variant="body2" color="text.secondary">
                           {review.description}
                         </Typography>
-                        {review.media && review.media.length > 0 && (
+                        {/* {review.media && review.media.length > 0 && (
                           <Box
                             sx={{
                               display: "flex",
@@ -503,7 +503,7 @@ const HomePage = () => {
                               </Box>
                             ))}
                           </Box>
-                        )}
+                        )} */}
                       </Stack>
                     </CardContent>
                   </Card>
