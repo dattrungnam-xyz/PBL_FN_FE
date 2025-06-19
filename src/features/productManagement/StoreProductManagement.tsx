@@ -117,9 +117,13 @@ const StoreProductManagement = () => {
     };
   }, [searchTerm]);
 
-  const { data: products, isLoading } = useQuery({
+  const {
+    data: products,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: [
-      "products",
+      "store-list-product",
       user?.storeId,
       page,
       rowsPerPage,
@@ -196,6 +200,7 @@ const StoreProductManagement = () => {
   const handleDelete = async (productId: string) => {
     try {
       await deleteProduct(productId);
+      refetch();
       toast.success("Xóa sản phẩm thành công");
     } catch (error) {
       console.log(error);

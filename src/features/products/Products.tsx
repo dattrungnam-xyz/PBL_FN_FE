@@ -79,7 +79,7 @@ const Products = () => {
   }: {
     search_param?: string;
     category_param?: Category;
-    page?:number;
+    page?: number;
   }) => {
     const searchHistory = localStorage.getItem("searchHistory");
     const viewHistory = localStorage.getItem("viewHistory");
@@ -87,9 +87,9 @@ const Products = () => {
     const viewHistoryArray = JSON.parse(viewHistory || "[]") || [];
     let payload = [];
     if (search) {
-      payload = [...searchHistoryArray, search];
+      payload = Array.from(new Set([...searchHistoryArray, search]));
     } else {
-      payload = [...searchHistoryArray];
+      payload = Array.from(new Set([...searchHistoryArray]));
     }
     if (searchHistoryArray.length > 0 && user) {
       await createSearchHistory(payload);
@@ -139,11 +139,10 @@ const Products = () => {
     _event: React.ChangeEvent<unknown>,
     value: number,
   ) => {
-
     setPage(value);
     getListProducts({
       search_param: search,
-      page: value || 1
+      page: value || 1,
     });
   };
 
