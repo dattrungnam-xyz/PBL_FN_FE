@@ -75,9 +75,11 @@ const Products = () => {
   const getListProducts = async ({
     search_param,
     category_param,
+    page,
   }: {
     search_param?: string;
     category_param?: Category;
+    page?:number;
   }) => {
     const searchHistory = localStorage.getItem("searchHistory");
     const viewHistory = localStorage.getItem("viewHistory");
@@ -103,15 +105,15 @@ const Products = () => {
     const response = await getProducts({
       categories: selectedCategories.length
         ? selectedCategories
-        : (category_param && category_param !== "all" as Category)
+        : category_param && category_param !== ("all" as Category)
           ? [category_param]
           : undefined,
       provinces: selectedProvinces.map((province) => province.id),
       minPrice: isPriceFilterEnabled ? minPrice : undefined,
       maxPrice: isPriceFilterEnabled ? maxPrice : undefined,
-      search: search ? search : search_param ? search_param : undefined,
+      search: search_param ? search_param : undefined,
       userId: user?.id,
-      page,
+      page: page || 1,
       limit: itemsPerPage,
       searchHistory: searchHistoryArray,
       viewHistory: viewHistoryArray,
@@ -127,28 +129,30 @@ const Products = () => {
     if (category_param && category_param !== "all") {
       setSelectedCategories([category_param as Category]);
     }
-
     getListProducts({
       search_param: search_param || undefined,
       category_param: category_param as Category | undefined,
     });
   }, [search_param, category_param]);
 
-  // useEffect(() => {
-  //   getListProducts({});
-  // }, [page, search, JSON.stringify(selectedCategories)]);
-
-
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
     value: number,
   ) => {
+
     setPage(value);
+    getListProducts({
+      search_param: search,
+      page: value || 1
+    });
   };
 
   const handleClickButtonSearch = async () => {
     setPage(1);
-    getListProducts({});
+    getListProducts({
+      search_param: search,
+      page: 1,
+    });
   };
 
   return (

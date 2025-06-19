@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-
+import { useLocation } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import {
   Avatar,
@@ -44,6 +44,7 @@ const Header: React.FC = () => {
   const { isAuthenticated, user } = useSelector<RootState, AuthState>(
     (state) => state.auth,
   );
+  const location = useLocation();
 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -63,6 +64,8 @@ const Header: React.FC = () => {
     navigate("/");
     window.location.reload();
   };
+
+  const isProductPage = location.pathname === "/products";
 
   return (
     <AppBar
@@ -88,7 +91,7 @@ const Header: React.FC = () => {
         </Stack>
 
         <Box sx={{ flex: 1, display: "flex", justifyContent: "center", px: 2 }}>
-          <SearchBar />
+          {!isProductPage ? <SearchBar /> : null}
         </Box>
 
         {isAuthenticated ? (
