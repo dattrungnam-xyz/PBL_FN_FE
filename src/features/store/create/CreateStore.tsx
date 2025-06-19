@@ -176,12 +176,12 @@ const CreateStore = () => {
       try {
         setIsLoading(true);
         formData.wardName =
-          wards.find((ward) => ward.id === formData.ward)?.name || "";
+          wards.find((ward) => ward.id == formData.ward)?.name || "";
         formData.districtName =
-          districts.find((district) => district.id === formData.district)
+          districts.find((district) => district.id == formData.district)
             ?.name || "";
         formData.provinceName =
-          provinces.find((province) => province.id === formData.province)
+          provinces.find((province) => province.id == formData.province)
             ?.name || "";
 
         await createStore(formData);

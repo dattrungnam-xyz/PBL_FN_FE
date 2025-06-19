@@ -86,7 +86,7 @@ const Customer = () => {
       const provinces = await getProvinces();
       const newResponse = response.map((item) => {
         const province = provinces.find(
-          (p: IProvince) => p.id === item.province,
+          (p: IProvince) => p.id == item.province,
         );
         return {
           ...item,

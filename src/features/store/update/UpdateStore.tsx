@@ -227,12 +227,12 @@ const UpdateStore = () => {
     try {
       setLoading(true);
       formData.wardName =
-        wards.find((ward) => ward.id === formData.ward)?.name || "";
+        wards.find((ward) => ward.id == formData.ward)?.name || "";
       formData.districtName =
-        districts.find((district) => district.id === formData.district)?.name ||
+        districts.find((district) => district.id == formData.district)?.name ||
         "";
       formData.provinceName =
-        provinces.find((province) => province.id === formData.province)?.name ||
+        provinces.find((province) => province.id == formData.province)?.name ||
         "";
       await updateStore(formData);
       toast.success("Cập nhật cửa hàng thành công");
