@@ -147,7 +147,11 @@ const Revenue = () => {
                   <LinearProgress
                     variant="determinate"
                     value={
-                      revenue.previousCycle
+                      revenue.previousCycle &&
+                      +(
+                        (revenue.currentCycle / revenue.previousCycle) *
+                        100
+                      ).toFixed(2) < 100
                         ? +(
                             (revenue.currentCycle / revenue.previousCycle) *
                             100
