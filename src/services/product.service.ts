@@ -107,6 +107,7 @@ export const getProducts = async (filters: {
   userId?: string;
   viewHistory?: string[];
   searchHistory?: string[];
+  ocopStars?: number[];
 }) => {
   const response = await axios.get<PaginatedData<IProduct>>("/products", {
     params: {
@@ -123,6 +124,9 @@ export const getProducts = async (filters: {
         : undefined,
       searchHistory: filters.searchHistory
         ? filters.searchHistory.join(",")
+        : undefined,
+      ocopStars: filters.ocopStars
+        ? filters.ocopStars.map((star) => star.toString()).join(",")
         : undefined,
     },
   });

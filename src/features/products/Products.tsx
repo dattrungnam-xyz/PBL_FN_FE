@@ -34,6 +34,14 @@ const categories = [
   { value: Category.HANDICRAFTS_DECORATION, label: "Đồ thủ công" },
 ];
 
+const ocopStars = [
+  { value: 1, label: "1 sao" },
+  { value: 2, label: "2 sao" },
+  { value: 3, label: "3 sao" },
+  { value: 4, label: "4 sao" },
+  { value: 5, label: "5 sao" },
+];
+
 const Products = () => {
   const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(1000000);
@@ -41,6 +49,7 @@ const Products = () => {
     useState<boolean>(false);
   const [selectedProvinces, setSelectedProvinces] = useState<IProvince[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  const [selectedOcopStars, setSelectedOcopStars] = useState<number[]>([]);
   const [page, setPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const itemsPerPage = 12;
@@ -117,6 +126,7 @@ const Products = () => {
       limit: itemsPerPage,
       searchHistory: searchHistoryArray,
       viewHistory: viewHistoryArray,
+      ocopStars: selectedOcopStars.length > 0 ? selectedOcopStars : undefined,
     });
     setProducts(response.data);
     setTotalProducts(response.total);
@@ -322,6 +332,73 @@ const Products = () => {
                     {...params}
                     size="small"
                     placeholder="Chọn tỉnh/thành phố..."
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "background.paper",
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
+                )}
+                sx={{
+                  "& .MuiAutocomplete-inputRoot": {
+                    paddingY: 0.5,
+                  },
+                }}
+              />
+            </Box>
+
+            <Divider sx={{ my: 1.5, borderColor: "divider" }} />
+
+            {/* OCOP Star Rating Filter */}
+            <Box sx={{ mb: 1.5 }}>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={{
+                  mb: 0.75,
+                  fontWeight: 500,
+                }}
+              >
+                Số sao OCOP
+              </Typography>
+              <Autocomplete
+                multiple
+                options={ocopStars}
+                getOptionLabel={(option) => option.label}
+                value={ocopStars.filter((star) =>
+                  selectedOcopStars.includes(star.value),
+                )}
+                onChange={(_event, newValue) => {
+                  setSelectedOcopStars(
+                    newValue.map((star) => star.value),
+                  );
+                }}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      label={option.label}
+                      {...getTagProps({ index })}
+                      size="small"
+                      sx={{
+                        color: "primary.dark",
+                        "& .MuiChip-deleteIcon": {
+                          color: "primary.dark",
+                          "&:hover": {
+                            color: "primary.main",
+                          },
+                        },
+                      }}
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    placeholder="Chọn số sao OCOP..."
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         bgcolor: "background.paper",
